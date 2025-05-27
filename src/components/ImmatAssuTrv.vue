@@ -2,7 +2,7 @@
   <q-dialog v-model="open" persistent full-width>
     <q-card :style="$q.screen.gt.sm ? 'width: 900px' : 'width: 100%'">
       <q-card-section>
-        <div class="text-h6 text-primary text-center">Auto-immatriculation en ligne des Assurés</div>
+        <div class="text-h6 text-primary text-center text-bold">Auto-immatriculation en ligne des Assurés</div>
       </q-card-section>
 
       <q-separator />
