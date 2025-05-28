@@ -2,7 +2,7 @@
   <q-dialog v-model="open" persistent full-width>
     <q-card :style="$q.screen.gt.sm ? 'width: 900px' : 'width: 100%'">
       <q-card-section>
-        <div class="text-h6 text-primary text-center text-bold">Auto-immatriculation des Assurés</div>
+        <div class="text-h6 text-primary text-center text-bold">Auto-immatriculation en ligne des Assurés volontaires</div>
       </q-card-section>
 
       <q-separator />
@@ -10,100 +10,40 @@
       <q-card-section class="q-pt-none">
         <q-form ref="formRef" @submit.prevent="submitForm">
           <q-stepper v-model="step" vertical color="primary" animated>
-            <!-- Étape 1 : Informations sur l'emploi travailleur -->
+            <!-- Étape 1 : Informations sur l'affiliation -->
             <q-step
               :name="1"
-              title="Informations sur l'emploi travailleur"
-              icon="work"
+              title="Informations sur l'affiliation"
+              icon="money"
               :done="step > 1"
             >
               <div class="justify-center row">
-                <q-input
-                  v-model="form.matriculeCNPS"
-                  label="Matricule CNPS employeur *"
-                  outlined
-                  dense
-                  style="width: 600px"
-                  class="q-mr-sm q-mb-sm"
-                  :rules="[required, validateMatriculeCNPS]"
-                  @keyup.enter="fetchEmployerData"
-                />
-                <q-input
-                  v-model="form.nomEntreprise"
-                  label="Nom Entreprise"
-                  outlined
-                  dense
-                  style="width: 600px"
-                  class="q-mr-sm q-mb-sm"
-                  readonly
-                />
-                <q-input
-                  v-model="form.employeur"
-                  label="Nom Employeur *"
-                  outlined
-                  dense
-                  style="width: 600px"
-                  class="q-mr-sm q-mb-sm"
-                  readonly
-                  :rules="[required]"
-                />
-                <q-input
-                  v-model="form.dateEmbauche"
-                  label="Date d'embauche *"
-                  outlined
-                  dense
-                  style="width: 600px"
-                  class="q-mr-sm q-mb-sm"
-                  readonly
-                  :rules="[required]"
-                  mask="##/##/####"
-                >
-                  <template #append>
-                    <q-icon name="event" class="cursor-pointer" color="primary">
-                      <q-popup-proxy transition-show="scale" transition-hide="scale">
-                        <q-date
-                          v-model="form.dateEmbauche"
-                          mask="DD/MM/YYYY"
-                          locale="fr"
-                          :options="optionsDn"
-                        />
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
                 <q-select
-                  v-model="form.echelon"
-                  label="Echelon"
-                  :options="['A', 'B', 'C', 'D', 'E', 'F', 'G']"
+                  v-model="form.origineRevenue"
+                  label="Origine des revenus *"
+                  :options="[
+                    'Activité indépendante',
+                    'Revenus agricoles',
+                    'Revenus commerciaux',
+                    'Revenus locatifs',
+                    'Prestations sociales',
+                    'Autres revenus',
+                    'Investissements'
+                  ]"
                   outlined
                   dense
                   style="width: 600px"
                   class="q-mr-sm q-mb-sm"
+                  :rules="[required]"
                 />
                 <q-input
-                  v-model="form.specialite"
-                  label="Spécialité *"
+                  v-model="form.dateAffiliationSollicite"
+                  label="Date d'affiliation sollicitée *"
                   outlined
                   dense
                   style="width: 600px"
                   class="q-mr-sm q-mb-sm"
-                  :rules="[required, validateSpecialite]"
-                />
-                <q-input
-                  v-model="form.localisation"
-                  label="Localisation Entreprise"
-                  outlined
-                  dense
-                  style="width: 600px"
-                  class="q-mr-sm q-mb-sm"
-                />
-                <q-input
-                  v-model="form.datePremierSalaire"
-                  label="Date d'embauche Premier salarié *"
-                  outlined
-                  dense
-                  style="width: 600px"
-                  class="q-mr-sm q-mb-sm"
+                  readonly
                   :rules="[required]"
                   mask="##/##/####"
                 >
@@ -111,7 +51,7 @@
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
-                          v-model="form.datePremierSalaire"
+                          v-model="form.dateAffiliationSollicite"
                           mask="DD/MM/YYYY"
                           locale="fr"
                           :options="optionsDn"
@@ -121,44 +61,87 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.effectif"
-                  label="Effectif Approximatif"
+                  v-model="form.detailOrigineRevenue"
+                  label="Détail sur l'origine des revenus *"
+                  outlined
+                  dense
+                  style="width: 600px"
+                  class="q-mr-sm q-mb-sm"
+                  :rules="[required]"
+                />
+                <q-input
+                  v-model="form.dateAffiliationNormale"
+                  label="Date d'affiliation normale *"
+                  outlined
+                  dense
+                  style="width: 600px"
+                  class="q-mr-sm q-mb-sm"
+                  readonly
+                  :rules="[required]"
+                  mask="##/##/####"
+                >
+                  <template #append>
+                    <q-icon name="event" class="cursor-pointer" color="primary">
+                      <q-popup-proxy transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="form.dateAffiliationNormale"
+                          mask="DD/MM/YYYY"
+                          locale="fr"
+                          :options="optionsDn"
+                        />
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
+                <q-input
+                  v-model="form.revenuAnnuelDeclare"
+                  label="Revenu annuel déclaré *"
                   outlined
                   dense
                   style="width: 600px"
                   class="q-mr-sm q-mb-sm"
                   type="number"
                   min="0"
-                />
-                <q-select
-                  v-model="form.categorie"
-                  label="Catégorie *"
-                  :options="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]"
-                  outlined
-                  dense
-                  style="width: 600px"
-                  class="q-mr-sm q-mb-sm"
                   :rules="[required]"
                 />
                 <q-input
-                  v-model="form.niveau"
-                  label="Niveau d'instruction"
+                  v-model="form.assieteCotisation"
+                  label="Assiète de cotisation à l'immatriculation *"
                   outlined
                   dense
                   style="width: 600px"
                   class="q-mr-sm q-mb-sm"
+                  min="0"
+                  :rules="[required]"
                 />
                 <q-input
-                  v-model="form.revenuActuel"
-                  label="Revenu actuel"
+                  v-model="form.tauxCotisation"
+                  label="Taux de cotisation en vigueur"
                   outlined
                   dense
                   style="width: 600px"
                   class="q-mr-sm q-mb-sm"
+                  type="number"
+                  min="0"
+                >
+                  <template v-slot:append>
+                    <q-icon name="percent" class="text-grey-8" />
+                  </template>
+                </q-input>
+                <q-input
+                  v-model="form.montantCotisation"
+                  label="Montant de cotisation à l'immatriculation *"
+                  outlined
+                  dense
+                  style="width: 600px"
+                  class="q-mr-sm q-mb-sm"
+                  type="number"
+                  min="0"
+                  :rules="[required]"
                 />
                 <q-file
-                  v-model="form.avisEmbauche"
-                  label="Avis d'embauche *"
+                  v-model="form.filedeclareAnnuelRevenu"
+                  label="Déclaration annuelle de revenu *"
                   outlined
                   dense
                   style="width: 600px"
@@ -176,16 +159,26 @@
                     <q-icon name="attach_file" />
                   </template>
                 </q-file>
-                <q-input
-                  v-model="form.smig"
-                  label="SMIG"
+                <q-file
+                  v-model="form.filedeclareHonneur"
+                  label="Déclaration sur honneur de non salarié et non perception de pension *"
                   outlined
                   dense
                   style="width: 600px"
+                  counter
+                  :counter-label="counterLabelFn"
+                  max-files="1"
+                  accept=".jpg, .png, image/*"
+                  max-file-size="3072000"
                   class="q-mr-sm q-mb-sm"
-                  type="number"
-                  min="0"
-                />
+                  :rules="[required]"
+                  @update:model-value="onFileSelected"
+                  @rejected="onRejected"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="attach_file" />
+                  </template>
+                </q-file>
               </div>
 
               <q-stepper-navigation>
@@ -369,7 +362,7 @@
 
               <q-stepper-navigation>
                 <q-btn @click="goToNextStep(3)" color="primary" label="Continuer" />
-                <q-btn flat @click="step = 1" color="primary" label="Retour" class="q-ml-sm" />
+                <q-btn flat @click="step = 2" color="primary" label="Retour" class="q-ml-sm" />
               </q-stepper-navigation>
             </q-step>
 
@@ -631,9 +624,9 @@
                   outlined
                   dense
                   style="width: 600px"
+                  class="q-mr-sm q-mb-sm"
                   type="tel"
                   mask="### ### ###"
-                  class="q-mr-sm q-mb-sm"
                   :rules="[required]"
                 />
                 <q-input
@@ -780,17 +773,6 @@ const validateEmail = (val) => {
   return regex.test(val) || 'Veuillez entrer un email valide (ex: exemple@domaine.com)'
 }
 
-// Fonction de validation pour le matricule CNPS
-const validateMatriculeCNPS = (val) => {
-  const regex = /^\d{3}-\d{7}-\d{3}-[A-Z]$/
-  return regex.test(val) || 'Le matricule CNPS doit suivre le format 123-1234567-123-A'
-}
-
-// Fonction de validation pour la spécialité
-const validateSpecialite = (val) => {
-  return (val && val.trim().length > 0) || 'Veuillez entrer une spécialité valide'
-}
-
 // Gestionnaire pour la sélection de fichier
 const onFileSelected = (file) => {
   if (file) {
@@ -806,35 +788,20 @@ const onRejected = (rejectedEntries) => {
 
 // Counter label function for file inputs
 const counterLabelFn = ({ files } = {}) => {
-  return files && files.length > 0 ? `${files.length} fichier(s) sélectionné(s)` : ''
+  return files?.length > 0 ? `${files.length} fichier(s) sélectionné(s)` : ''
 }
 
-// Mock data for employers
-const employeurs = ref([
-  {
-    numeroEmployeur: '123-1234567-123-A',
-    employeur: 'Orange Cameroun',
-    nomEntreprise: 'Orange Cameroon',
-    localisation: 'Yaoundé, Cameroun',
-    datePremierSalaire: '25/10/1998',
-    effectif: 500,
-  }
-])
-
 const form = ref({
-  matriculeCNPS: '',
-  employeur: '',
-  nomEntreprise: '',
-  avisEmbauche: null,
-  dateEmbauche: '',
-  echelon: '',
-  specialite: '',
-  localisation: '',
-  datePremierSalaire: '',
-  effectif: 0,
-  categorie: 1, // Default value set to 1
-  niveau: '',
-  revenuActuel: '',
+  origineRevenue: '',
+  dateAffiliationSollicite: '',
+  detailOrigineRevenue: '',
+  dateAffiliationNormale: '',
+  revenuAnnuelDeclare: null,
+  assieteCotisation: '',
+  tauxCotisation: null,
+  montantCotisation: null,
+  filedeclareAnnuelRevenu: null,
+  filedeclareHonneur: null,
   sexe: '',
   nom: '',
   prenom: '',
@@ -846,7 +813,6 @@ const form = ref({
   datePieceIdentite: '',
   lieuDelivrancePieceIdentiteAssure: '',
   etatCivil: '',
-  profession: '',
   numero: '',
   nomPere: '',
   prenomPere: '',
@@ -873,8 +839,6 @@ const form = ref({
   centreCNPS: '',
   fax: '',
   addresse: '',
-  nomEmployeur: '',
-  lieuTravail: '',
   situationMatrimoniale: '',
   nombreEnfants: 0,
   nombreCertificat: 0,
@@ -899,27 +863,6 @@ const goToNextStep = async (nextStep) => {
     step.value = nextStep
   } else {
     notifyError('Veuillez remplir tous les champs requis.')
-  }
-}
-
-const fetchEmployerData = () => {
-  const matricule = form.value.matriculeCNPS
-  const employer = employeurs.value.find(emp => emp.numeroEmployeur === matricule)
-
-  if (employer) {
-    form.value.employeur = employer.employeur || ''
-    form.value.nomEntreprise = employer.nomEntreprise || ''
-    form.value.localisation = employer.localisation || ''
-    form.value.datePremierSalaire = employer.datePremierSalaire || ''
-    form.value.effectif = employer.effectif || 0
-    notifySuccess('Informations de l\'employeur chargées avec succès.')
-  } else {
-    form.value.employeur = ''
-    form.value.nomEntreprise = ''
-    form.value.localisation = ''
-    form.value.datePremierSalaire = ''
-    form.value.effectif = 0
-    notifyError('L\'employeur n\'existe pas.')
   }
 }
 

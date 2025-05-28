@@ -127,6 +127,11 @@
         :service="selectedService"
         @close="showStepperDialog = false"
       />
+      <ImmatAssuVol
+        v-if="showImmatAssuVol"
+        :service="selectedService"
+        @close="showStepperDialog = false"
+      />
 
     </q-dialog>
   </q-page>
@@ -137,6 +142,7 @@ import { ref, computed } from 'vue'
 import ImmatEmpPro from 'components/ImmatEmpPro.vue'
 import ImmatEmpDom from 'components/ImmatEmpDom.vue'
 import ImmatAssuTrv from 'components/ImmatAssuTrv.vue'
+import ImmatAssuVol from 'components/ImmatAssuVol.vue'
 import { useNotify } from 'components/useNotify.js'
 // import axios from 'axios' onMounted notifySuccess, notifyError, notifyWarning, notifyInfo
 
@@ -149,6 +155,7 @@ const selectedService = ref(null)
 const showImmatEmpPro = ref(false)
 const showImmatEmpDom = ref(false)
 const showImmatAssuTrv = ref(false)
+const showImmatAssuVol = ref(false)
 
 // List of CNPS services
 const typesServices = [
@@ -256,7 +263,7 @@ const filteredServices = computed(() => {
 
 const openForm = (service) => {
   selectedService.value = service
-  const validCodes = ['IMMEP', 'IMMED','IMMAT']
+  const validCodes = ['IMMEP', 'IMMED','IMMAT','IMMAV']
 
   if (validCodes.includes(service.code)) {
     switch (service.code) {
@@ -268,6 +275,9 @@ const openForm = (service) => {
         break
       case 'IMMAT':
         showImmatAssuTrv.value = true
+        break
+      case 'IMMAV':
+        showImmatAssuVol.value = true
         break
     }
     // Notify user about the selected service
