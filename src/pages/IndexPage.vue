@@ -100,8 +100,8 @@
     <q-dialog v-model="detailsDialog">
       <q-card class="q-pa-md" style="max-width: 500px">
         <q-card-section>
-          <div class="text-h6">{{ selectedService?.name }}</div>
-          <div class="text-body1 q-mt-sm">{{ selectedService?.description }}</div>
+          <div class="text-h6">Désolé</div>
+          <div class="text-body1 q-mt-sm">Aucune information disponible.</div>
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Fermer" color="primary" v-close-popup />
@@ -112,15 +112,25 @@
     <!-- Stepper Dialog for Immatriculation Form -->
     <q-dialog v-model="showStepperDialog" persistent>
       <!-- Composant affiché sous condition -->
+      <ImmatAssuVol
+        v-if="showImmatAssuVol"
+        :service="selectedService"
+        @close="((showStepperDialog = false), (showImmatAssuVol = false))"
+      />
       <ImmatEmpPro
         v-if="showImmatEmpPro"
         :service="selectedService"
-        @close="showStepperDialog = false"
+        @close="((showStepperDialog = false), (showImmatEmpPro = false))"
       />
       <ImmatEmpDom
         v-if="showImmatEmpDom"
         :service="selectedService"
-        @close="showStepperDialog = false"
+        @close="((showStepperDialog = false), (showImmatEmpDom = false))"
+      />
+      <ImmatAssuTrv
+        v-if="showImmatAssuTrv"
+        :service="selectedService"
+        @close="((showStepperDialog = false), (showImmatAssuTrv = false))"
       />
     </q-dialog>
   </q-page>
@@ -130,6 +140,8 @@
 import { ref, computed } from 'vue'
 import ImmatEmpPro from 'components/ImmatEmpPro.vue'
 import ImmatEmpDom from 'components/ImmatEmpDom.vue'
+import ImmatAssuTrv from 'components/ImmatAssuTrv.vue'
+import ImmatAssuVol from 'components/ImmatAssuVol.vue'
 import { useNotify } from 'components/useNotify.js'
 // import axios from 'axios' onMounted notifySuccess, notifyError, notifyWarning, notifyInfo
 
@@ -141,6 +153,8 @@ const detailsDialog = ref(false)
 const selectedService = ref(null)
 const showImmatEmpPro = ref(false)
 const showImmatEmpDom = ref(false)
+const showImmatAssuTrv = ref(false)
+const showImmatAssuVol = ref(false)
 
 // List of CNPS services
 const typesServices = [
@@ -163,15 +177,15 @@ const typesServices = [
       },
       {
         id: 3,
-        name: 'Immatriculation assuré volontaire',
-        description: 'Immatriculation en ligne des assurés volontaires.',
-        code: 'IMMAV',
-      },
-      {
-        id: 4,
         name: 'Immatriculation assuré travailleur',
         description: 'Immatriculation en ligne des assurés travailleur.',
         code: 'IMMAT',
+      },
+      {
+        id: 4,
+        name: 'Immatriculation assuré volontaire',
+        description: 'Immatriculation en ligne des assurés volontaires.',
+        code: 'IMMAV',
       },
     ],
   },
@@ -246,20 +260,21 @@ const filteredServices = computed(() => {
   detailsDialog.value = true
 } */
 
+const formDialogMap = {
+  IMMEP: showImmatEmpPro,
+  IMMED: showImmatEmpDom,
+  IMMAV: showImmatAssuVol,
+  IMMAT: showImmatAssuTrv,
+}
+
 const openForm = (service) => {
   selectedService.value = service
-  const validCodes = ['IMMEP', 'IMMED']
+  console.log('Service sélectionné :', service)
 
-  if (validCodes.includes(service.code)) {
-    switch (service.code) {
-      case 'IMMEP':
-        showImmatEmpPro.value = true
-        break
-      case 'IMMED':
-        showImmatEmpDom.value = true
-        break
-    }
-    // Notify user about the selected service
+  const dialogRef = formDialogMap[service.code]
+
+  if (dialogRef) {
+    dialogRef.value = true
     notifyInfo(`${service.name} sélectionné.`)
     showStepperDialog.value = true
   } else {
