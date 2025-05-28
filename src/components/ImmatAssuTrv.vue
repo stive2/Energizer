@@ -2,12 +2,14 @@
   <q-dialog v-model="open" persistent full-width>
     <q-card :style="$q.screen.gt.sm ? 'width: 900px' : 'width: 100%'">
       <q-card-section>
-        <div class="text-h6 text-primary text-center text-bold">Auto-immatriculation des Assurés</div>
+        <div class="text-h6 text-primary text-center text-bold">
+          {{ service.name }}
+        </div>
       </q-card-section>
 
       <q-separator />
 
-      <q-card-section class="q-pt-none">
+      <q-card-section>
         <q-form ref="formRef" @submit.prevent="submitForm">
           <q-stepper v-model="step" vertical color="primary" animated>
             <!-- Étape 1 : Informations sur l'emploi travailleur -->
@@ -594,12 +596,7 @@
             </q-step>
 
             <!-- Étape 5 : Contact et Résidence -->
-            <q-step
-              :name="5"
-              title="Contact et Résidence"
-              icon="home"
-              :done="step > 5"
-            >
+            <q-step :name="5" title="Contact et Résidence" icon="home" :done="step > 5">
               <div class="justify-center row">
                 <q-select
                   v-model="form.ville"
@@ -699,11 +696,7 @@
             </q-step>
 
             <!-- Étape 6 : Pièces complémentaires -->
-            <q-step
-              :name="6"
-              title="Pièces complémentaires"
-              icon="work"
-            >
+            <q-step :name="6" title="Pièces complémentaires" icon="work">
               <div class="justify-center row">
                 <q-input
                   v-model="form.nombreEnfants"
@@ -747,19 +740,23 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Annuler" color="primary" @click="closeDialog" />
+        <q-btn flat label="Annuler" v-close-popup color="primary" @click="closeDialog" />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, defineProps, defineEmits } from 'vue'
 import { useNotify } from './useNotify.js'
 import { arrondissements as rawArrondissements } from '../data/Arrondissements.js'
 import { pays as rawPays } from '../data/Pays.js'
 import { pieces as rawPieces } from '../data/Pieces.js'
 import { centres as rawCentres } from '../data/Centres.js'
+
+defineProps({
+  service: Object,
+})
 
 const emit = defineEmits(['close'])
 
@@ -800,7 +797,9 @@ const onFileSelected = (file) => {
 
 const onRejected = (rejectedEntries) => {
   rejectedEntries.forEach((entry) => {
-    notifyError(`Fichier rejeté : ${entry.file.name} - ${entry.failedPropValidation === 'max-file-size' ? 'Taille maximale dépassée (3MB)' : 'Format non pris en charge.'}`)
+    notifyError(
+      `Fichier rejeté : ${entry.file.name} - ${entry.failedPropValidation === 'max-file-size' ? 'Taille maximale dépassée (3MB)' : 'Format non pris en charge.'}`,
+    )
   })
 }
 
@@ -818,7 +817,7 @@ const employeurs = ref([
     localisation: 'Yaoundé, Cameroun',
     datePremierSalaire: '25/10/1998',
     effectif: 500,
-  }
+  },
 ])
 
 const form = ref({
@@ -879,7 +878,7 @@ const form = ref({
   nombreEnfants: 0,
   nombreCertificat: 0,
   nombreConjoints: 0,
-  smig: 0
+  smig: 0,
 })
 
 const optionsDn = (date) => {
@@ -904,7 +903,7 @@ const goToNextStep = async (nextStep) => {
 
 const fetchEmployerData = () => {
   const matricule = form.value.matriculeCNPS
-  const employer = employeurs.value.find(emp => emp.numeroEmployeur === matricule)
+  const employer = employeurs.value.find((emp) => emp.numeroEmployeur === matricule)
 
   if (employer) {
     form.value.employeur = employer.employeur || ''
@@ -912,14 +911,14 @@ const fetchEmployerData = () => {
     form.value.localisation = employer.localisation || ''
     form.value.datePremierSalaire = employer.datePremierSalaire || ''
     form.value.effectif = employer.effectif || 0
-    notifySuccess('Informations de l\'employeur chargées avec succès.')
+    notifySuccess("Informations de l'employeur chargées avec succès.")
   } else {
     form.value.employeur = ''
     form.value.nomEntreprise = ''
     form.value.localisation = ''
     form.value.datePremierSalaire = ''
     form.value.effectif = 0
-    notifyError('L\'employeur n\'existe pas.')
+    notifyError("L'employeur n'existe pas.")
   }
 }
 
@@ -933,7 +932,7 @@ const filterArrondissement = (val, update) => {
   const needle = val.toLowerCase()
   update(() => {
     arrondissements.value = rawArrondissements.filter((item) =>
-      item.NOM_ARROND.toLowerCase().includes(needle)
+      item.NOM_ARROND.toLowerCase().includes(needle),
     )
   })
 }

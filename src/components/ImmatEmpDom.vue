@@ -2,7 +2,7 @@
   <q-dialog v-model="open" persistent full-width>
     <q-card :style="$q.screen.gt.sm ? 'width: 900px' : 'width: 100%'">
       <q-card-section>
-        <div class="text-h6 text-primary">
+        <div class="text-h6 text-primary text-center text-bold">
           {{ service.name }}
         </div>
       </q-card-section>
@@ -450,7 +450,7 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Annuler" color="primary" @click="closeDialog" />
+        <q-btn flat label="Annuler" v-close-popup color="primary" @click="closeDialog" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -555,9 +555,12 @@ const findCentreCNPSByCentreImpots = (selectedCentreImpots) => {
   )
 }
 
-watch(form.value.centreImpots, (newValue) => {
-  form.value.centreCNPS = findCentreCNPSByCentreImpots(newValue)
-})
+watch(
+  () => form.value.centreImpots,
+  (newValue) => {
+    form.value.centreCNPS = findCentreCNPSByCentreImpots(newValue)
+  },
+)
 
 const submitForm = async () => {
   const valid = await formRef.value.validate()
