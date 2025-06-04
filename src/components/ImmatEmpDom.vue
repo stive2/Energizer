@@ -3,7 +3,52 @@
     <q-card :style="$q.screen.gt.sm ? 'width: 900px' : 'width: 100%'">
       <q-card-section>
         <div class="text-h6 text-primary text-center text-bold">
-          {{ service.name }}
+          {{ $t(service.name) }}
+        </div>
+      </q-card-section>
+
+      <q-card-section>
+        <div class="q-gutter-md justify-center row">
+          <q-select
+            v-model="form.origineImmatriculation"
+            :options="['Spontanee', 'Suite a controle', 'Immatriculation d office']"
+            :label="$t('input.origineImmatriculation')"
+            outlined
+            dense
+            input-debounce="0"
+            fill-input
+            :rules="[required]"
+            class="col-md-5 col-xs-12 col-sm-12"
+          >
+            <template v-slot:label>
+              {{ $t('input.origineImmatriculation') }}
+              <span
+                class="q-px-sm bg-red text-white text-italic rounded-borders"
+                style="font-size: 10px"
+                >{{ $t('input.requis') }}</span
+              >
+            </template>
+          </q-select>
+          <q-select
+            v-model="form.origineDossier"
+            :options="['Centre Formalite Creation Entreprise(C.F.C.E)', 'AUTRE']"
+            :label="$t('input.origineDossier')"
+            outlined
+            dense
+            input-debounce="0"
+            fill-input
+            :rules="[required]"
+            class="col-md-5 col-xs-12 col-sm-12"
+          >
+            <template v-slot:label>
+              {{ $t('input.origineDossier') }}
+              <span
+                class="q-px-sm bg-red text-white text-italic rounded-borders"
+                style="font-size: 10px"
+                >{{ $t('input.requis') }}</span
+              >
+            </template>
+          </q-select>
         </div>
       </q-card-section>
 
@@ -11,83 +56,88 @@
 
       <q-card-section>
         <q-form ref="formRef" @submit.prevent="submitForm">
-          <q-stepper v-model="step" vertical color="primary" animated>
+          <q-stepper v-model="step" :vertical="$q.screen.lt.sm" color="primary" animated header-nav>
             <!-- Etape 1 : Informations de l'employeur -->
-            <q-step :name="1" title="Informations de l'employeur" icon="person" :done="step > 1">
+            <q-step :name="1" :title="$t('immed.step1')" icon="person" :done="step > 1">
               <div class="q-gutter-md justify-center row">
-                <q-select
-                  v-model="form.origineImmatriculation"
-                  :options="['Spontanee', 'Suite a controle', 'Immatriculation d office']"
-                  label="Origine immatriculation *"
-                  outlined
-                  dense
-                  input-debounce="0"
-                  fill-input
-                  :rules="[required]"
-                  class="col-md-5 col-xs-12 col-sm-12"
-                />
-                <q-select
-                  v-model="form.origineDossier"
-                  :options="['Centre Formalite Creation Entreprise(C.F.C.E)', 'AUTRE']"
-                  label="Origine dossier *"
-                  outlined
-                  dense
-                  input-debounce="0"
-                  fill-input
-                  :rules="[required]"
-                  class="col-md-5 col-xs-12 col-sm-12"
-                />
                 <q-input
                   v-model="form.nomEmployeur"
-                  label="Nom *"
+                  :label="$t('input.nom')"
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
                   :rules="[required]"
-                />
+                >
+                  <template v-slot:label>
+                    {{ $t('input.nom') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
                 <q-input
                   v-model="form.prenomEmployeur"
-                  label="Prénom"
+                  :label="$t('input.prenom')"
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
                 />
                 <q-input
                   v-model="form.dateNaissanceEmployeur"
-                  hint="Au format YYYY-MM-DD"
-                  label="Date de naissance de l'employeur *"
+                  :label="$t('input.dateNaissance')"
                   outlined
                   dense
                   class="col-md-3 col-xs-12 col-sm-12"
                   :rules="[required]"
-                  mask="####-##-##"
+                  :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
+                  :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
                 >
                   <template #append>
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
                           v-model="form.dateNaissanceEmployeur"
-                          mask="YYYY-MM-DD"
+                          :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           locale="fr"
                           :options="optionsDn"
+                          color="primary"
                         />
                       </q-popup-proxy>
                     </q-icon>
                   </template>
+                  <template v-slot:label>
+                    {{ $t('input.dateNaissance') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
                 </q-input>
                 <q-input
                   v-model="form.lieuNaissanceEmployeur"
-                  label="Lieu exact de naissance de l'employeur *"
+                  :label="$t('input.lieuNaissance')"
                   outlined
                   dense
                   class="col-md-7 col-xs-12 col-sm-12"
                   :rules="[required]"
-                />
+                >
+                  <template v-slot:label>
+                    {{ $t('input.lieuNaissance') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
                 <q-select
                   v-model="form.arrondissementNaissanceEmployeur"
                   :options="arrondissements"
                   option-label="NOM_ARROND"
-                  label="Ville de naissance *"
+                  :label="$t('input.arrondissementNaissance')"
                   outlined
                   dense
                   use-input
@@ -97,23 +147,41 @@
                   @filter="filterArrondissement"
                   :rules="[required]"
                   class="col-md-4 col-xs-12 col-sm-12"
-                />
+                >
+                  <template v-slot:label>
+                    {{ $t('input.arrondissementNaissance') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-select>
                 <q-select
                   v-model="form.sexeEmployeur"
                   :options="['FEMININ', 'MASCULIN']"
-                  label="Sexe de l'employeur *"
+                  :label="$t('input.sexe')"
                   outlined
                   dense
                   input-debounce="0"
                   fill-input
                   :rules="[required]"
                   class="col-md-3 col-xs-12 col-sm-12"
-                />
+                >
+                  <template v-slot:label>
+                    {{ $t('input.sexe') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-select>
                 <q-select
                   v-model="form.nationaliteEmployeur"
                   :options="pays"
                   option-label="nationalite"
-                  label="Nationalité de l'employeur *"
+                  :label="$t('input.nationalite')"
                   outlined
                   dense
                   use-input
@@ -123,111 +191,38 @@
                   @filter="filterPays"
                   :rules="[required]"
                   class="col-md-3 col-xs-12 col-sm-12"
-                />
+                >
+                  <template v-slot:label>
+                    {{ $t('input.nationalite') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-select>
                 <q-input
                   v-model="form.proffessionEmployeur"
-                  label="Profession de l'employeur *"
+                  :label="$t('input.profession')"
                   outlined
                   dense
                   class="col-md-10 col-xs-12 col-sm-12"
                   :rules="[required]"
-                />
-              </div>
-
-              <q-stepper-navigation>
-                <q-btn @click="goToNextStep(2)" color="primary" label="Suivant" />
-              </q-stepper-navigation>
-            </q-step>
-
-            <!-- Etape 2 : Coordonnées de l'employeur -->
-            <q-step :name="2" title="Coordonnées de l'employeur" icon="person" :done="step > 2">
-              <div class="q-gutter-md justify-center row">
-                <q-input
-                  v-model="form.adresseEmployeur"
-                  label="Adresse *"
-                  outlined
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12"
-                  :rules="[required]"
-                />
-                <q-input
-                  v-model="form.boitePostaleEmployeur"
-                  label="Boîte postale"
-                  outlined
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
-                />
-                <q-input
-                  v-model="form.telephoneEmployeur"
-                  label="Téléphone de l'employeur *"
-                  outlined
-                  type="tel"
-                  mask="### ### ###"
-                  dense
-                  class="col-md-3 col-xs-12 col-sm-12"
-                  :rules="[required]"
-                />
-                <q-input
-                  v-model="form.mobileEmployeur"
-                  label="Mobile de l'employeur *"
-                  outlined
-                  type="tel"
-                  mask="### ### ###"
-                  dense
-                  class="col-md-3 col-xs-12 col-sm-12"
-                  :rules="[required]"
-                />
-                <q-input
-                  v-model="form.emailEmployeur"
-                  label="Email de l'employeur *"
-                  outlined
-                  dense
-                  class="col-md-4 col-xs-12 col-sm-12"
-                  type="email"
-                  :rules="[required]"
-                />
+                >
+                  <template v-slot:label>
+                    {{ $t('input.profession') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
                 <q-select
-                  v-model="form.arrondissementEmployeur"
-                  :options="arrondissements"
-                  option-label="NOM_ARROND"
-                  label="Arrondissement *"
-                  outlined
-                  dense
-                  use-input
-                  input-debounce="0"
-                  emit-value
-                  map-options
-                  @filter="filterArrondissement"
-                  :rules="[required]"
-                  class="col-md-5 col-xs-12 col-sm-12"
-                />
-                <q-input
-                  v-model="form.quartierEmployeur"
-                  label="Quartier *"
-                  outlined
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12"
-                  :rules="[required]"
-                />
-                <q-input
-                  v-model="form.lieuDitEmployeur"
-                  label="Lieu-dit"
-                  outlined
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
-                />
-                <q-input
-                  v-model="form.numLogement"
-                  label="Numéro de logement"
-                  outlined
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
-                />
-                <q-select
-                  v-model="form.pieceIdentitePromoteur"
+                  v-model="form.pieceIdentiteEmployeur"
                   :options="pieces"
                   option-label="LIBELLE"
-                  label="Pièce d'identité du promoteur *"
+                  label=""
                   outlined
                   dense
                   use-input
@@ -237,43 +232,70 @@
                   @filter="filterPieces"
                   :rules="[required]"
                   class="col-md-5 col-xs-12 col-sm-12"
-                />
+                >
+                  <template v-slot:label>
+                    {{ $t('input.pieceIdentite') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-select>
                 <q-input
-                  v-model="form.numPieceIdentitePromoteur"
-                  label="Numéro de la pièce d'identité du promoteur *"
+                  v-model="form.numPieceIdentiteEmployeur"
+                  label=""
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
                   :rules="[required]"
-                />
+                >
+                  <template v-slot:label>
+                    {{ $t('input.numPieceIdentite') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
                 <q-input
-                  v-model="form.dateDelivrancePieceIdentitePromoteur"
-                  hint="Au format YYYY-MM-DD"
-                  label="Date de délivrance de la pièce d'identité du promoteur *"
+                  v-model="form.dateDelivrancePieceIdentiteEmployeur"
+                  label=""
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
                   :rules="[required]"
-                  mask="####-##-##"
+                  :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
+                  :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
                 >
                   <template #append>
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
-                          v-model="form.dateDelivrancePieceIdentitePromoteur"
-                          mask="YYYY-MM-DD"
+                          v-model="form.dateDelivrancePieceIdentiteEmployeur"
+                          :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           locale="fr"
                           :options="optionsDn"
+                          color="primary"
                         />
                       </q-popup-proxy>
                     </q-icon>
+                  </template>
+                  <template v-slot:label>
+                    {{ $t('input.dateDelivrancePieceIdentite') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
                   </template>
                 </q-input>
                 <q-select
                   v-model="form.lieuDelivrancePieceIdentitePromoteur"
                   :options="arrondissements"
                   option-label="NOM_ARROND"
-                  label="Arrondissement de délivrance *"
+                  label=""
                   outlined
                   dense
                   use-input
@@ -282,93 +304,284 @@
                   map-options
                   @filter="filterArrondissement"
                   class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
-                />
+                >
+                  <template v-slot:label>
+                    {{ $t('input.lieuDelivrancePieceIdentite') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-select>
               </div>
 
               <q-stepper-navigation>
-                <q-btn @click="goToNextStep(3)" color="primary" label="Suivant" />
-                <q-btn flat @click="step = 1" color="primary" label="Retour" class="q-ml-sm" />
+                <q-btn @click="goToNextStep(2)" color="primary" :label="$t('form.next')" />
               </q-stepper-navigation>
             </q-step>
 
-            <!-- Etape 3 : Informations sur l'entreprise -->
-            <q-step
-              :name="3"
-              title="Informations sur l'entreprise"
-              icon="business"
-              :done="step > 3"
-              class=""
-            >
+            <!-- Etape 2 : Coordonnées de l'employeur -->
+            <q-step :name="2" :title="$t('immep.step2')" icon="person" :done="step > 2">
               <div class="q-gutter-md justify-center row">
                 <q-input
-                  v-model="form.dateOuverture"
-                  hint="Au format YYYY-MM-DD"
-                  label="Date début service (Début activité) *"
+                  v-model="form.adresseEmployeur"
+                  :label="$t('input.adresse')"
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
                   :rules="[required]"
-                  mask="####-##-##"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.adresse') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+                <q-input
+                  v-model="form.boitePostaleEmployeur"
+                  :label="$t('input.boitePostale')"
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
+                />
+                <q-input
+                  v-model="form.telephoneEmployeur"
+                  label=""
+                  outlined
+                  prefix="+237"
+                  type="tel"
+                  mask="### ### ###"
+                  dense
+                  class="col-md-3 col-xs-12 col-sm-12"
+                  :rules="[required]"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.phone') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+                <q-input
+                  v-model="form.mobileEmployeur"
+                  label=""
+                  outlined
+                  type="tel"
+                  prefix="+237"
+                  mask="### ### ###"
+                  dense
+                  class="col-md-3 col-xs-12 col-sm-12"
+                  :rules="[required]"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.mobile') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+                <q-input
+                  v-model="form.emailEmployeur"
+                  label=""
+                  outlined
+                  dense
+                  class="col-md-4 col-xs-12 col-sm-12"
+                  type="email"
+                  :rules="[
+                    required,
+                    (val) => regexPatterns.email.test(val) || '(ex: adresse@email.com)',
+                  ]"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.emailc') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+                <q-select
+                  v-model="form.arrondissementEmployeur"
+                  :options="arrondissements"
+                  option-label="NOM_ARROND"
+                  label=""
+                  outlined
+                  dense
+                  use-input
+                  input-debounce="0"
+                  emit-value
+                  map-options
+                  @filter="filterArrondissement"
+                  :rules="[required]"
+                  class="col-md-5 col-xs-12 col-sm-12"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.arrondissementResidence') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-select>
+                <q-input
+                  v-model="form.quartierEmployeur"
+                  label=""
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  :rules="[required]"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.quartierResidence') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+                <q-input
+                  v-model="form.lieuDitEmployeur"
+                  :label="$t('input.lieuDitResidence')"
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
+                />
+                <q-input
+                  v-model="form.numLogement"
+                  :label="$t('input.numLogement')"
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
+                />
+              </div>
+
+              <q-stepper-navigation>
+                <q-btn @click="goToNextStep(3)" color="primary" :label="$t('form.next')" />
+                <q-btn
+                  flat
+                  @click="step = 1"
+                  color="primary"
+                  :label="$t('form.previous')"
+                  class="q-ml-sm"
+                />
+              </q-stepper-navigation>
+            </q-step>
+
+            <!-- Etape 3 : Informations sur l'entreprise -->
+            <q-step :name="3" :title="$t('immep.step3')" icon="business" :done="step > 3" class="">
+              <div class="q-gutter-md justify-center row">
+                <q-input
+                  v-model="form.dateOuverture"
+                  label=""
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  :rules="[required]"
+                  :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
+                  :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
                 >
                   <template #append>
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
                           v-model="form.dateOuverture"
-                          mask="YYYY-MM-DD"
+                          :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           locale="fr"
                           :options="optionsDn"
+                          color="primary"
                         />
                       </q-popup-proxy>
                     </q-icon>
                   </template>
+                  <template v-slot:label>
+                    {{ $t('input.dateOuverture') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
                 </q-input>
                 <q-input
                   v-model="form.dateEmbauche"
-                  hint="Au format YYYY-MM-DD"
-                  label="Date embauche premier salarie (date d'effet) *"
+                  label=""
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
                   :rules="[required]"
-                  mask="####-##-##"
+                  :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
+                  :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
                 >
                   <template #append>
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
                           v-model="form.dateEmbauche"
-                          mask="YYYY-MM-DD"
+                          :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           locale="fr"
                           :options="optionsDn"
+                          color="primary"
                         />
                       </q-popup-proxy>
                     </q-icon>
                   </template>
+                  <template v-slot:label>
+                    {{ $t('input.dateEmbauche') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
                 </q-input>
                 <q-input
                   v-model="form.numIdentifiantUnique"
-                  label="Numéro d'identifiant unique (NIU) *"
+                  :label="$t('input.numContribuable')"
                   class="col-md-5 col-xs-12 col-sm-12"
                   outlined
                   dense
-                  :rules="[required]"
+                  :rules="[
+                    (val) =>
+                      !val ||
+                      regexPatterns.numContr.test(val) ||
+                      'Format invalide (ex: P123456789321M)',
+                  ]"
                 />
                 <q-input
                   v-model="form.nombreTravailleurs"
-                  label="Nombre de travailleurs *"
+                  label=""
                   outlined
                   type="number"
                   min="1 "
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
                   :rules="[required]"
-                />
+                >
+                  <template v-slot:label>
+                    {{ $t('input.nombreTravailleurs') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
                 <q-select
                   v-model="form.centreImpots"
                   :options="impots"
                   option-label="ABREVIATION"
-                  label="Centre d'impots *"
+                  label=""
                   outlined
                   dense
                   use-input
@@ -381,12 +594,21 @@
                   "
                   :rules="[required]"
                   class="col-md-5 col-xs-12 col-sm-12"
-                />
+                >
+                  <template v-slot:label>
+                    {{ $t('input.centreImpots') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-select>
                 <q-select
                   v-model="form.centreCNPS"
                   :options="centres"
                   option-label="LIB_CENTRE"
-                  label="Centre CNPS de Gestion* A préciser au CFCE"
+                  label=""
                   outlined
                   dense
                   use-input
@@ -396,53 +618,99 @@
                   @filter="filterCentreCNPS"
                   :rules="[required]"
                   class="col-md-5 col-xs-12 col-sm-12"
-                />
+                >
+                  <template v-slot:label>
+                    {{ $t('input.centreCNPS') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-select>
+                <q-input
+                  @update:model-value="
+                    (val) => {
+                      formFile.attestationImmatriculation = val[0]
+                    }
+                  "
+                  filled
+                  dense
+                  type="file"
+                  :rules="[fileSizeRule]"
+                  label=""
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  :hint="$t('input.attestationImmatriculation')"
+                  class="col-md-5 col-xs-12 col-sm-12"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.attestationImmatriculation') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+                <q-input
+                  @update:model-value="
+                    (val) => {
+                      formFile.planLocalisation = val[0]
+                    }
+                  "
+                  filled
+                  dense
+                  label=""
+                  type="file"
+                  :rules="[required, fileSizeRule]"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  :hint="$t('input.planLocalisation')"
+                  class="col-md-5 col-xs-12 col-sm-12"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.planLocalisation') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+                <q-input
+                  @update:model-value="
+                    (val) => {
+                      formFile.listeTravailleurs = val[0]
+                    }
+                  "
+                  filled
+                  dense
+                  type="file"
+                  label=""
+                  :rules="[required, fileSizeRule]"
+                  accept=".pdf,.jpg,.jpeg,.png,.Xlsx"
+                  :hint="$t('input.listeTravailleurs')"
+                  class="col-md-5 col-xs-12 col-sm-12"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.listeTravailleurs') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
               </div>
 
               <q-stepper-navigation>
-                <q-btn @click="goToNextStep(4)" color="primary" label="Suivant" />
-                <q-btn flat @click="step = 2" color="primary" label="Retour" class="q-ml-sm" />
-              </q-stepper-navigation>
-            </q-step>
-
-            <!-- Etape 4 : Documents à fournir -->
-            <q-step :name="4" title="Documents à fournir (Max 3 Mo par fichier)" icon="folder">
-              <div class="q-gutter-md justify-center row">
-                <q-uploader
-                  label="Attestation d'immatriculation *"
+                <q-btn type="submit" color="primary" :label="$t('form.submit')" />
+                <q-btn
                   flat
-                  url="http://localhost:4444/upload"
-                  accept=".jpg, image/*, .png, .pdf"
-                  max-file-size="3072000"
-                  max-files="1"
-                  class="col-md-3 col-xs-12 col-sm-12"
-                  @rejected="onRejected"
+                  @click="step = 2"
+                  color="primary"
+                  :label="$t('form.previous')"
+                  class="q-ml-sm"
                 />
-                <q-uploader
-                  label="Plan de localisation"
-                  flat
-                  url="http://localhost:4444/upload"
-                  accept=".jpg, image/*, .png, .pdf, .docx, .doc"
-                  max-file-size="3072000"
-                  max-files="1"
-                  class="col-md-3 col-xs-12 col-sm-12"
-                  @rejected="onRejected"
-                />
-                <q-uploader
-                  label="Liste des travailleurs"
-                  flat
-                  url="http://localhost:4444/upload"
-                  accept=".jpg, image/*, .png, .pdf, .xlsx, .xls"
-                  max-file-size="3072000"
-                  max-files="1"
-                  class="col-md-3 col-xs-12 col-sm-12"
-                  @rejected="onRejected"
-                />
-              </div>
-
-              <q-stepper-navigation>
-                <q-btn type="submit" color="primary" label="Soumettre" />
-                <q-btn flat @click="step = 3" color="primary" label="Retour" class="q-ml-sm" />
               </q-stepper-navigation>
             </q-step>
           </q-stepper>
@@ -450,7 +718,7 @@
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn flat label="Annuler" v-close-popup color="primary" @click="closeDialog" />
+        <q-btn flat :label="$t('form.cancel')" v-close-popup color="primary" @click="closeDialog" />
       </q-card-actions>
     </q-card>
   </q-dialog>
@@ -464,11 +732,14 @@ import { centres as rawCentres } from '../data/Centres.js'
 import { impots as rawImpots } from '../data/Impots.js'
 import { pays as rawPays } from '../data/Pays.js'
 import { pieces as rawPieces } from '../data/Pieces.js'
+import { regexPatterns } from '../js/regex.js'
+import { useI18n } from 'vue-i18n'
 
 defineProps({
   service: Object,
 })
 
+const { locale } = useI18n()
 const emit = defineEmits(['close'])
 
 const { notifyError, notifySuccess } = useNotify()
@@ -476,6 +747,7 @@ const { notifyError, notifySuccess } = useNotify()
 const open = ref(true)
 const step = ref(1)
 const formRef = ref(null)
+const displayDate = ref('')
 
 const arrondissements = ref([...rawArrondissements])
 const centres = ref([...rawCentres])
@@ -516,6 +788,12 @@ const form = ref({
   matriculeSiege: '',
 })
 
+const formFile = ref({
+  planLocalisation: ref(null),
+  listeTravailleurs: ref(null),
+  attestationImmatriculation: ref(null),
+})
+
 const optionsDn = (date) => {
   const today = new Date()
   const yyyy = today.getFullYear()
@@ -526,18 +804,24 @@ const optionsDn = (date) => {
   return date <= todayStr
 }
 
-const required = (val) => !!val || 'Ce champ est requis'
+const required = (val) => !!val || 'Ce champ est requis / This field is required'
 
 const goToNextStep = async (nextStep) => {
+  if (nextStep === 2 && (!form.value.origineDossier || !form.value.origineImmatriculation)) {
+    notifyError(
+      'Veuillez selectionner les origines du dossier tout en haut du formulaire / Please choose the file origins at the top section of the form.',
+    )
+    return
+  }
   const valid = await formRef.value.validate()
   if (valid) {
     step.value = nextStep
   } else {
-    notifyError('Veuillez remplir tous les champs requis.')
+    notifyError('Veuillez remplir tous les champs requis / Please fill in all required fields.')
   }
 }
 
-const onRejected = (rejectedEntries) => {
+/* const onRejected = (rejectedEntries) => {
   // Notify plugin needs to be installed
   // https://v2.quasar.dev/quasar-plugins/notify#Installation
   notifyError(
@@ -545,6 +829,11 @@ const onRejected = (rejectedEntries) => {
       .map((entry) => entry.name)
       .join(', ')}`,
   )
+} */
+
+const fileSizeRule = (val) => {
+  if (!val || val.length === 0) return true // Ne valide pas si rien n'est sélectionné
+  return val[0].size <= 3 * 1024 * 1024 || 'Fichier trop volumineux (max 3 Mo)'
 }
 
 const findCentreCNPSByCentreImpots = (selectedCentreImpots) => {
@@ -653,4 +942,39 @@ const closeDialog = () => {
   open.value = false
   emit('close')
 }
+
+// ✅ Convertir YYYY-MM-DD → JJ/MM/AAAA
+function updateDisplayFromDate(val) {
+  if (val) {
+    const [year, month, day] = val.split('-')
+    displayDate.value = `${day}/${month}/${year}`
+  } else {
+    displayDate.value = ''
+  }
+}
+
+// ✅ Synchroniser displayDate si dateOuverture est défini initialement
+watch(
+  () => form.value.dateNaissanceEmployeur,
+  (val) => updateDisplayFromDate(val, 'dateNaissanceEmployeur'),
+  { immediate: true },
+)
+
+watch(
+  () => form.value.dateDelivrancePieceIdentiteEmployeur,
+  (val) => updateDisplayFromDate(val, 'dateDelivrancePieceIdentiteEmployeur'),
+  { immediate: true },
+)
+
+watch(
+  () => form.value.dateOuverture,
+  (val) => updateDisplayFromDate(val, 'dateOuverture'),
+  { immediate: true },
+)
+
+watch(
+  () => form.value.dateEmbauche,
+  (val) => updateDisplayFromDate(val, 'dateEmbauche'),
+  { immediate: true },
+)
 </script>

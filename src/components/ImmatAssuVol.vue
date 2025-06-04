@@ -2,7 +2,7 @@
   <q-dialog v-model="open" persistent full-width>
     <q-card :style="$q.screen.gt.sm ? 'width: 900px' : 'width: 100%'">
       <q-card-section>
-        <div class="text-h6 text-primary text-center text-bold">{{ service.name }}</div>
+        <div class="text-h6 text-primary text-center text-bold">{{ $t(service.name) }}</div>
       </q-card-section>
 
       <q-separator />

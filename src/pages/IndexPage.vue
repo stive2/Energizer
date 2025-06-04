@@ -5,14 +5,14 @@
       class="text-primary q-mb-sm text-center text-bold"
       :class="$q.screen.lt.sm ? 'text-h6' : 'text-h4'"
     >
-      Bienvenue sur le portail des services en ligne de la CNPS
+      {{ $t('home.title') }}
     </div>
     <br />
     <div
       class="text-grey-8 q-mb-md text-center text-bold"
       :class="$q.screen.lt.sm ? 'text-subtitle2' : 'text-subtitle1'"
     >
-      Sélectionnez un type de service pour commencer
+      {{ $t('home.description') }}
     </div>
     <div class="q-pa-md row">
       <q-select
@@ -21,7 +21,7 @@
         v-model="typeService"
         use-input
         input-debounce="0"
-        label="Veuillez sélectionner un type de service"
+        :label="$t('home.selectService')"
         :options="options"
         option-label="name"
         @filter="filterFn"
@@ -32,7 +32,7 @@
       >
         <template v-slot:no-option>
           <q-item>
-            <q-item-section class="text-grey"> Aucun résultat </q-item-section>
+            <q-item-section class="text-grey"> {{ $t('home.noResults') }} </q-item-section>
           </q-item>
         </template>
       </q-select>
@@ -44,7 +44,7 @@
         outlined
         dense
         v-model="search"
-        label="Rechercher un service..."
+        :placeholder="$t('home.searchPlaceholder')"
         class="q-mb-md"
         style="min-width: 300px; max-width: 500px"
       >
@@ -54,7 +54,7 @@
       </q-input>
 
       <div class="text-subtitle2 text-grey-7 q-mb-md">
-        {{ filteredServices.length }} service(s) trouvé(s)
+        {{ filteredServices.length }} {{ $t('home.foundServices') }}
       </div>
 
       <!-- Grille de cards -->
@@ -70,7 +70,7 @@
             $q.screen.gt.sm
               ? {
                   width: '350px',
-                  height: '220px',
+                  height: '250px',
                   transform: hoverId === service.id ? 'scale(1.03)' : 'scale(1)',
                 }
               : {
@@ -84,15 +84,15 @@
         >
           <q-card-section>
             <q-icon :name="getIcon(service.code)" size="40px" color="primary" class="q-mb-sm" />
-            <div class="text-h6 text-primary">{{ service.name }}</div>
-            <div class="text-caption text-grey-7">{{ service.description }}</div>
+            <div class="text-h6 text-primary">{{ $t(service.name) }}</div>
+            <div class="text-caption text-grey-7">{{ $t(service.description) }}</div>
           </q-card-section>
         </q-card>
       </div>
     </template>
     <template v-else>
       <div class="text-subtitle2 text-center q-my-md">
-        Aucun service ne correspond à votre recherche.
+        {{ $t('home.noServicesFound') }}
       </div>
     </template>
 
@@ -100,8 +100,8 @@
     <q-dialog v-model="detailsDialog">
       <q-card class="q-pa-md" style="max-width: 500px">
         <q-card-section>
-          <div class="text-h6">Désolé</div>
-          <div class="text-body1 q-mt-sm">Aucune information disponible.</div>
+          <div class="text-h6">Oops</div>
+          <div class="text-body1 q-mt-sm">{{ $t('home.sorry') }}</div>
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Fermer" color="primary" v-close-popup />
@@ -145,7 +145,7 @@ import ImmatAssuVol from 'components/ImmatAssuVol.vue'
 import { useNotify } from 'components/useNotify.js'
 // import axios from 'axios' onMounted notifySuccess, notifyError, notifyWarning, notifyInfo
 
-const { notifyWarning, notifyInfo } = useNotify()
+const { notifyWarning } = useNotify()
 
 const hoverId = ref(null)
 const search = ref('')
@@ -155,63 +155,38 @@ const showImmatEmpPro = ref(false)
 const showImmatEmpDom = ref(false)
 const showImmatAssuTrv = ref(false)
 const showImmatAssuVol = ref(false)
-
 // List of CNPS services
 const typesServices = [
   {
     id: 1,
-    name: 'Immatriculation',
+    name: 'Immatriculation / Registration',
     code: 'IMMAT',
     services: [
       {
         id: 1,
-        name: 'Immatriculation employeur main d’oeuvre professionnelle',
-        description: 'Immatriculation en ligne des employeurs de main d’oeuvre professionnelle.',
+        name: 'services.immep.name',
+        description: 'services.immep.description',
         code: 'IMMEP',
       },
       {
         id: 2,
-        name: 'Immatriculation employeur main d’oeuvre domestique',
-        description: 'Immatriculation en ligne des employeurs de main d’oeuvre domestique.',
+        name: 'services.immed.name',
+        description: 'services.immed.description',
         code: 'IMMED',
       },
       {
         id: 3,
-        name: 'Immatriculation assuré travailleur',
-        description: 'Immatriculation en ligne des assurés travailleur.',
+        name: 'services.immat.name',
+        description: 'services.immat.description',
         code: 'IMMAT',
       },
       {
         id: 4,
-        name: 'Immatriculation assuré volontaire',
-        description: 'Immatriculation en ligne des assurés volontaires.',
+        name: 'services.immav.name',
+        description: 'services.immav.description',
         code: 'IMMAV',
       },
     ],
-  },
-  {
-    id: 2,
-    name: 'Déclaration de salaires',
-    code: 'DECLA',
-    services: [],
-  },
-  {
-    id: 3,
-    name: 'Paiement des cotisations',
-    code: 'COTIS',
-    services: [],
-  },
-  {
-    id: 4,
-    name: 'Prestations sociales',
-    code: 'PREST',
-    services: [],
-  },
-  {
-    id: 5,
-    name: 'Consultation des comptes',
-    code: 'CONSU',
-    services: [],
   },
 ]
 
@@ -221,7 +196,7 @@ const options = ref(typesServices)
 const showStepperDialog = ref(false)
 
 const typeService = ref({
-  name: 'Sélectionner un type de service',
+  name: '',
   code: '',
   services: ref([]),
 })
@@ -269,13 +244,11 @@ const formDialogMap = {
 
 const openForm = (service) => {
   selectedService.value = service
-  console.log('Service sélectionné :', service)
 
   const dialogRef = formDialogMap[service.code]
 
   if (dialogRef) {
     dialogRef.value = true
-    notifyInfo(`${service.name} sélectionné.`)
     showStepperDialog.value = true
   } else {
     notifyWarning('Formulaire non disponible pour le moment.')
