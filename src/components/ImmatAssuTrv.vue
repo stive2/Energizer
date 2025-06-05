@@ -4,7 +4,7 @@
     <q-card :style="$q.screen.gt.sm ? 'width: 900px' : 'width: 100%'">
       <q-card-section>
         <div class="text-h6 text-primary text-center text-bold">
-          {{ service.name }}
+          {{ $t(service.name) }}
         </div>
       </q-card-section>
 
