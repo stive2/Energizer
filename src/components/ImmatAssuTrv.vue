@@ -15,13 +15,14 @@
             v-model="step"
             :vertical="!$q.screen.gt.sm"
             color="primary"
+            done-color="secondary"
             header-nav
             animated
           >
             <!-- Étape 1 : Informations sur l'emploi travailleur -->
             <q-step
               :name="1"
-              :title="$t('immat.stepp1')"
+              :title="$t('immat.step1')"
               icon="work"
               :done="step > 1"
               :error="stepErrors[1]"
@@ -38,10 +39,10 @@
                   class="q-mr-sm q-mb-sm"
                   :rules="[required, validateMatriculeCNPS]"
                   :hint="$t('inputassu.employer_cnps_registration_number')"
-                  :error="stepErrors[1] && !form.mat_employeur"
-                  @input="form.mat_employeur = form.mat_employeur.toUpperCase()"
                   @keyup.enter="fetchEmployerData"
                   @keydown.enter.prevent="fetchEmployerData"
+                  @update:model-value="(val) => (form.mat_employeur = val.toUpperCase())"
+
                   >
                   <template v-slot:append>
                     <q-icon
@@ -69,6 +70,7 @@
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
                   readonly
+
                 />
                 <q-input
                   v-model="form.RAISON_SOCIALE"
@@ -79,7 +81,7 @@
                   class="q-mr-sm q-mb-sm"
                   readonly
                   :rules="[required]"
-                  :error="stepErrors[1] && !form.RAISON_SOCIALE"
+
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.trade_name') }}
@@ -98,7 +100,8 @@
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
-                  @input="form.ADRESSE_EMPLOYEUR = form.ADRESSE_EMPLOYEUR.toUpperCase()"
+                  @update:model-value="(val) => (form.ADRESSE_EMPLOYEUR = val.toUpperCase())"
+
                 />
                 <q-input
                   v-model="form.DATE_EMB_PREM_TRAV"
@@ -199,7 +202,8 @@
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
-                  @input="form.Specialite = form.Specialite.toUpperCase()"
+                  @update:model-value="(val) => (form.Specialite = val.toUpperCase())"
+
                 />
                 <q-input
                   v-model="form.EFFECTIF_APPROX"
@@ -218,7 +222,8 @@
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
-                  @input="form.NiveauAss = form.NiveauAss.toUpperCase()"
+                  @update:model-value="(val) => (form.NiveauAss = val.toUpperCase())"
+
                 />
                 <q-input
                   v-model="form.ActuelRevenu"
@@ -227,7 +232,7 @@
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
-                  @input="form.ActuelRevenu = form.ActuelRevenu.toUpperCase()"
+                  min="0"
                 />
 
                 <q-file
@@ -269,24 +274,23 @@
             <!-- Étape 2 : Informations personnelles de l’assuré -->
             <q-step
               :name="2"
-              :title="$t('immat.stepp2')"
+              :title="$t('immat.step2')"
               icon="person"
-              :done="step > 2"
+              :done="step > 2 || step < 2"
               :error="stepErrors[2]"
               :header-class="stepErrors[2] ? 'bg-red text-white' : ''"
               :disable="!isStepAllowed(2)"
             >
               <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
                 <q-input
-                  v-model="form.nom"
+                  v-model="form.NOM_PERS"
                   :label="$t('inputassu.last_name')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
                   :rules="[required]"
-                  :error="stepErrors[2] && !form.nom"
-                  @input="form.nom = form.nom.toUpperCase()"
+                  @update:model-value="(val) => (form.NOM_PERS = val.toUpperCase())"
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.last_name') }}
@@ -299,16 +303,17 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.prenom"
+                  v-model="form.PRENOM_PERS"
                   :label="$t('inputassu.first_name')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
-                  @input="form.prenom = form.prenom.toUpperCase()"
+                  @update:model-value="(val) => (form.PRENOM_PERS = val.toUpperCase())"
+
                 />
                 <q-select
-                  v-model="form.sexe"
+                  v-model="form.SEXE_PERS"
                   :label="$t('inputassu.gender')"
                   :options="genderOptions"
                   outlined
@@ -316,7 +321,6 @@
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
                   :rules="[required]"
-                  :error="stepErrors[2] && !form.sexe"
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.gender') }}
@@ -329,14 +333,14 @@
                   </template>
                 </q-select>
                 <q-input
-                  v-model="form.dateNaissance"
+                  v-model="form.DATE_NAISS_PERS"
                   :label="$t('inputassu.date_of_birth')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
                   :rules="[required]"
-                  :error="stepErrors[2] && !form.dateNaissance"
+                  :error="stepErrors[2] && !form.DATE_NAISS_PERS"
                   :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
                   :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
                 >
@@ -344,7 +348,7 @@
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
-                          v-model="form.dateNaissance"
+                          v-model="form.DATE_NAISS_PERS"
                           :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           :options="optionsDn"
                           color="primary"
@@ -363,15 +367,15 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.lieuNaissance"
+                  v-model="form.LOCALITE_NAISS"
                   :label="$t('inputassu.place_of_birth')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
                   :rules="[required]"
-                  :error="stepErrors[2] && !form.lieuNaissance"
-                  @input="form.lieuNaissance = form.lieuNaissance.toUpperCase()"
+                  :error="stepErrors[2] && !form.LOCALITE_NAISS"
+                  @update:model-value="(val) => (form.LOCALITE_NAISS = val.toUpperCase())"
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.place_of_birth') }}
@@ -382,9 +386,12 @@
                       {{ $t('input.requis') }}
                     </span>
                   </template>
+                  <template v-slot:prepend>
+                    <q-icon name="place" />
+                  </template>
                 </q-input>
                 <q-select
-                  v-model="form.arrondissementAssure"
+                  v-model="form.LieuNaiss"
                   :label="$t('inputassu.birth_district')"
                   :hint="$t('inputassu.birth_district')"
                   :options="arrondissements"
@@ -399,7 +406,7 @@
                   map-options
                   @filter="filterArrondissement"
                   :rules="[required]"
-                  :error="stepErrors[2] && !form.arrondissementAssure"
+
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.birth_district') }}
@@ -412,7 +419,7 @@
                   </template>
                 </q-select>
                 <q-select
-                  v-model="form.etatCivil"
+                  v-model="form.civilite"
                   :label="$t('inputassu.marital_status')"
                   :options="maritalStatusOptions"
                   outlined
@@ -420,7 +427,7 @@
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
                   :rules="[required]"
-                  :error="stepErrors[2] && !form.etatCivil"
+
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.marital_status') }}
@@ -433,7 +440,7 @@
                   </template>
                 </q-select>
                 <q-select
-                  v-model="form.nationaliteAssure"
+                  v-model="form.NATIONALITEC"
                   :label="$t('inputassu.nationality')"
                   :options="pays"
                   option-label="nationalite"
@@ -447,7 +454,7 @@
                   map-options
                   @filter="filterPays"
                   :rules="[required]"
-                  :error="stepErrors[2] && !form.nationaliteAssure"
+
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.nationality') }}
@@ -459,8 +466,8 @@
                     </span>
                   </template>
                 </q-select>
-                <q-select
-                  v-model="form.pieceIdentiteAssure"
+                <q-select typepiece
+                  v-model="form.typepiece"
                   :label="$t('inputassu.identity_document_type')"
                   :options="documentsOptions"
                   option-label="LIBELLE"
@@ -474,7 +481,7 @@
                   map-options
                   @filter="filterPieces"
                   :rules="[required]"
-                  :error="stepErrors[2] && !form.pieceIdentiteAssure"
+
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.identity_document_type') }}
@@ -487,15 +494,15 @@
                   </template>
                 </q-select>
                 <q-input
-                  v-model="form.numeroPieceIdentite"
+                  v-model="form.NUM_PIECE"
                   :label="$t('inputassu.identity_document_number')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
                   :rules="[required]"
-                  :error="stepErrors[2] && !form.numeroPieceIdentite"
-                  @input="form.numeroPieceIdentite = form.numeroPieceIdentite.toUpperCase()"
+                  @update:model-value="(val) => (form.NUM_PIECE = val.toUpperCase())"
+
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.identity_document_number') }}
@@ -508,14 +515,14 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.datePieceIdentite"
+                  v-model="form.DATE_PIECE"
                   :label="$t('inputassu.issued_on')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
                   :rules="[required]"
-                  :error="stepErrors[2] && !form.datePieceIdentite"
+                  :error="stepErrors[2] && !form.DATE_PIECE"
                   :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
                   :hint="$t('inputassu.issued_on')"
                 >
@@ -523,7 +530,7 @@
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
-                          v-model="form.datePieceIdentite"
+                          v-model="form.DATE_PIECE"
                           :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           :options="optionsDn"
                           color="primary"
@@ -542,7 +549,7 @@
                   </template>
                 </q-input>
                 <q-select
-                  v-model="form.lieuDelivrancePieceIdentiteAssure"
+                  v-model="form.LIEU_PIECEC"
                   :label="$t('inputassu.place_issuance_identity_document')"
                   :options="arrondissements"
                   option-label="NOM_ARROND"
@@ -557,7 +564,7 @@
                   :hint="$t('inputassu.place_issuance_identity_document')"
                   @filter="filterArrondissement"
                   :rules="[required]"
-                  :error="stepErrors[2] && !form.lieuDelivrancePieceIdentiteAssure"
+
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.place_issuance_identity_document') }}
@@ -580,34 +587,34 @@
             <!-- Étape 3 : Informations sur le père de l’assuré -->
             <q-step
               :name="3"
-              :title="$t('immat.stepp3')"
+              :title="$t('immat.step3')"
               icon="person"
-              :done="step > 3"
+              :done="step > 3 || step < 3"
               :error="stepErrors[3]"
               :header-class="stepErrors[3] ? 'bg-red text-white' : ''"
               :disable="!isStepAllowed(3)"
             >
               <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
                 <q-input
-                  v-model="form.nomPere"
+                  v-model="form.NOM_PERE"
                   :label="$t('inputassu.last_name')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
-                  @input="form.nomPere = form.nomPere.toUpperCase()"
+                  @update:model-value="(val) => (form.NOM_PERE = val.toUpperCase())"
                 />
                 <q-input
-                  v-model="form.prenomPere"
+                  v-model="form.PRENOM_PERE"
                   :label="$t('inputassu.first_name')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
-                  @input="form.prenomPere = form.prenomPere.toUpperCase()"
+                  @update:model-value="(val) => (form.PRENOM_PERE = val.toUpperCase())"
                 />
                 <q-input
-                  v-model="form.dateNaissancePere"
+                  v-model="form.DATE_NAISS_PERSP"
                   :label="$t('inputassu.date_of_birth')"
                   outlined
                   dense
@@ -621,7 +628,7 @@
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
-                          v-model="form.dateNaissancePere"
+                          v-model="form.DATE_NAISS_PERSP"
                            :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           :options="optionsDn"
                           color="primary"
@@ -631,16 +638,17 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.lieuNaissancePere"
+                  v-model="form.LOCALITE_NAISS_PERE"
                   :label="$t('inputassu.place_of_birth')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
-                  @input="form.lieuNaissancePere = form.lieuNaissancePere.toUpperCase()"
+                  @update:model-value="(val) => (form.LOCALITE_NAISS_PERE = val.toUpperCase())"
+
                 />
                 <q-select
-                  v-model="form.arrondissementPere"
+                  v-model="form.LieuNaissPere"
                   :label="$t('inputassu.birth_district')"
                   :hint="$t('inputassu.birth_district')"
                   :options="arrondissements"
@@ -654,9 +662,11 @@
                   emit-value
                   map-options
                   @filter="filterArrondissement"
+                  @update:model-value="(val) => (form.LieuNaissPere = val.toUpperCase())"
+
                 />
                 <q-select
-                  v-model="form.vivantPere"
+                  v-model="form.etatP"
                   :label="$t('inputassu.alive')"
                   :options="yesNoOptions"
                   outlined
@@ -665,8 +675,8 @@
                   class="q-mr-sm q-mb-sm"
                 />
                 <q-input
-                  v-if="form.vivantPere === $t('inputassu.no')"
-                  v-model="form.dateDecesPere"
+                  v-if="form.etatP === $t('inputassu.no')"
+                  v-model="form.DATE_DECES_PERSP"
                   :label="$t('inputassu.date_death')"
                   outlined
                   dense
@@ -680,7 +690,7 @@
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
-                          v-model="form.dateDecesPere"
+                          v-model="form.DATE_DECES_PERSP"
                           :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           :options="optionsDn"
                           color="primary"
@@ -699,24 +709,24 @@
             <!-- Étape 4 : Informations sur la mère de l’assuré -->
             <q-step
               :name="4"
-              :title="$t('immat.stepp4')"
+              :title="$t('immat.step4')"
               icon="person"
-              :done="step > 4"
+              :done="step > 4 || step < 4"
               :error="stepErrors[4]"
               :header-class="stepErrors[4] ? 'bg-red text-white' : ''"
               :disable="!isStepAllowed(4)"
             >
               <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
                 <q-input
-                  v-model="form.nomMere"
+                  v-model="form.NOM_MERE"
                   :label="$t('inputassu.last_name')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
                   :rules="[required]"
-                  :error="stepErrors[4] && !form.nomMere"
-                  @input="form.nomMere = form.nomMere.toUpperCase()"
+                  :error="stepErrors[4] && !form.NOM_MERE"
+                  @update:model-value="(val) => (form.NOM_MERE = val.toUpperCase())"
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.last_name') }}
@@ -729,23 +739,24 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.prenomMere"
+                  v-model="form.PRENOM_MERE"
                   :label="$t('inputassu.first_name')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
-                  @input="form.prenomMere = form.prenomMere.toUpperCase()"
+                  @update:model-value="(val) => (form.PRENOM_MERE = val.toUpperCase())"
+
                 />
                 <q-input
-                  v-model="form.dateNaissanceMere"
+                  v-model="form.DATE_NAISS_PERSM"
                   :label="$t('inputassu.date_of_birth')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
                   :rules="[required]"
-                  :error="stepErrors[4] && !form.dateNaissanceMere"
+                  :error="stepErrors[4] && !form.DATE_NAISS_PERSM"
                   :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
                   :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
                 >
@@ -753,7 +764,7 @@
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
-                          v-model="form.dateNaissanceMere"
+                          v-model="form.DATE_NAISS_PERSM"
                           :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           :options="optionsDn"
                           color="primary"
@@ -772,15 +783,15 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.lieuNaissanceMere"
+                  v-model="form.LOCALITE_NAISS_MERE"
                   :label="$t('inputassu.place_of_birth')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
                   :rules="[required]"
-                  :error="stepErrors[4] && !form.lieuNaissanceMere"
-                  @input="form.lieuNaissanceMere = form.lieuNaissanceMere.toUpperCase()"
+                  @update:model-value="(val) => (form.LOCALITE_NAISS_MERE = val.toUpperCase())"
+
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.place_of_birth') }}
@@ -793,7 +804,7 @@
                   </template>
                 </q-input>
                 <q-select
-                  v-model="form.arrondissementMere"
+                  v-model="form.LieuNaissMere"
                   :label="$t('inputassu.birth_district')"
                   :hint="$t('inputassu.birth_district')"
                   :options="arrondissements"
@@ -808,7 +819,7 @@
                   map-options
                   @filter="filterArrondissement"
                   :rules="[required]"
-                  :error="stepErrors[4] && !form.arrondissementMere"
+                  :error="stepErrors[4] && !form.LieuNaissMere"
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.birth_district') }}
@@ -821,7 +832,7 @@
                   </template>
                 </q-select>
                 <q-select
-                  v-model="form.vivantMere"
+                  v-model="form.etatM"
                   :label="$t('inputassu.alive')"
                   :options="yesNoOptions"
                   outlined
@@ -829,7 +840,6 @@
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
                   :rules="[required]"
-                  :error="stepErrors[4] && !form.vivantMere"
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.alive') }}
@@ -842,8 +852,8 @@
                   </template>
                 </q-select>
                 <q-input
-                  v-if="form.vivantMere === $t('inputassu.no')"
-                  v-model="form.dateDecesMere"
+                  v-if="form.etatM === $t('inputassu.no')"
+                  v-model="form.DATE_DECES_PERSM"
                   :label="$t('inputassu.date_death')"
                   outlined
                   dense
@@ -857,7 +867,7 @@
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
-                          v-model="form.dateDecesMere"
+                          v-model="form.DATE_DECES_PERSM"
                           :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           :options="optionsDn"
                           color="primary"
@@ -877,16 +887,16 @@
             <!-- Étape 5 : Contact et Résidence -->
             <q-step
               :name="5"
-              :title="$t('immat.stepp5')"
+              :title="$t('immat.step5')"
               icon="home"
-              :done="step > 5"
+              :done="step > 5 || step < 5"
               :error="stepErrors[5]"
               :header-class="stepErrors[5] ? 'bg-red text-white' : ''"
               :disable="!isStepAllowed(5)"
             >
               <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
                 <q-select
-                  v-model="form.ville"
+                  v-model="form.CODE_VILLEC"
                   :label="$t('inputassu.city_of_residence')"
                   :options="arrondissements"
                   option-label="NOM_ARROND"
@@ -900,7 +910,6 @@
                   map-options
                   @filter="filterArrondissement"
                   :rules="[required]"
-                  :error="stepErrors[5] && !form.ville"
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.city_of_residence') }}
@@ -913,16 +922,17 @@
                   </template>
                 </q-select>
                 <q-input
-                  v-model="form.quartier"
+                  v-model="form.QUARTIER"
                   :label="$t('inputassu.neighborhood')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
-                  @input="form.quartier = form.quartier.toUpperCase()"
+                  @update:model-value="(val) => (form.QUARTIER = val.toUpperCase())"
+
                 />
                 <q-input
-                  v-model="form.telephone"
+                  v-model="form.TEL_PERS"
                   :label="$t('inputassu.phone')"
                   outlined
                   dense
@@ -931,7 +941,6 @@
                   mask="+237 ### ### ###"
                   class="q-mr-sm q-mb-sm"
                   :rules="[required]"
-                  :error="stepErrors[5] && !form.telephone"
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.phone') }}
@@ -944,25 +953,26 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.fax"
+                  v-model="form.FAX_PERS"
                   :label="$t('inputassu.fax')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
-                  @input="form.fax = form.fax.toUpperCase()"
+                  @update:model-value="(val) => (form.FAX_PERS = val.toUpperCase())"
                 />
                 <q-input
-                  v-model="form.addresse"
+                  v-model="form.Adresse"
                   :label="$t('inputassu.address')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
-                  @input="form.addresse = form.addresse.toUpperCase()"
+                  @update:model-value="(val) => (form.Adresse = val.toUpperCase())"
+
                 />
                 <q-input
-                  v-model="form.email"
+                  v-model="form.EMAIL_PERS"
                   :label="$t('inputassu.email')"
                   outlined
                   dense
@@ -970,7 +980,7 @@
                   class="q-mr-sm q-mb-sm"
                   type="email"
                   :rules="[required, validateEmail]"
-                  :error="stepErrors[5] && !form.email"
+
                 >
                   <template v-slot:prepend>
                     <q-icon name="email" />
@@ -986,16 +996,17 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.boitePostale"
+                  v-model="form.BP"
                   :label="$t('inputassu.postal_box')"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
-                  @input="form.boitePostale = form.boitePostale.toUpperCase()"
+                  @update:model-value="(val) => (form.BP = val.toUpperCase())"
+
                 />
                 <q-select
-                  v-model="form.centreCNPS"
+                  v-model="form.CODE_CENTRECNPSC"
                   :label="$t('inputassu.centreCNPS')"
                   :hint="$t('inputassu.centreCNPS')"
                   :options="centres"
@@ -1010,7 +1021,6 @@
                   map-options
                   @filter="filterCentreCNPS"
                   :rules="[required]"
-                  :error="stepErrors[5] && !form.centreCNPS"
                 >
                   <template v-slot:label>
                     {{ $t('inputassu.centreCNPS') }}
@@ -1033,16 +1043,16 @@
             <!-- Étape 6 : Pièces complémentaires -->
             <q-step
               :name="6"
-              :title="$t('immat.stepp6')"
+              :title="$t('immat.step6')"
               icon="work"
-              :done="step > 6"
+              :done="step > 6 || step < 6"
               :error="stepErrors[6]"
               :header-class="stepErrors[6] ? 'bg-red text-white' : ''"
               :disable="!isStepAllowed(6)"
             >
               <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
                 <q-input
-                  v-model="form.nombreEnfants"
+                  v-model="form.nombEnfa"
                   :label="$t('inputassu.number_of_children')"
                   type="number"
                   outlined
@@ -1052,40 +1062,40 @@
                   min="0"
                   @update:model-value="resetFileField('actesNaissance')"
                 />
-                <q-file
-                  v-if="form.nombreEnfants > 0"
-                  v-model="form.actesNaissance"
-                  :label="$t('inputassu.children_birth_certificates', { count: form.nombreEnfants })"
-                  :hint="$t('inputassu.children_birth_certificates', { count: form.nombreEnfants })"
-                  outlined
-                  dense
-                  :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
-                  :counter-label="counterLabelFn"
-                  :max-files="form.nombreEnfants"
-                  multiple
-                  accept=".jpg, .png, .pdf"
-                  max-file-size="3072000"
-                  class="q-mr-sm q-mb-sm"
-                  :rules="[requiredFiles(form.nombreEnfants)]"
-                  :error="stepErrors[6] && form.nombreEnfants > 0 && (!form.actesNaissance || form.actesNaissance.length === 0)"
-                  @update:model-value="onFileSelected('actesNaissance')"
-                  @rejected="onRejected"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="attach_file" />
-                  </template>
-                  <template v-slot:label>
-                    {{ $t('inputassu.children_birth_certificates', { count: form.nombreEnfants }) }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                    >
-                      {{ $t('input.requis') }}
-                    </span>
-                  </template>
-                </q-file>
+                <span v-if="form.nombEnfa > 0">
+                   <q-file
+                    v-for="index in parseInt(form.nombEnfa)"
+                    :key="`birth-cert-${index}`"
+                    v-model="form.actesNaissance[index - 1]"
+                    :label="$t('inputassu.birth_certificate_child', { number: index })"
+                    :hint="$t('inputassu.birth_certificate_child', { number: index })"
+                    outlined
+                    dense
+                    :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
+                    accept=".jpg, .png, .pdf"
+                    max-file-size="3072000"
+                    class="q-mr-sm q-mb-sm"
+                    :rules="[val => !!val || $t('validation.required')]"
+                    :error="stepErrors[6] && !form.actesNaissance[index - 1]"
+                    @update:model-value="onFileSelected('actesNaissance', index - 1)"
+                    @rejected="onRejected"
+                  >
+                    <template v-slot:prepend>
+                      <q-icon name="attach_file" />
+                    </template>
+                    <template v-slot:label>
+                      {{ $t('inputassu.birth_certificate_child', { number: index }) }}
+                      <span
+                        class="q-px-sm bg-red text-white text-italic rounded-borders"
+                        style="font-size: 10px"
+                      >
+                        {{ $t('input.requis') }}
+                      </span>
+                    </template>
+                  </q-file>
+                 </span>
                 <q-input
-                  v-model="form.nombreCertificat"
+                  v-model="form.nombCert"
                   :label="$t('inputassu.number_of_work_certificates')"
                   :hint="$t('inputassu.number_of_work_certificates')"
                   type="number"
@@ -1096,40 +1106,40 @@
                   min="0"
                   @update:model-value="resetFileField('certificatsTravail')"
                 />
-                <q-file
-                  v-if="form.nombreCertificat > 0"
-                  v-model="form.certificatsTravail"
-                  :label="$t('inputassu.work_certificates', { count: form.nombreCertificat })"
-                  :hint="$t('inputassu.work_certificates', { count: form.nombreCertificat })"
-                  outlined
-                  dense
-                  :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
-                  :counter-label="counterLabelFn"
-                  :max-files="form.nombreCertificat"
-                  multiple
-                  accept=".jpg, .png, .pdf"
-                  max-file-size="3072000"
-                  class="q-mr-sm q-mb-sm"
-                  :rules="[requiredFiles(form.nombreCertificat)]"
-                  :error="stepErrors[6] && form.nombreCertificat > 0 && (!form.certificatsTravail || form.certificatsTravail.length === 0)"
-                  @update:model-value="onFileSelected('certificatsTravail')"
-                  @rejected="onRejected"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="attach_file" />
-                  </template>
-                  <template v-slot:label>
-                    {{ $t('inputassu.work_certificates', { count: form.nombreCertificat }) }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                    >
-                      {{ $t('input.requis') }}
-                    </span>
-                  </template>
-                </q-file>
+                <span  v-if="form.nombCert > 0">
+                  <q-file
+                    v-for="index in parseInt(form.nombCert)"
+                    :key="`work-cert-${index}`"
+                    v-model="form.certificatsTravail[index - 1]"
+                    :label="$t('inputassu.work_certificates', { number: index })"
+                    :hint="$t('inputassu.works_certificates', { number: index })"
+                    outlined
+                    dense
+                    :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
+                    accept=".jpg, .png, .pdf"
+                    max-file-size="3072000"
+                    class="q-mr-sm q-mb-sm"
+                    :rules="[val => !!val || $t('validation.required')]"
+                    :error="stepErrors[6] && !form.nombCert[index - 1]"
+                    @update:model-value="onFileSelected('certificatsTravail')"
+                    @rejected="onRejected"
+                  >
+                    <template v-slot:prepend>
+                      <q-icon name="attach_file" />
+                    </template>
+                    <template v-slot:label>
+                      {{ $t('inputassu.work_certificates', { count: form.nombCert }) }}
+                      <span
+                        class="q-px-sm bg-red text-white text-italic rounded-borders"
+                        style="font-size: 10px"
+                      >
+                        {{ $t('input.requis') }}
+                      </span>
+                    </template>
+                  </q-file>
+                </span>
                 <q-input
-                  v-model="form.nombreConjoints"
+                  v-model="form.nombConj"
                   :label="$t('inputassu.number_of_spouses')"
                   type="number"
                   outlined
@@ -1139,30 +1149,29 @@
                   min="0"
                   @update:model-value="resetFileField('actesMariage')"
                 />
-                <q-file
-                  v-if="form.nombreConjoints > 0"
-                  v-model="form.actesMariage"
-                  :label="$t('inputassu.marriage_certificates', { count: form.nombreConjoints })"
-                  :hint="$t('inputassu.marriage_certificates', { count: form.nombreConjoints })"
+                <span v-if="form.nombConj > 0">
+                 <q-file
+                  v-for="index in parseInt(form.nombConj)"
+                  :key="`mar-cert-${index}`"
+                  v-model="form.actesMariage[index - 1]"
+                  :label="$t('inputassu.marriages_certificates', { number: index })"
+                  :hint="$t('inputassu.marriages_certificates', { number: index })"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
-                  :counter-label="counterLabelFn"
-                  :max-files="form.nombreConjoints"
-                  multiple
                   accept=".jpg, .png, .pdf"
                   max-file-size="3072000"
                   class="q-mr-sm q-mb-sm"
-                  :rules="[requiredFiles(form.nombreConjoints)]"
-                  :error="stepErrors[6] && form.nombreConjoints > 0 && (!form.actesMariage || form.actesMariage.length === 0)"
-                  @update:model-value="onFileSelected('actesMariage')"
+                  :rules="[val => !!val || $t('validation.required')]"
+                  :error="stepErrors[6] && !form.actesMariage[index - 1]"
+                  @update:model-value="onFileSelected('actesMariage', index - 1)"
                   @rejected="onRejected"
                 >
                   <template v-slot:prepend>
                     <q-icon name="attach_file" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('inputassu.marriage_certificates', { count: form.nombreConjoints }) }}
+                    {{ $t('inputassu.marriage_certificates', { count: form.nombConj }) }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
@@ -1170,7 +1179,8 @@
                       {{ $t('input.requis') }}
                     </span>
                   </template>
-                </q-file>
+                 </q-file>
+                </span>
               </div>
 
               <q-stepper-navigation>
@@ -1182,7 +1192,7 @@
             <!-- Étape 7 : Validation finale -->
              <q-step
               :name="7"
-              :title="$t('immat.stepp7')"
+              :title="$t('immat.step7')"
               icon="check_circle"
               :error="stepErrors[7]"
               :header-class="stepErrors[7] ? 'bg-red text-white' : ''"
@@ -1192,7 +1202,7 @@
                    <!-- En-tête avec animation -->
                 <div class="text-center">
                   <div :class="dynamicTextClass">
-                    {{ $t('immat.stepp7') }}
+                    {{ $t('immat.step7') }}
                   </div>
                 </div>
                 <!-- Barre de progression -->
@@ -1217,7 +1227,7 @@
                         <div class="row items-center no-wrap">
                           <q-icon name="business" size="md" class="q-mr-md" />
                           <div>
-                            <div class="text-h6 text-weight-bold">{{ $t('immat.stepp1') }}</div>
+                            <div class="text-h6 text-weight-bold">{{ $t('immat.step1') }}</div>
                           </div>
                           <q-space />
                           <q-btn
@@ -1407,7 +1417,7 @@
                         <div class="row items-center no-wrap">
                           <q-icon name="person" size="md" class="q-mr-md" />
                           <div>
-                            <div class="text-h6 text-weight-bold">{{ $t('immat.stepp2') }}</div>
+                            <div class="text-h6 text-weight-bold">{{ $t('immat.step2') }}</div>
                           </div>
                           <q-space />
                           <q-btn
@@ -1429,14 +1439,14 @@
                           <q-item class="q-py-sm">
                             <q-item-section avatar>
                               <q-avatar color="secondary" text-color="white" size="md">
-                                {{ (form.nom || 'N')[0].toUpperCase() }}{{ (form.prenom || 'P')[0].toUpperCase() }}
+                                {{ (form.NOM_PERS || 'N')[0].toUpperCase() }}{{ (form.PRENOM_PERS || 'P')[0].toUpperCase() }}
                               </q-avatar>
                             </q-item-section>
                             <q-item-section>
                               <q-item-label class="text-weight-bold text-h6">
-                                {{ form.nom || $t('inputassu.not_specified') }} {{ form.prenom || '' }}
+                                {{ form.NOM_PERS || $t('inputassu.not_specified') }} {{ form.PRENOM_PERS || '' }}
                               </q-item-label>
-                              <q-item-label caption>{{ form.sexe || $t('inputassu.not_specified') }}</q-item-label>
+                              <q-item-label caption>{{ form.SEXE_PERS || $t('inputassu.not_specified') }}</q-item-label>
                             </q-item-section>
                           </q-item>
 
@@ -1446,7 +1456,7 @@
                             </q-item-section>
                             <q-item-section>
                               <q-item-label class="text-weight-medium">{{ $t('inputassu.date_of_birth') }}</q-item-label>
-                              <q-item-label caption>{{ form.dateNaissance || $t('inputassu.not_specified') }}</q-item-label>
+                              <q-item-label caption>{{ form.DATE_NAISS_PERS || $t('inputassu.not_specified') }}</q-item-label>
                             </q-item-section>
                           </q-item>
 
@@ -1456,7 +1466,7 @@
                             </q-item-section>
                             <q-item-section>
                               <q-item-label class="text-weight-medium">{{ $t('inputassu.place_of_birth') }}</q-item-label>
-                              <q-item-label caption>{{ form.lieuNaissance || $t('inputassu.not_specified') }}</q-item-label>
+                              <q-item-label caption>{{ form.LOCALITE_NAISS || $t('inputassu.not_specified') }}</q-item-label>
                             </q-item-section>
                           </q-item>
 
@@ -1466,7 +1476,7 @@
                             </q-item-section>
                             <q-item-section>
                               <q-item-label class="text-weight-medium">{{ $t('inputassu.birth_district') }}</q-item-label>
-                              <q-item-label caption>{{ form.arrondissementAssure && form.arrondissementAssure.NOM_ARROND ? form.arrondissementAssure.NOM_ARROND : $t('inputassu.not_specified') }}</q-item-label>
+                              <q-item-label caption>{{ form.LieuNaiss && form.LieuNaiss.NOM_ARROND ? form.LieuNaiss.NOM_ARROND : $t('inputassu.not_specified') }}</q-item-label>
                             </q-item-section>
                         </q-item>
                         <q-expansion-item
@@ -1481,7 +1491,7 @@
                                 </q-item-section>
                                 <q-item-section>
                                   <q-item-label class="text-weight-medium">{{ $t('inputassu.marital_status') }}</q-item-label>
-                                  <q-item-label caption>{{ form.etatCivil || $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label caption>{{ form.civilite || $t('inputassu.not_specified') }}</q-item-label>
                                 </q-item-section>
                               </q-item>
 
@@ -1491,7 +1501,7 @@
                                 </q-item-section>
                                 <q-item-section>
                                   <q-item-label class="text-weight-medium">{{ $t('inputassu.nationality') }}</q-item-label>
-                                  <q-item-label caption>{{ form.nationaliteAssure && form.nationaliteAssure.nationalite ? form.nationaliteAssure.nationalite : $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label caption>{{ form.NATIONALITEC && form.NATIONALITEC.nationalite ? form.NATIONALITEC.nationalite : $t('inputassu.not_specified') }}</q-item-label>
                                 </q-item-section>
                               </q-item>
                               <q-item class="q-py-sm">
@@ -1500,7 +1510,7 @@
                               </q-item-section>
                               <q-item-section>
                                 <q-item-label class="text-weight-medium">{{ $t('inputassu.identity_document_type') }}</q-item-label>
-                                <q-item-label caption>{{ form.pieceIdentiteAssure || $t('inputassu.not_specified') }}</q-item-label>
+                                <q-item-label caption>{{ form.typepiece || $t('inputassu.not_specified') }}</q-item-label>
                               </q-item-section>
                             </q-item>
 
@@ -1510,7 +1520,7 @@
                               </q-item-section>
                               <q-item-section>
                                 <q-item-label class="text-weight-medium">{{ $t('inputassu.identity_document_number') }}</q-item-label>
-                                <q-item-label caption>{{ form.numeroPieceIdentite || $t('inputassu.not_specified') }}</q-item-label>
+                                <q-item-label caption>{{ form.NUM_PIECE || $t('inputassu.not_specified') }}</q-item-label>
                               </q-item-section>
                             </q-item>
 
@@ -1520,7 +1530,7 @@
                               </q-item-section>
                               <q-item-section>
                                 <q-item-label class="text-weight-medium">{{ $t('inputassu.issued_on') }}</q-item-label>
-                                <q-item-label caption>{{ form.datePieceIdentite || $t('inputassu.not_specified') }}</q-item-label>
+                                <q-item-label caption>{{ form.DATE_PIECE || $t('inputassu.not_specified') }}</q-item-label>
                               </q-item-section>
                             </q-item>
                              <q-item class="q-py-sm">
@@ -1529,7 +1539,7 @@
                               </q-item-section>
                               <q-item-section>
                                 <q-item-label class="text-weight-medium">{{ $t('inputassu.place_issuance_identity_document') }}</q-item-label>
-                                <q-item-label caption>{{ form.lieuDelivrancePieceIdentiteAssure && form.lieuDelivrancePieceIdentiteAssure.NOM_ARROND ? form.lieuDelivrancePieceIdentiteAssure.NOM_ARROND : $t('inputassu.not_specified') }}</q-item-label>
+                                <q-item-label caption>{{ form.LIEU_PIECEC && form.LIEU_PIECEC.NOM_ARROND ? form.LIEU_PIECEC.NOM_ARROND : $t('inputassu.not_specified') }}</q-item-label>
                               </q-item-section>
                             </q-item>
                             </q-list>
@@ -1562,7 +1572,7 @@
                               <q-card-section class="q-pb-sm">
                                 <div class="row items-center">
                                   <q-icon name="man" color="blue" size="sm" class="q-mr-sm" />
-                                  <span class="text-weight-bold text-blue">{{ $t('immat.stepp3') }}</span>
+                                  <span class="text-weight-bold text-blue">{{ $t('immat.step3') }}</span>
                                   <q-space />
                                   <q-btn
                                     flat
@@ -1577,29 +1587,29 @@
                               </q-card-section>
                               <q-card-section class="q-pt-none">
                                 <div class="text-subtitle2 text-weight-medium">
-                                  {{ form.nomPere || $t('inputassu.not_specified') }} {{ form.prenomPere || '' }}
+                                  {{ form.NOM_PERE || $t('inputassu.not_specified') }} {{ form.PRENOM_PERE || '' }}
                                 </div>
                                 <div class="text-caption">
-                                  {{ $t('inputassu.date_of_birth') }}: {{ form.dateNaissancePere || $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.date_of_birth') }}: {{ form.DATE_NAISS_PERSP || $t('inputassu.not_specified') }}
                                 </div>
                                 <div class="text-caption">
-                                  {{ $t('inputassu.place_of_birth') }}: {{ form.lieuNaissancePere || $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.place_of_birth') }}: {{ form.LOCALITE_NAISS_PERE || $t('inputassu.not_specified') }}
                                 </div>
                                 <div class="text-caption">
-                                  {{ $t('inputassu.birth_district') }}: {{ form.arrondissementPere && form.arrondissementPere.NOM_ARROND ? form.arrondissementPere.NOM_ARROND : $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.birth_district') }}: {{ form.LieuNaissPere && form.LieuNaissPere.NOM_ARROND ? form.LieuNaissPere.NOM_ARROND : $t('inputassu.not_specified') }}
                                 </div>
                                 <q-badge
-                                  :color="form.vivantPere === $t('inputassu.yes') || form.vivantPere === 'OUI' || form.vivantPere === 'YES' ? 'positive' : 'negative'"
-                                  :label="form.vivantPere || $t('inputassu.not_specified')"
+                                  :color="form.etatP === $t('inputassu.yes') || form.etatP === 'OUI' || form.etatP === 'YES' ? 'positive' : 'negative'"
+                                  :label="form.etatP || $t('inputassu.not_specified')"
                                   class="q-mt-sm"
                                 />
                                 <!-- Afficher la date de décès seulement si le père est décédé -->
                                 <div
                                   class="text-caption q-mt-sm"
-                                  v-if="form.vivantPere === $t('inputassu.no') || form.vivantPere === 'NON' || form.vivantPere === 'NO' || form.dateDecesPere"
+                                  v-if="form.etatP === $t('inputassu.no') || form.etatP === 'NON' || form.etatP === 'NO' || form.DATE_DECES_PERSP"
                                 >
                                   <q-icon name="event" color="grey-7" size="xs" class="q-mr-xs" />
-                                  {{ $t('inputassu.date_death') }}: {{ form.dateDecesPere || $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.date_death') }}: {{ form.DATE_DECES_PERSP || $t('inputassu.not_specified') }}
                                 </div>
                               </q-card-section>
                             </q-card>
@@ -1610,7 +1620,7 @@
                               <q-card-section class="q-pb-sm">
                                 <div class="row items-center">
                                   <q-icon name="woman" color="pink" size="sm" class="q-mr-sm" />
-                                  <span class="text-weight-bold text-pink">{{ $t('immat.stepp4') }}</span>
+                                  <span class="text-weight-bold text-pink">{{ $t('immat.step4') }}</span>
                                   <q-space />
                                   <q-btn
                                     flat
@@ -1625,29 +1635,29 @@
                               </q-card-section>
                               <q-card-section class="q-pt-none">
                                 <div class="text-subtitle2 text-weight-medium">
-                                  {{ form.nomMere || $t('inputassu.not_specified') }} {{ form.prenomMere || '' }}
+                                  {{ form.NOM_MERE || $t('inputassu.not_specified') }} {{ form.PRENOM_MERE || '' }}
                                 </div>
                                 <div class="text-caption">
-                                  {{ $t('inputassu.date_of_birth') }}: {{ form.dateNaissanceMere || $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.date_of_birth') }}: {{ form.DATE_NAISS_PERSM || $t('inputassu.not_specified') }}
                                 </div>
                                 <div class="text-caption">
-                                  {{ $t('inputassu.place_of_birth') }}: {{ form.lieuNaissanceMere || $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.place_of_birth') }}: {{ form.LOCALITE_NAISS_MERE || $t('inputassu.not_specified') }}
                                 </div>
                                 <div class="text-caption">
-                                  {{ $t('inputassu.birth_district') }}: {{ form.arrondissementMere && form.arrondissementMere.NOM_ARROND ? form.arrondissementMere.NOM_ARROND : $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.birth_district') }}: {{ form.LieuNaissMere && form.LieuNaissMere.NOM_ARROND ? form.LieuNaissMere.NOM_ARROND : $t('inputassu.not_specified') }}
                                 </div>
                                 <q-badge
-                                  :color="form.vivantMere === $t('inputassu.yes') || form.vivantMere === 'OUI' || form.vivantMere === 'YES' ? 'positive' : 'negative'"
-                                  :label="form.vivantMere || $t('inputassu.not_specified')"
+                                  :color="form.etatM === $t('inputassu.yes') || form.etatM === 'OUI' || form.etatM === 'YES' ? 'positive' : 'negative'"
+                                  :label="form.etatM || $t('inputassu.not_specified')"
                                   class="q-mt-sm"
                                 />
                                 <!-- Afficher la date de décès seulement si la mère est décédée -->
                                 <div
                                   class="text-caption q-mt-sm"
-                                  v-if="form.vivantMere === $t('inputassu.no') || form.vivantMere === 'NON' || form.vivantMere === 'NO' || form.dateDecesMere"
+                                  v-if="form.etatM === $t('inputassu.no') || form.etatM === 'NON' || form.etatM === 'NO' || form.DATE_DECES_PERSM"
                                 >
                                   <q-icon name="event" color="grey-7" size="xs" class="q-mr-xs" />
-                                  {{ $t('inputassu.date_death') }}: {{ form.dateDecesMere || $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.date_death') }}: {{ form.DATE_DECES_PERSM || $t('inputassu.not_specified') }}
                                 </div>
                               </q-card-section>
                             </q-card>
@@ -1668,7 +1678,7 @@
                       <div class="row items-center no-wrap">
                         <q-icon name="contact_mail" size="md" class="q-mr-md" />
                         <div>
-                          <div class="text-h6 text-weight-bold">{{ $t('immat.stepp5') }}</div>
+                          <div class="text-h6 text-weight-bold">{{ $t('immat.step5') }}</div>
                         </div>
                         <q-space />
                         <q-btn
@@ -1693,7 +1703,7 @@
                           </q-item-section>
                           <q-item-section>
                             <q-item-label class="text-weight-medium">{{ $t('inputassu.city_of_residence') }}</q-item-label>
-                            <q-item-label caption>{{ form.ville.NOM_ARROND || $t('inputassu.not_specified') }}</q-item-label>
+                            <q-item-label caption>{{ form.CODE_VILLEC.NOM_ARROND || $t('inputassu.not_specified') }}</q-item-label>
                           </q-item-section>
                         </q-item>
 
@@ -1703,7 +1713,7 @@
                           </q-item-section>
                           <q-item-section>
                             <q-item-label class="text-weight-medium">{{ $t('inputassu.neighborhood') }}</q-item-label>
-                            <q-item-label caption>{{ form.quartier || $t('inputassu.not_specified') }}</q-item-label>
+                            <q-item-label caption>{{ form.QUARTIER || $t('inputassu.not_specified') }}</q-item-label>
                           </q-item-section>
                         </q-item>
 
@@ -1713,7 +1723,7 @@
                           </q-item-section>
                           <q-item-section>
                             <q-item-label class="text-weight-medium">{{ $t('inputassu.phone') }}</q-item-label>
-                            <q-item-label caption>{{ form.telephone || $t('inputassu.not_specified') }}</q-item-label>
+                            <q-item-label caption>{{ form.TEL_PERS || $t('inputassu.not_specified') }}</q-item-label>
                           </q-item-section>
                         </q-item>
 
@@ -1723,7 +1733,7 @@
                           </q-item-section>
                           <q-item-section>
                             <q-item-label class="text-weight-medium">{{ $t('inputassu.fax') }}</q-item-label>
-                            <q-item-label caption>{{ form.fax || $t('inputassu.not_specified') }}</q-item-label>
+                            <q-item-label caption>{{ form.FAX_PERS || $t('inputassu.not_specified') }}</q-item-label>
                           </q-item-section>
                         </q-item>
                         <q-expansion-item
@@ -1738,7 +1748,7 @@
                               </q-item-section>
                               <q-item-section>
                                 <q-item-label class="text-weight-medium">{{ $t('inputassu.address') }}</q-item-label>
-                                <q-item-label caption>{{ form.addresse || $t('inputassu.not_specified') }}</q-item-label>
+                                <q-item-label caption>{{ form.Adresse || $t('inputassu.not_specified') }}</q-item-label>
                               </q-item-section>
                             </q-item>
 
@@ -1748,7 +1758,7 @@
                               </q-item-section>
                               <q-item-section>
                                 <q-item-label class="text-weight-medium">{{ $t('inputassu.email') }}</q-item-label>
-                                <q-item-label caption>{{ form.email || $t('inputassu.not_specified') }}</q-item-label>
+                                <q-item-label caption>{{ form.EMAIL_PERS || $t('inputassu.not_specified') }}</q-item-label>
                               </q-item-section>
                             </q-item>
 
@@ -1758,7 +1768,7 @@
                               </q-item-section>
                               <q-item-section>
                                 <q-item-label class="text-weight-medium">{{ $t('inputassu.postal_box') }}</q-item-label>
-                                <q-item-label caption>{{form.boitePostale || $t('inputassu.not_specified') }}</q-item-label>
+                                <q-item-label caption>{{form.BP || $t('inputassu.not_specified') }}</q-item-label>
                               </q-item-section>
                             </q-item>
 
@@ -1768,7 +1778,7 @@
                               </q-item-section>
                               <q-item-section>
                                 <q-item-label class="text-weight-medium">{{ $t('inputassu.centreCNPS') }}</q-item-label>
-                                <q-item-label caption>{{form.centreCNPS.LIB_CENTRE || $t('inputassu.not_specified') }}</q-item-label>
+                                <q-item-label caption>{{form.CODE_CENTRECNPSC.LIB_CENTRE || $t('inputassu.not_specified') }}</q-item-label>
                               </q-item-section>
                             </q-item>
                           </q-list>
@@ -1790,7 +1800,7 @@
                       <div class="row items-center no-wrap">
                         <q-icon name="folder" size="md" class="q-mr-md" />
                         <div>
-                          <div class="text-h6 text-weight-bold">{{ $t('immat.stepp6') }}</div>
+                          <div class="text-h6 text-weight-bold">{{ $t('immat.step6') }}</div>
                         </div>
                         <q-space />
                         <q-btn
@@ -1998,26 +2008,13 @@
         </q-card-section>
         <!-- Contenu principal -->
         <q-card-section style="max-height: 50vh" class="scroll q-pa-md">
-          <!-- Message de confirmation -->
-          <div class="confirmation-message q-mb-lg">
-            <q-icon name="info" color="blue" size="20px" class="q-mr-sm" />
-            <span class="text-body1 text-justify">
-              {{ $t('form.confirmationMessage') }}
-            </span>
-          </div>
-          <q-banner class="bg-blue-1 text-blue-9 q-mb-md" rounded>
-            <template v-slot:avatar>
-              <q-icon name="lightbulb" color="blue" />
-            </template>
-            {{ $t('form.confirmationNote') }}
-          </q-banner>
+
           <!-- Sélection du type de soumission -->
-          <div class="submission-types q-mt-lg">
+          <div class="submission-types q-mt-md">
             <div class="text-h6 text-weight-bold q-mb-md text-grey-8">
               <q-icon name="radio_button_checked" class="q-mr-sm" />
               {{ $t('form.selectSubmissionType') }}
             </div>
-
             <!-- Option temporaire -->
             <q-card
               flat
@@ -2102,7 +2099,7 @@
   </q-dialog>
 </template>
 <script setup>
-import { ref, computed, watch, defineProps, defineEmits } from 'vue';
+import { ref, computed, defineProps, defineEmits } from 'vue';
 import { useNotify } from './useNotify.js';
 import { arrondissements as rawArrondissements } from '../data/Arrondissements.js';
 import { pays as rawPays } from '../data/Pays.js';
@@ -2173,45 +2170,45 @@ const form = ref({
   NiveauAss: '',
   ActuelRevenu: '',
   SMIG_VALUE: 0,
-  sexe: '',
-  nom: '',
-  prenom: '',
-  dateNaissance: '',
-  lieuNaissance: '',
-  arrondissementAssure: null,
-  nationaliteAssure: null,
-  pieceIdentiteAssure: '',
-  numeroPieceIdentite: '',
-  datePieceIdentite: '',
-  lieuDelivrancePieceIdentiteAssure: null,
-  etatCivil: '',
-  nomPere: '',
-  prenomPere: '',
-  dateNaissancePere: '',
-  lieuNaissancePere: '',
-  arrondissementPere: null,
-  vivantPere: '',
-  dateDecesPere: '',
-  nomMere: '',
-  prenomMere: '',
-  dateNaissanceMere: '',
-  lieuNaissanceMere: '',
-  arrondissementMere: null,
-  vivantMere: '',
-  dateDecesMere: '',
-  ville: null,
-  quartier: '',
-  telephone: '',
-  fax: '',
-  addresse: '',
-  email: '',
-  boitePostale: '',
-  centreCNPS: null,
-  nombreEnfants: 0,
+  SEXE_PERS: '',
+  NOM_PERS: '',
+  PRENOM_PERS: '',
+  DATE_NAISS_PERS: '',
+  LOCALITE_NAISS: '',
+  LieuNaiss: null,
+  NATIONALITEC: null,
+  typepiece: '',
+  NUM_PIECE: '',
+  DATE_PIECE: '',
+  LIEU_PIECEC: null,
+  civilite: '',
+  NOM_PERE: '',
+  PRENOM_PERE: '',
+  DATE_NAISS_PERSP: '',
+  LOCALITE_NAISS_PERE: '',
+  LieuNaissPere: null,
+  etatP: '',
+  DATE_DECES_PERSP: '',
+  NOM_MERE: '',
+  PRENOM_MERE: '',
+  DATE_NAISS_PERSM: '',
+  LOCALITE_NAISS_MERE: '',
+  LieuNaissMere: null,
+  etatM: '',
+  DATE_DECES_PERSM: '',
+  CODE_VILLEC: null,
+  QUARTIER: '',
+  TEL_PERS: '',
+  FAX_PERS: '',
+  Adresse: '',
+  EMAIL_PERS: '',
+  BP: '',
+  CODE_CENTRECNPSC: null,
+  nombEnfa: 0,
   actesNaissance: [],
-  nombreCertificat: 0,
+  nombCert: 0,
   certificatsTravail: [],
-  nombreConjoints: 0,
+  nombConj: 0,
   actesMariage: [],
 });
 
@@ -2248,32 +2245,13 @@ const yesNoOptions = computed(() => [
   t('inputassu.no'),
 ]);
 const required = (val) => !!val || 'Ce champ est requis / This field is required';
-//const required = (val) => (val && val.length > 0) || t('input.required');
-const requiredFiles = (count) => (val) => (val && val.length >= count) || t('errors.file_too_large', { count });
+
 
 const validateEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || t('errors.invalidEmail');
 
 const validateMatriculeCNPS = (val) => {
   const regex = /^(?:\d{3}-\d{7}-\d{3}-[A-Z]|\d{3}-\d{7}-[A-Z])$/.test(val);
   return regex || t('errors.invalid_cnps_format');
-};
-
-
-const validateDateNaissance = (val) => {
-  if (!val) return t('errors.invalidDate');
-  const [day, month, year] = val.split('/').map(Number);
-  const date = new Date(year, month - 1, day);
-  const today = new Date();
-  return (date < today) || t('errors.invalidDate');
-};
-
-
-const validateDateNaissanceMere = (val) => {
-  if (!val) return t('errors.invalidDate');
-  const [day, month, year] = val.split('/').map(Number);
-  const date = new Date(year, month - 1, day);
-  const today = new Date();
-  return (date < today) || t('errors.invalidDate');
 };
 
 
@@ -2377,7 +2355,7 @@ const onFileSelected = (field) => (file) => {
     form[field] = null; // Réinitialise le champ
     return;
   }
-  validateStep(step.value);
+
 };
 
 const onRejected = (rejectedEntries) => {
@@ -2402,91 +2380,25 @@ const isStepAllowed = (stepNumber) => {
   return stepNumber <= maxStep.value;
 };
 
-const validateStep = async (stepNumber) => {
-  let isValid = true;
-  const requiredFields = {
-    1: ['mat_employeur', 'RAISON_SOCIALE', 'DATE_EMB_PRE_SALL', 'avisEmbauche'],
-    2: ['nom', 'sexe', 'dateNaissance', 'lieuNaissance', 'arrondissementAssure', 'nationaliteAssure', 'pieceIdentiteAssure', 'numeroPieceIdentite', 'datePieceIdentite', 'lieuDelivrancePieceIdentiteAssure', 'etatCivil'],
-    3: [],
-    4: ['nomMere', 'dateNaissanceMere', 'lieuNaissanceMere', 'arrondissementMere', 'vivantMere'],
-    5: ['ville', 'telephone', 'email', 'centreCNPS'],
-    6: [],
-    7: [],
-  };
 
-  if (requiredFields[stepNumber]) {
-    for (const field of requiredFields[stepNumber]) {
-      const value = form.value[field];
-      if (field === 'avisEmbauche') {
-        if (!value) {
-          isValid = false;
-          break;
-        }
-      } else if (['actesNaissance', 'certificatsTravail', 'actesMariage'].includes(field)) {
-        const countField = {
-          actesNaissance: 'nombreEnfants',
-          certificatsTravail: 'nombreCertificat',
-          actesMariage: 'nombreConjoints',
-        }[field];
-        const count = form.value[countField] || 0;
-        if (count > 0 && (!value || value.length < count)) {
-          isValid = false;
-          break;
-        }
-      } else if (!value) {
-        isValid = false;
-        break;
-      }
-    }
-  }
-
-  if (stepNumber === 1) {
-    if (!validateMatriculeCNPS(form.value.mat_employeur)) {
-      isValid = false;
-    }
-  } else if (stepNumber === 2) {
-    if (!validateDateNaissance(form.value.dateNaissance)) {
-      isValid = false;
-    }
-  } else if (stepNumber === 4) {
-    if (!validateDateNaissanceMere(form.value.dateNaissanceMere) ) {
-      isValid = false;
-    }
-    if (form.value.vivantMere === t('inputassu.no') && (!form.value.dateDecesMere)) {
-      isValid = false;
-    }
-  } else if (stepNumber === 5) {
-    if (!validateEmail(form.value.email)) {
-      isValid = false;
-    }
-  }
-
-  stepErrors.value[stepNumber] = !isValid;
-  return isValid;
-};
 
 const goToNextStep = async (nextStep) => {
-  if (await validateStep(step.value)) {
-    step.value = nextStep;
+
+  const valid = await formRef.value.validate()
+  if (valid) {
+    step.value = nextStep
     if (nextStep > maxStep.value) {
-      maxStep.value = nextStep;
+      maxStep.value = nextStep
     }
   } else {
-    stepErrors.value[step.value] = true;
-    notifyError(t('form.step_incomplete'));
+    notifyError('Veuillez remplir tous les champs requis / Please fill in all required fields.')
   }
 };
 
 const submitForm = async () => {
-  const allStepsValid = await Promise.all(
-    Array.from({ length: 7 }, (_, i) => i + 1).map((stepNumber) => validateStep(stepNumber))
-  );
-  if (allStepsValid.every((valid) => valid)) {
+
     showConfirmationDialog.value = true;
-  } else {
-    stepErrors.value[7] = true;
-    notifyError(t('form.incomplete'));
-  }
+
 };
 
  const confirmSubmission = async () => {
@@ -2508,18 +2420,18 @@ const submitForm = async () => {
       }
     });
       // Append translated values for specific fields
-    formData.append('sexe', t(form.value.sexe));
-    formData.append('etatCivil', t(form.value.etatCivil));
-    formData.append('vivantPere', form.value.vivantPere ? t(form.value.vivantPere) : '');
-    formData.append('vivantMere', form.value.vivantMere ? t(form.value.vivantMere) : '');
-    formData.append('arrondissementAssure', form.value.arrondissementAssure ? getArrondissementName(form.value.arrondissementAssure) : '');
-    formData.append('nationaliteAssure', form.value.nationaliteAssure ? getPaysName(form.value.nationaliteAssure) : '');
-    formData.append('pieceIdentiteAssure', form.value.pieceIdentiteAssure ? getPieceName(form.value.pieceIdentiteAssure) : '');
-    formData.append('lieuDelivrancePieceIdentiteAssure', form.value.lieuDelivrancePieceIdentiteAssure ? getArrondissementName(form.value.lieuDelivrancePieceIdentiteAssure) : '');
-    formData.append('arrondissementPere', form.value.arrondissementPere ? getArrondissementName(form.value.arrondissementPere) : '');
-    formData.append('arrondissementMere', form.value.arrondissementMere ? getArrondissementName(form.value.arrondissementMere) : '');
-    formData.append('ville', form.value.ville ? getArrondissementName(form.value.ville) : '');
-    formData.append('centreCNPS', form.value.centreCNPS ? getCentreCNPSName(form.value.centreCNPS) : '');
+    formData.append('SEXE_PERS', t(form.value.SEXE_PERS));
+    formData.append('civilite', t(form.value.civilite));
+    formData.append('etatP', form.value.etatP ? t(form.value.etatP) : '');
+    formData.append('etatM', form.value.etatM ? t(form.value.etatM) : '');
+    formData.append('LieuNaiss', form.value.LieuNaiss ? getArrondissementName(form.value.LieuNaiss) : '');
+    formData.append('NATIONALITEC', form.value.NATIONALITEC ? getPaysName(form.value.NATIONALITEC) : '');
+    formData.append('typepiece', form.value.typepiece ? getPieceName(form.value.typepiece) : '');
+    formData.append('LIEU_PIECEC', form.value.LIEU_PIECEC ? getArrondissementName(form.value.LIEU_PIECEC) : '');
+    formData.append('LieuNaissPere', form.value.LieuNaissPere ? getArrondissementName(form.value.LieuNaissPere) : '');
+    formData.append('LieuNaissMere', form.value.LieuNaissMere ? getArrondissementName(form.value.LieuNaissMere) : '');
+    formData.append('CODE_VILLEC', form.value.CODE_VILLEC ? getArrondissementName(form.value.CODE_VILLEC) : '');
+    formData.append('CODE_CENTRECNPSC', form.value.CODE_CENTRECNPSC ? getCentreCNPSName(form.value.centreCNPS) : '');
 
      // API call to OneBase GED system
     /* const response = await axios.post('https://api.onebase.ged/submit', formData, {
@@ -2598,77 +2510,6 @@ const closeDialog = () => {
   emit('close');
 };
 
-// Watch file inputs to update stepErrors
-watch(() => form.value.avisEmbauche, () => {
-  validateStep(1);
-}, { deep: true });
-
-watch(() => form.value.actesNaissance, () => {
-  validateStep(6);
-}, { deep: true });
-
-watch(() => form.value.certificatsTravail, () => {
-  validateStep(6);
-}, { deep: true });
-
-watch(() => form.value.actesMariage, () => {
-  validateStep(6);
-}, { deep: true });
-
-// Watch other fields to update stepErrors
-watch(
-  () => [
-    form.value.mat_employeur,
-    form.value.RAISON_SOCIALE,
-    form.value.DATE_EMB_PRE_SALL,
-    form.value.nom,
-    form.value.sexe,
-    form.value.dateNaissance,
-    form.value.lieuNaissance,
-    form.value.arrondissementAssure,
-    form.value.nationaliteAssure,
-    form.value.pieceIdentiteAssure,
-    form.value.numeroPieceIdentite,
-    form.value.datePieceIdentite,
-    form.value.lieuDelivrancePieceIdentiteAssure,
-    form.value.etatCivil,
-    form.value.nomMere,
-    form.value.dateNaissanceMere,
-    form.value.lieuNaissanceMere,
-    form.value.arrondissementMere,
-    form.value.vivantMere,
-    form.value.dateDecesMere,
-    form.value.ville,
-    form.value.telephone,
-    form.value.email,
-    form.value.centreCNPS,
-  ],
-  () => {
-    validateStep(step.value);
-  },
-  { deep: true }
-);
-
-watch(() => form.value.nombreEnfants, (newValue) => {
-  if (newValue < form.value.actesNaissance.length) {
-    form.value.actesNaissance = form.value.actesNaissance.slice(0, newValue);
-  }
-  validateStep(6);
-});
-
-watch(() => form.value.nombreCertificat, (newValue) => {
-  if (newValue < form.value.certificatsTravail.length) {
-    form.value.certificatsTravail = form.value.certificatsTravail.slice(0, newValue);
-  }
-  validateStep(6);
-});
-
-watch(() => form.value.nombreConjoints, (newValue) => {
-  if (newValue < form.value.actesMariage.length) {
-    form.value.actesMariage = form.value.actesMariage.slice(0, newValue);
-  }
-  validateStep(6);
-});
 </script>
 <style scoped>
 .confirmation-card {
