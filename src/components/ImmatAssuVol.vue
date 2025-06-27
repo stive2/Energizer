@@ -2,7 +2,7 @@
   <q-dialog v-model="open" persistent full-width>
     <q-card :style="$q.screen.gt.sm ? 'width: 900px' : 'width: 100%'">
       <q-card-section>
-        <div class="text-h6 text-primary text-center text-bold">
+        <div class="text-h6 text-primary text-center text-uppercase text-bold">
           {{ service.name }}
         </div>
       </q-card-section>
@@ -27,7 +27,7 @@
               :error="stepErrors[1]"
               :header-class="stepErrors[1] ? 'bg-red text-white' : ''"
             >
-              <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
+              <div class="justify-center row" :class="{ column: !$q.screen.gt.sm }">
                 <q-select
                   v-model="form.origineRevenue"
                   label="Origine des revenus *"
@@ -77,7 +77,6 @@
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
-
                   :error="stepErrors[1] && !form.dateAffiliationSollicitee"
                   mask="DD/MM/YYYY"
                   @update:model-value="fetchParameters"
@@ -222,7 +221,7 @@
               :error="stepErrors[2]"
               :header-class="stepErrors[2] ? 'bg-red text-white' : ''"
             >
-              <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
+              <div class="justify-center row" :class="{ column: !$q.screen.gt.sm }">
                 <q-input
                   v-model="form.nom"
                   label="Nom *"
@@ -421,7 +420,7 @@
               :error="stepErrors[3]"
               :header-class="stepErrors[3] ? 'bg-red text-white' : ''"
             >
-              <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
+              <div class="justify-center row" :class="{ column: !$q.screen.gt.sm }">
                 <q-input
                   v-model="form.nomPere"
                   label="Nom"
@@ -535,7 +534,7 @@
               :error="stepErrors[4]"
               :header-class="stepErrors[4] ? 'bg-red text-white' : ''"
             >
-              <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
+              <div class="justify-center row" :class="{ column: !$q.screen.gt.sm }">
                 <q-input
                   v-model="form.nomMere"
                   label="Nom *"
@@ -659,7 +658,7 @@
               :error="stepErrors[5]"
               :header-class="stepErrors[5] ? 'bg-red text-white' : ''"
             >
-              <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
+              <div class="justify-center row" :class="{ column: !$q.screen.gt.sm }">
                 <q-select
                   v-model="form.ville"
                   label="Ville de résidence *"
@@ -774,7 +773,7 @@
               :error="stepErrors[6]"
               :header-class="stepErrors[6] ? 'bg-red text-white' : ''"
             >
-              <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
+              <div class="justify-center row" :class="{ column: !$q.screen.gt.sm }">
                 <q-input
                   v-model="form.nombreEnfants"
                   label="Nombre d’enfants"
@@ -801,7 +800,11 @@
                   max-file-size="3072000"
                   class="q-mr-sm q-mb-sm"
                   :rules="[requiredFiles(form.nombreEnfants)]"
-                  :error="stepErrors[6] && form.nombreEnfants > 0 && (!form.actesNaissance || form.actesNaissance.length === 0)"
+                  :error="
+                    stepErrors[6] &&
+                    form.nombreEnfants > 0 &&
+                    (!form.actesNaissance || form.actesNaissance.length === 0)
+                  "
                   @update:model-value="onFileSelected('actesNaissance')"
                   @rejected="onRejected"
                 >
@@ -837,7 +840,11 @@
                   max-file-size="3072000"
                   class="q-mr-sm q-mb-sm"
                   :rules="[requiredFiles(form.nombreCertificat)]"
-                  :error="stepErrors[6] && form.nombreCertificat > 0 && (!form.certificatsTravail || form.certificatsTravail.length === 0)"
+                  :error="
+                    stepErrors[6] &&
+                    form.nombreCertificat > 0 &&
+                    (!form.certificatsTravail || form.certificatsTravail.length === 0)
+                  "
                   @update:model-value="onFileSelected('certificatsTravail')"
                   @rejected="onRejected"
                 >
@@ -871,7 +878,11 @@
                   max-file-size="3072000"
                   class="q-mr-sm q-mb-sm"
                   :rules="[requiredFiles(form.nombreConjoints)]"
-                  :error="stepErrors[6] && form.nombreConjoints > 0 && (!form.actesMariage || form.actesMariage.length === 0)"
+                  :error="
+                    stepErrors[6] &&
+                    form.nombreConjoints > 0 &&
+                    (!form.actesMariage || form.actesMariage.length === 0)
+                  "
                   @update:model-value="onFileSelected('actesMariage')"
                   @rejected="onRejected"
                 >
@@ -895,43 +906,46 @@
               :error="stepErrors[7]"
               :header-class="stepErrors[7] ? 'bg-red text-white' : ''"
             >
-              <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
+              <div class="justify-center row" :class="{ column: !$q.screen.gt.sm }">
                 <!-- Résumé Étape 1 -->
                 <q-card flat bordered class="q-mb-md full-width">
                   <q-card-section class="row items-center">
                     <div class="text-h6 text-primary">Informations sur l'affiliation</div>
                     <q-space />
-                    <q-btn
-                      flat
-                      color="primary"
-                      label="Modifier"
-                      @click="step = 1"
-                    />
+                    <q-btn flat color="primary" label="Modifier" @click="step = 1" />
                   </q-card-section>
                   <q-card-section>
                     <q-list>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Origine des revenus</q-item-label>
-                          <q-item-label caption>{{ form.origineRevenue || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.origineRevenue || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Date d'affiliation sollicitée</q-item-label>
-                          <q-item-label caption>{{ form.dateAffiliationSollicitee || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.dateAffiliationSollicitee || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Date d'affiliation normale</q-item-label>
-                          <q-item-label caption>{{ form.dateAffiliationNormale || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.dateAffiliationNormale || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Détails sur l'origine</q-item-label>
-                          <q-item-label caption>{{ form.detailOrigineRevenue || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.detailOrigineRevenue || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
@@ -943,25 +957,33 @@
                       <q-item>
                         <q-item-section>
                           <q-item-label>Revenu annuel à déclarer</q-item-label>
-                          <q-item-label caption>{{ form.revenuAnnuelDeclare || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.revenuAnnuelDeclare || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Taux de cotisation en vigueur</q-item-label>
-                          <q-item-label caption>{{ form.tauxCotisation || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.tauxCotisation || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Assiette de cotisation à l'immatriculation</q-item-label>
-                          <q-item-label caption>{{ form.assieteCotisation || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.assieteCotisation || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Montant de cotisation à l'immatriculation</q-item-label>
-                          <q-item-label caption>{{ form.montantCotisation || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.montantCotisation || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                     </q-list>
@@ -973,12 +995,7 @@
                   <q-card-section class="row items-center">
                     <div class="text-h6 text-primary">Informations personnelles de l’assuré</div>
                     <q-space />
-                    <q-btn
-                      flat
-                      color="primary"
-                      label="Modifier"
-                      @click="step = 2"
-                    />
+                    <q-btn flat color="primary" label="Modifier" @click="step = 2" />
                   </q-card-section>
                   <q-card-section>
                     <q-list>
@@ -1003,55 +1020,73 @@
                       <q-item>
                         <q-item-section>
                           <q-item-label>Date de naissance</q-item-label>
-                          <q-item-label caption>{{ form.dateNaissance || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.dateNaissance || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Lieu de naissance</q-item-label>
-                          <q-item-label caption>{{ form.lieuNaissance || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.lieuNaissance || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Arrondissement de naissance</q-item-label>
-                          <q-item-label caption>{{ form.arrondissementAssure?.NOM_ARROND || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.arrondissementAssure?.NOM_ARROND || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>État matrimonial</q-item-label>
-                          <q-item-label caption>{{ form.etatCivil || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.etatCivil || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Nationalité</q-item-label>
-                          <q-item-label caption>{{ form.nationaliteAssure?.nationalite || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.nationaliteAssure?.nationalite || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Type de pièce d'identité</q-item-label>
-                          <q-item-label caption>{{ form.pieceIdentiteAssure?.LIBELLE || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.pieceIdentiteAssure?.LIBELLE || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Numéro de pièce d'identité</q-item-label>
-                          <q-item-label caption>{{ form.numeroPieceIdentite || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.numeroPieceIdentite || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Établi le</q-item-label>
-                          <q-item-label caption>{{ form.datePieceIdentite || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.datePieceIdentite || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Lieu de délivrance</q-item-label>
-                          <q-item-label caption>{{ form.lieuDelivrancePieceIdentiteAssure?.NOM_ARROND || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.lieuDelivrancePieceIdentiteAssure?.NOM_ARROND || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                     </q-list>
@@ -1063,12 +1098,7 @@
                   <q-card-section class="row items-center">
                     <div class="text-h6 text-primary">Informations sur le père de l’assuré</div>
                     <q-space />
-                    <q-btn
-                      flat
-                      color="primary"
-                      label="Modifier"
-                      @click="step = 3"
-                    />
+                    <q-btn flat color="primary" label="Modifier" @click="step = 3" />
                   </q-card-section>
                   <q-card-section>
                     <q-list>
@@ -1081,37 +1111,49 @@
                       <q-item>
                         <q-item-section>
                           <q-item-label>Prénom</q-item-label>
-                          <q-item-label caption>{{ form.prenomPere || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.prenomPere || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Date de naissance</q-item-label>
-                          <q-item-label caption>{{ form.dateNaissancePere || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.dateNaissancePere || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Lieu de naissance</q-item-label>
-                          <q-item-label caption>{{ form.lieuNaissancePere || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.lieuNaissancePere || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Arrondissement de naissance</q-item-label>
-                          <q-item-label caption>{{ form.arrondissementPere?.NOM_ARROND || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.arrondissementPere?.NOM_ARROND || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Vivant</q-item-label>
-                          <q-item-label caption>{{ form.vivantPere || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.vivantPere || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item v-if="form.vivantPere === 'Non'">
                         <q-item-section>
                           <q-item-label>Date de décès</q-item-label>
-                          <q-item-label caption>{{ form.dateDecesPere || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.dateDecesPere || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                     </q-list>
@@ -1123,12 +1165,7 @@
                   <q-card-section class="row items-center">
                     <div class="text-h6 text-primary">Informations sur la mère de l’assuré</div>
                     <q-space />
-                    <q-btn
-                      flat
-                      color="primary"
-                      label="Modifier"
-                      @click="step = 4"
-                    />
+                    <q-btn flat color="primary" label="Modifier" @click="step = 4" />
                   </q-card-section>
                   <q-card-section>
                     <q-list>
@@ -1141,37 +1178,49 @@
                       <q-item>
                         <q-item-section>
                           <q-item-label>Prénom</q-item-label>
-                          <q-item-label caption>{{ form.prenomMere || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.prenomMere || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Date de naissance</q-item-label>
-                          <q-item-label caption>{{ form.dateNaissanceMere || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.dateNaissanceMere || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Lieu de naissance</q-item-label>
-                          <q-item-label caption>{{ form.lieuNaissanceMere || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.lieuNaissanceMere || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Arrondissement de naissance</q-item-label>
-                          <q-item-label caption>{{ form.arrondissementMere?.NOM_ARROND || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.arrondissementMere?.NOM_ARROND || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Vivant</q-item-label>
-                          <q-item-label caption>{{ form.vivantMere || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.vivantMere || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item v-if="form.vivantMere === 'Non'">
                         <q-item-section>
                           <q-item-label>Date de décès</q-item-label>
-                          <q-item-label caption>{{ form.dateDecesMere || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.dateDecesMere || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                     </q-list>
@@ -1183,19 +1232,16 @@
                   <q-card-section class="row items-center">
                     <div class="text-h6 text-primary">Contact et Résidence</div>
                     <q-space />
-                    <q-btn
-                      flat
-                      color="primary"
-                      label="Modifier"
-                      @click="step = 5"
-                    />
+                    <q-btn flat color="primary" label="Modifier" @click="step = 5" />
                   </q-card-section>
                   <q-card-section>
                     <q-list>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Ville de résidence</q-item-label>
-                          <q-item-label caption>{{ form.ville?.NOM_ARROND || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.ville?.NOM_ARROND || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
@@ -1207,7 +1253,9 @@
                       <q-item>
                         <q-item-section>
                           <q-item-label>Téléphone</q-item-label>
-                          <q-item-label caption>{{ form.telephone || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.telephone || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
@@ -1231,13 +1279,17 @@
                       <q-item>
                         <q-item-section>
                           <q-item-label>Boîte postale</q-item-label>
-                          <q-item-label caption>{{ form.boitePostale || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.boitePostale || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                       <q-item>
                         <q-item-section>
                           <q-item-label>Centre CNPS</q-item-label>
-                          <q-item-label caption>{{ form.centreCNPS?.LIB_CENTRE || 'Non spécifié' }}</q-item-label>
+                          <q-item-label caption>{{
+                            form.centreCNPS?.LIB_CENTRE || 'Non spécifié'
+                          }}</q-item-label>
                         </q-item-section>
                       </q-item>
                     </q-list>
@@ -1249,12 +1301,7 @@
                   <q-card-section class="row items-center">
                     <div class="text-h6 text-primary">Pièces complémentaires</div>
                     <q-space />
-                    <q-btn
-                      flat
-                      color="primary"
-                      label="Modifier"
-                      @click="step = 6"
-                    />
+                    <q-btn flat color="primary" label="Modifier" @click="step = 6" />
                   </q-card-section>
                   <q-card-section>
                     <q-list>
@@ -1355,10 +1402,13 @@
 
         <q-card-section style="max-height: 50vh" class="scroll">
           <p class="text-justify">
-            Vous êtes sur le point de soumettre définitivement les informations. Veuillez vérifier que toutes les informations fournies sont correctes, car aucune modification ne sera possible après la soumission.
+            Vous êtes sur le point de soumettre définitivement les informations. Veuillez vérifier
+            que toutes les informations fournies sont correctes, car aucune modification ne sera
+            possible après la soumission.
           </p>
           <p>
-            En cliquant sur "Soumettre", vous confirmez que vous avez lu et compris les conditions de soumission.
+            En cliquant sur "Soumettre", vous confirmez que vous avez lu et compris les conditions
+            de soumission.
           </p>
         </q-card-section>
 
@@ -1373,38 +1423,38 @@
   </q-dialog>
 </template>
 <script setup>
-import { ref, defineProps, defineEmits, onMounted } from 'vue';
-import { useNotify } from './useNotify.js';
-import { arrondissements as rawArrondissements } from '../data/Arrondissements.js';
-import { pays as rawPays } from '../data/Pays.js';
-import { pieces as rawPieces } from '../data/Pieces.js';
-import { centres as rawCentres } from '../data/Centres.js';
+import { ref, defineProps, defineEmits, onMounted } from 'vue'
+import { useNotify } from './useNotify.js'
+import { arrondissements as rawArrondissements } from '../data/Arrondissements.js'
+import { pays as rawPays } from '../data/Pays.js'
+import { pieces as rawPieces } from '../data/Pieces.js'
+import { centres as rawCentres } from '../data/Centres.js'
 
 defineProps({
   service: Object,
-});
+})
 
-const emit = defineEmits(['close']);
+const emit = defineEmits(['close'])
 
-const { notifyError, notifySuccess } = useNotify();
+const { notifyError, notifySuccess } = useNotify()
 
-const open = ref(true);
-const step = ref(1);
-const formRef = ref(null);
-const stepErrors = ref({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false });
-const showConfirmationDialog = ref(false);
+const open = ref(true)
+const step = ref(1)
+const formRef = ref(null)
+const stepErrors = ref({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false })
+const showConfirmationDialog = ref(false)
 
-const arrondissements = ref([...rawArrondissements]);
-const pays = ref([...rawPays]);
-const pieces = ref([...rawPieces]);
-const centres = ref([...rawCentres]);
+const arrondissements = ref([...rawArrondissements])
+const pays = ref([...rawPays])
+const pieces = ref([...rawPieces])
+const centres = ref([...rawCentres])
 
 // Mock database for SMIG, taux, and max cotisable montant
 const parametersDB = ref([
   { year: 2025, smig: 45000, taux: 0.045, maxCotisable: 750000 },
   { year: 2024, smig: 40000, taux: 0.04, maxCotisable: 700000 },
   { year: 2023, smig: 38000, taux: 0.035, maxCotisable: 650000 },
-]);
+])
 
 const form = ref({
   origineRevenue: '',
@@ -1458,55 +1508,59 @@ const form = ref({
   actesMariage: [],
   filedeclareAnnuelRevenu: null,
   filedeclareHonneur: null,
-});
+})
 
 // Set Date d'affiliation normale to the start of next month on component mount
 onMounted(() => {
-  const today = new Date();
-  const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+  const today = new Date()
+  const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
   form.value.dateAffiliationNormale = nextMonth.toLocaleDateString('fr-FR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
-  });
-});
+  })
+})
 
 // Fonction de validation pour l'email
 const validateEmail = (val) => {
-  const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  return regex.test(val) || 'Veuillez entrer un email valide (ex: exemple@domaine.com)';
-};
+  const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+  return regex.test(val) || 'Veuillez entrer un email valide (ex: exemple@domaine.com)'
+}
 
 // Validation pour la date de naissance de l'assuré (minimum 14 ans)
 const validateDateNaissance = (val) => {
-  if (!val) return 'Ce champ est requis';
-  const birthDate = new Date(val.split('/').reverse().join('-'));
-  const minDate = new Date();
-  minDate.setFullYear(minDate.getFullYear() - 14);
-  return birthDate <= minDate || 'L\'assuré doit avoir au moins 14 ans';
-};
+  if (!val) return 'Ce champ est requis'
+  const birthDate = new Date(val.split('/').reverse().join('-'))
+  const minDate = new Date()
+  minDate.setFullYear(minDate.getFullYear() - 14)
+  return birthDate <= minDate || "L'assuré doit avoir au moins 14 ans"
+}
 
 // Validation pour la date de naissance du père
 const validateDateNaissancePere = (val) => {
-  if (!val) return true; // Champ non requis
-  if (!form.value.dateNaissance) return 'Veuillez d\'abord entrer la date de naissance de l\'assuré';
-  const fatherBirthDate = new Date(val.split('/').reverse().join('-'));
-  const assureBirthDate = new Date(form.value.dateNaissance.split('/').reverse().join('-'));
-  const minFatherBirthDate = new Date(assureBirthDate);
-  minFatherBirthDate.setFullYear(assureBirthDate.getFullYear() - 12);
-  return fatherBirthDate <= minFatherBirthDate || 'Le père doit être né au moins 12 ans avant l\'assuré';
-};
+  if (!val) return true // Champ non requis
+  if (!form.value.dateNaissance) return "Veuillez d'abord entrer la date de naissance de l'assuré"
+  const fatherBirthDate = new Date(val.split('/').reverse().join('-'))
+  const assureBirthDate = new Date(form.value.dateNaissance.split('/').reverse().join('-'))
+  const minFatherBirthDate = new Date(assureBirthDate)
+  minFatherBirthDate.setFullYear(assureBirthDate.getFullYear() - 12)
+  return (
+    fatherBirthDate <= minFatherBirthDate || "Le père doit être né au moins 12 ans avant l'assuré"
+  )
+}
 
 // Validation pour la date de naissance de la mère
 const validateDateNaissanceMere = (val) => {
-  if (!val) return 'Ce champ est requis';
-  if (!form.value.dateNaissance) return 'Veuillez d\'abord entrer la date de naissance de l\'assuré';
-  const motherBirthDate = new Date(val.split('/').reverse().join('-'));
-  const assureBirthDate = new Date(form.value.dateNaissance.split('/').reverse().join('-'));
-  const minMotherBirthDate = new Date(assureBirthDate);
-  minMotherBirthDate.setFullYear(assureBirthDate.getFullYear() - 12);
-  return motherBirthDate <= minMotherBirthDate || 'La mère doit être née au moins 12 ans avant l\'assuré';
-};
+  if (!val) return 'Ce champ est requis'
+  if (!form.value.dateNaissance) return "Veuillez d'abord entrer la date de naissance de l'assuré"
+  const motherBirthDate = new Date(val.split('/').reverse().join('-'))
+  const assureBirthDate = new Date(form.value.dateNaissance.split('/').reverse().join('-'))
+  const minMotherBirthDate = new Date(assureBirthDate)
+  minMotherBirthDate.setFullYear(assureBirthDate.getFullYear() - 12)
+  return (
+    motherBirthDate <= minMotherBirthDate || "La mère doit être née au moins 12 ans avant l'assuré"
+  )
+}
 
 // Validation pour la date d'affiliation sollicitée
 /* const validateDateAffiliationSollicitee = (val) => {
@@ -1523,32 +1577,32 @@ const validateDateNaissanceMere = (val) => {
 
 // Validation pour le revenu annuel
 const validateRevenuAnnuel = (val) => {
-  return val >= 0 || 'Le revenu annuel ne peut pas être négatif';
-};
+  return val >= 0 || 'Le revenu annuel ne peut pas être négatif'
+}
 
 // Validation pour l'assiette de cotisation
 const validateAssieteCotisation = (val) => {
-  if (!val) return 'Ce champ est requis';
+  if (!val) return 'Ce champ est requis'
   return (
-    val >= form.value.smig &&
-    val <= form.value.maxCotisable
-  ) || `L'assiette doit être entre ${form.value.smig} et ${form.value.maxCotisable}`;
-};
+    (val >= form.value.smig && val <= form.value.maxCotisable) ||
+    `L'assiette doit être entre ${form.value.smig} et ${form.value.maxCotisable}`
+  )
+}
 
 // Validation pour les fichiers requis
 const requiredFiles = (count) => (val) => {
-  if (!val || val.length === 0) return `Veuillez télécharger ${count} fichier(s)`;
-  return val.length === count || `Veuillez télécharger exactement ${count} fichier(s)`;
-};
+  if (!val || val.length === 0) return `Veuillez télécharger ${count} fichier(s)`
+  return val.length === count || `Veuillez télécharger exactement ${count} fichier(s)`
+}
 
 // Gestionnaire pour la sélection de fichier
 const onFileSelected = (field) => async (files) => {
   if (files && files.length > 0) {
-    notifySuccess(`${files.length} fichier(s) sélectionné(s) avec succès pour ${field} !`);
-    formRef.value.resetValidation();
-    await formRef.value.validate();
+    notifySuccess(`${files.length} fichier(s) sélectionné(s) avec succès pour ${field} !`)
+    formRef.value.resetValidation()
+    await formRef.value.validate()
   }
-};
+}
 
 const onRejected = (rejectedEntries) => {
   rejectedEntries.forEach((entry) => {
@@ -1558,152 +1612,159 @@ const onRejected = (rejectedEntries) => {
           ? 'Taille maximale dépassée (3MB)'
           : 'Format non pris en charge.'
       }`,
-    );
-  });
-};
+    )
+  })
+}
 
 // Réinitialiser le champ fichier lorsque le nombre change
 const resetFileField = (field) => {
-  form.value[field] = [];
-  formRef.value.resetValidation();
-};
+  form.value[field] = []
+  formRef.value.resetValidation()
+}
 
 // Counter label function for file inputs
 const counterLabelFn = ({ files } = {}) => {
-  return files && files.length > 0 ? `${files.length} fichier(s) sélectionné(s)` : '';
-};
+  return files && files.length > 0 ? `${files.length} fichier(s) sélectionné(s)` : ''
+}
 
 // Date options for date pickers
 const optionsDn = (date) => {
-  const selectedDate = new Date(date.split('/').reverse().join('-'));
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return selectedDate <= today;
-};
+  const selectedDate = new Date(date.split('/').reverse().join('-'))
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return selectedDate <= today
+}
 
 const optionsDateNaissance = (date) => {
-  const selectedDate = new Date(date.split('/').reverse().join('-'));
-  const minDate = new Date();
-  minDate.setFullYear(minDate.getFullYear() - 14);
-  return selectedDate <= minDate;
-};
+  const selectedDate = new Date(date.split('/').reverse().join('-'))
+  const minDate = new Date()
+  minDate.setFullYear(minDate.getFullYear() - 14)
+  return selectedDate <= minDate
+}
 
 const optionsDateAffiliation = (date) => {
-  const selectedDate = new Date(date.split('/').reverse().join('-'));
-  const normaleDate = new Date(form.value.dateAffiliationNormale.split('/').reverse().join('-'));
-  const minDate = new Date(normaleDate);
-  minDate.setMonth(minDate.getMonth() - 6);
-  return selectedDate >= minDate && selectedDate <= normaleDate;
-};
+  const selectedDate = new Date(date.split('/').reverse().join('-'))
+  const normaleDate = new Date(form.value.dateAffiliationNormale.split('/').reverse().join('-'))
+  const minDate = new Date(normaleDate)
+  minDate.setMonth(minDate.getMonth() - 6)
+  return selectedDate >= minDate && selectedDate <= normaleDate
+}
 
-const required = (val) => !!val || 'Ce champ est requis';
+const required = (val) => !!val || 'Ce champ est requis'
 
 // Fetch SMIG, taux, and max cotisable based on Date d'affiliation sollicitée
 const fetchParameters = () => {
   if (!form.value.dateAffiliationSollicitee) {
-    form.value.smig = 0;
-    form.value.tauxCotisation = 0;
-    form.value.maxCotisable = 0;
-    form.value.assieteCotisation = 0;
-    form.value.montantCotisation = 0;
-    return;
+    form.value.smig = 0
+    form.value.tauxCotisation = 0
+    form.value.maxCotisable = 0
+    form.value.assieteCotisation = 0
+    form.value.montantCotisation = 0
+    return
   }
 
-  const year = new Date(form.value.dateAffiliationSollicitee.split('/').reverse().join('-')).getFullYear();
-  const params = parametersDB.value.find((p) => p.year === year) || parametersDB.value[0];
+  const year = new Date(
+    form.value.dateAffiliationSollicitee.split('/').reverse().join('-'),
+  ).getFullYear()
+  const params = parametersDB.value.find((p) => p.year === year) || parametersDB.value[0]
 
-  form.value.smig = params.smig;
-  form.value.tauxCotisation = params.taux;
-  form.value.maxCotisable = params.maxCotisable;
+  form.value.smig = params.smig
+  form.value.tauxCotisation = params.taux
+  form.value.maxCotisable = params.maxCotisable
 
-  updateAssieteCotisation();
-};
+  updateAssieteCotisation()
+}
 
 // Calculate Assiette de cotisation
 const updateAssieteCotisation = () => {
   if (form.value.revenuAnnuelDeclare && form.value.smig && form.value.maxCotisable) {
-    const monthlyRevenue = Math.round(Number(form.value.revenuAnnuelDeclare) / 12);
-    form.value.assieteCotisation = Math.min(Math.max(monthlyRevenue, form.value.smig), form.value.maxCotisable);
-    calculateMontant();
+    const monthlyRevenue = Math.round(Number(form.value.revenuAnnuelDeclare) / 12)
+    form.value.assieteCotisation = Math.min(
+      Math.max(monthlyRevenue, form.value.smig),
+      form.value.maxCotisable,
+    )
+    calculateMontant()
   } else {
-    form.value.assieteCotisation = 0;
-    form.value.montantCotisation = 0;
+    form.value.assieteCotisation = 0
+    form.value.montantCotisation = 0
   }
-};
+}
 
 // Calculate Montant de cotisation
 const calculateMontant = () => {
   if (form.value.assieteCotisation && form.value.tauxCotisation) {
-    form.value.montantCotisation = Math.round(Number(form.value.assieteCotisation) * form.value.tauxCotisation);
+    form.value.montantCotisation = Math.round(
+      Number(form.value.assieteCotisation) * form.value.tauxCotisation,
+    )
   } else {
-    form.value.montantCotisation = 0;
+    form.value.montantCotisation = 0
   }
-};
+}
 
 const goToNextStep = async (nextStep) => {
-  const valid = await formRef.value.validate();
+  const valid = await formRef.value.validate()
   if (valid) {
-    stepErrors.value[nextStep - 1] = false;
-    step.value = nextStep;
+    stepErrors.value[nextStep - 1] = false
+    step.value = nextStep
   } else {
-    stepErrors.value[step.value] = true;
-    notifyError('Veuillez remplir tous les champs requis.');
+    stepErrors.value[step.value] = true
+    notifyError('Veuillez remplir tous les champs requis.')
   }
-};
+}
 
 const filterArrondissement = (val, update) => {
   if (val === '') {
     update(() => {
-      arrondissements.value = [...rawArrondissements];
-    });
-    return;
+      arrondissements.value = [...rawArrondissements]
+    })
+    return
   }
-  const needle = val.toLowerCase();
+  const needle = val.toLowerCase()
   update(() => {
     arrondissements.value = rawArrondissements.filter((item) =>
       item.NOM_ARROND.toLowerCase().includes(needle),
-    );
-  });
-};
+    )
+  })
+}
 
 const filterPays = (val, update) => {
   if (val === '') {
     update(() => {
-      pays.value = [...rawPays];
-    });
-    return;
+      pays.value = [...rawPays]
+    })
+    return
   }
-  const needle = val.toLowerCase();
+  const needle = val.toLowerCase()
   update(() => {
-    pays.value = rawPays.filter((item) => item.nationalite.toLowerCase().includes(needle));
-  });
-};
+    pays.value = rawPays.filter((item) => item.nationalite.toLowerCase().includes(needle))
+  })
+}
 
 const filterPieces = (val, update) => {
   if (val === '') {
     update(() => {
-      pieces.value = [...rawPieces];
-    });
-    return;
+      pieces.value = [...rawPieces]
+    })
+    return
   }
-  const needle = val.toLowerCase();
+  const needle = val.toLowerCase()
   update(() => {
-    pieces.value = rawPieces.filter((item) => item.LIBELLE.toLowerCase().includes(needle));
-  });
-};
+    pieces.value = rawPieces.filter((item) => item.LIBELLE.toLowerCase().includes(needle))
+  })
+}
 
 const filterCentreCNPS = (val, update) => {
   if (val === '') {
     update(() => {
-      centres.value = [...rawCentres];
-    });
-    return;
+      centres.value = [...rawCentres]
+    })
+    return
   }
-  const needle = val.toLowerCase();
+  const needle = val.toLowerCase()
   update(() => {
-    centres.value = rawCentres.filter((item) => item.LIB_CENTRE.toLowerCase().includes(needle));
-  });
-};
+    centres.value = rawCentres.filter((item) => item.LIB_CENTRE.toLowerCase().includes(needle))
+  })
+}
 
 const validateStep = (stepNumber) => {
   const stepFields = {
@@ -1738,110 +1799,120 @@ const validateStep = (stepNumber) => {
     5: ['ville', 'telephone', 'email', 'centreCNPS'],
     6: [],
     7: [],
-  };
+  }
 
   // Vérification des champs conditionnels requis pour l'étape 6
-  const step6Errors = [];
-  if (form.value.nombreEnfants > 0 && (!form.value.actesNaissance || form.value.actesNaissance.length !== form.value.nombreEnfants)) {
-    step6Errors.push('actesNaissance');
+  const step6Errors = []
+  if (
+    form.value.nombreEnfants > 0 &&
+    (!form.value.actesNaissance || form.value.actesNaissance.length !== form.value.nombreEnfants)
+  ) {
+    step6Errors.push('actesNaissance')
   }
-  if (form.value.nombreCertificat > 0 && (!form.value.certificatsTravail || form.value.certificatsTravail.length !== form.value.nombreCertificat)) {
-    step6Errors.push('certificatsTravail');
+  if (
+    form.value.nombreCertificat > 0 &&
+    (!form.value.certificatsTravail ||
+      form.value.certificatsTravail.length !== form.value.nombreCertificat)
+  ) {
+    step6Errors.push('certificatsTravail')
   }
-  if (form.value.nombreConjoints > 0 && (!form.value.actesMariage || form.value.actesMariage.length !== form.value.nombreConjoints)) {
-    step6Errors.push('actesMariage');
+  if (
+    form.value.nombreConjoints > 0 &&
+    (!form.value.actesMariage || form.value.actesMariage.length !== form.value.nombreConjoints)
+  ) {
+    step6Errors.push('actesMariage')
   }
 
-  const errors = stepFields[stepNumber].filter((field) => !form.value[field]);
+  const errors = stepFields[stepNumber].filter((field) => !form.value[field])
   if (stepNumber === 6) {
-    return step6Errors.length > 0;
+    return step6Errors.length > 0
   }
-  return errors.length > 0;
-};
+  return errors.length > 0
+}
 
 const validateAndShowConfirmation = async () => {
   // Réinitialiser les erreurs d'étape
-  stepErrors.value = { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false };
+  stepErrors.value = { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false }
 
   // Valider toutes les étapes
-  let hasErrors = false;
+  let hasErrors = false
   for (let i = 1; i <= 6; i++) {
     if (validateStep(i)) {
-      stepErrors.value[i] = true;
-      hasErrors = true;
+      stepErrors.value[i] = true
+      hasErrors = true
     }
   }
 
   // Effectuer la validation du formulaire
-  const valid = await formRef.value.validate();
+  const valid = await formRef.value.validate()
   if (!valid || hasErrors) {
     // Trouver la première étape avec des erreurs
-    const firstErrorStep = Object.keys(stepErrors.value).find((key) => stepErrors.value[key]);
+    const firstErrorStep = Object.keys(stepErrors.value).find((key) => stepErrors.value[key])
     if (firstErrorStep) {
-      step.value = parseInt(firstErrorStep);
-      notifyError(`Veuillez corriger les erreurs dans l'étape ${firstErrorStep}.`);
+      step.value = parseInt(firstErrorStep)
+      notifyError(`Veuillez corriger les erreurs dans l'étape ${firstErrorStep}.`)
     } else {
-      notifyError('Veuillez corriger les erreurs du formulaire.');
+      notifyError('Veuillez corriger les erreurs du formulaire.')
     }
-    return;
+    return
   }
 
   // Si valide, afficher le dialogue de confirmation
-  showConfirmationDialog.value = true;
-};
+  showConfirmationDialog.value = true
+}
 
 const confirmSubmission = async () => {
-  showConfirmationDialog.value = false;
-  await sendToOnBase();
-};
+  showConfirmationDialog.value = false
+  await sendToOnBase()
+}
 
 const submitForm = async () => {
   // Réinitialiser les erreurs d'étape
-  stepErrors.value = { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false };
+  stepErrors.value = { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false }
 
   // Valider toutes les étapes
-  let hasErrors = false;
+  let hasErrors = false
   for (let i = 1; i <= 6; i++) {
     if (validateStep(i)) {
-      stepErrors.value[i] = true;
-      hasErrors = true;
+      stepErrors.value[i] = true
+      hasErrors = true
     }
   }
 
   // Effectuer la validation du formulaire
-  const valid = await formRef.value.validate();
+  const valid = await formRef.value.validate()
   if (!valid || hasErrors) {
     // Trouver la première étape avec des erreurs
-    const firstErrorStep = Object.keys(stepErrors.value).find((key) => stepErrors.value[key]);
+    const firstErrorStep = Object.keys(stepErrors.value).find((key) => stepErrors.value[key])
     if (firstErrorStep) {
-      step.value = parseInt(firstErrorStep);
-      notifyError(`Veuillez corriger les erreurs dans l'étape ${firstErrorStep}.`);
+      step.value = parseInt(firstErrorStep)
+      notifyError(`Veuillez corriger les erreurs dans l'étape ${firstErrorStep}.`)
     } else {
-      notifyError('Veuillez corriger les erreurs du formulaire.');
+      notifyError('Veuillez corriger les erreurs du formulaire.')
     }
-    return;
+    return
   }
 
   // Si valide, soumettre directement
-  await sendToOnBase();
-};
+  await sendToOnBase()
+}
 
 const sendToOnBase = async () => {
   try {
     // Simuler l'envoi des données à OnBase
-    console.log('Envoi des données à OnBase:', form.value);
+    console.log('Envoi des données à OnBase:', form.value)
 
     // Simuler une réponse réussie
-    notifySuccess('Formulaire soumis avec succès !');
-    closeDialog();
+    notifySuccess('Formulaire soumis avec succès !')
+    closeDialog()
   } catch (error) {
-    notifyError('Erreur lors de la soumission du formulaire. Veuillez réessayer.');
-    console.error('Erreur OnBase:', error);
+    notifyError('Erreur lors de la soumission du formulaire. Veuillez réessayer.')
+    console.error('Erreur OnBase:', error)
   }
-};
+}
 
 const closeDialog = () => {
-  open.value = false;
-  emit('close');
-};
+  open.value = false
+  emit('close')
+}
 </script>

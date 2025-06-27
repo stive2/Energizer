@@ -2,7 +2,7 @@
   <q-dialog v-model="open" persistent full-width>
     <q-card :style="$q.screen.gt.sm ? 'width: 900px' : 'width: 100%'">
       <q-card-section>
-        <div class="text-h6 text-primary text-center text-bold">
+        <div class="text-h6 text-primary text-center text-uppercase text-bold">
           {{ $t(service.name) }}
         </div>
       </q-card-section>
@@ -28,7 +28,7 @@
               :header-class="stepErrors[1] ? 'bg-red text-white' : ''"
               :disable="!isStepAllowed(1)"
             >
-              <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
+              <div class="justify-center row" :class="{ column: !$q.screen.gt.sm }">
                 <q-input
                   v-model="form.mat_employeur"
                   :label="$t('inputassu.employer_cnps_registration_number')"
@@ -42,7 +42,7 @@
                   @input="form.mat_employeur = form.mat_employeur.toUpperCase()"
                   @keyup.enter="fetchEmployerData"
                   @keydown.enter.prevent="fetchEmployerData"
-                  >
+                >
                   <template v-slot:append>
                     <q-icon
                       name="search"
@@ -108,7 +108,7 @@
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
                   readonly
-                   :rules="[required]"
+                  :rules="[required]"
                   :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
                   :hint="$t('inputassu.first_employee_hiring_date')"
                 >
@@ -231,33 +231,33 @@
                 />
 
                 <q-file
-                v-model="form.avisEmbauche"
-                :label="$t('inputassu.hiring_notice')"
-                outlined
-                dense
-                :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
-                :counter-label="counterLabelFn"
-                max-files="1"
-                accept=".jpg, .png, image/*, .pdf"
-                max-file-size="3072000"
-                class="q-mr-sm q-mb-sm"
-                :rules="[required]"
-                :error="stepErrors[1] && !form.avisEmbauche"
-                @update:model-value="onFileSelected('avisEmbauche')"
-                @rejected="onRejected"
-              >
-                <template v-slot:prepend>
-                  <q-icon name="attach_file" />
-                </template>
-                <template v-slot:label>
-                  {{ $t('inputassu.hiring_notice') }}
-                  <span
-                    class="q-px-sm bg-red text-white text-italic rounded-borders"
-                    style="font-size: 10px"
-                  >
-                    {{ $t('input.requis') }}
-                  </span>
-                </template>
+                  v-model="form.avisEmbauche"
+                  :label="$t('inputassu.hiring_notice')"
+                  outlined
+                  dense
+                  :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
+                  :counter-label="counterLabelFn"
+                  max-files="1"
+                  accept=".jpg, .png, image/*, .pdf"
+                  max-file-size="3072000"
+                  class="q-mr-sm q-mb-sm"
+                  :rules="[required]"
+                  :error="stepErrors[1] && !form.avisEmbauche"
+                  @update:model-value="onFileSelected('avisEmbauche')"
+                  @rejected="onRejected"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="attach_file" />
+                  </template>
+                  <template v-slot:label>
+                    {{ $t('inputassu.hiring_notice') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                    >
+                      {{ $t('input.requis') }}
+                    </span>
+                  </template>
                 </q-file>
               </div>
 
@@ -276,7 +276,7 @@
               :header-class="stepErrors[2] ? 'bg-red text-white' : ''"
               :disable="!isStepAllowed(2)"
             >
-              <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
+              <div class="justify-center row" :class="{ column: !$q.screen.gt.sm }">
                 <q-input
                   v-model="form.nom"
                   :label="$t('inputassu.last_name')"
@@ -573,7 +573,13 @@
 
               <q-stepper-navigation>
                 <q-btn @click="goToNextStep(3)" color="primary" :label="$t('form.next')" />
-                <q-btn flat @click="step = 1" color="primary" :label="$t('form.previous')" class="q-ml-sm" />
+                <q-btn
+                  flat
+                  @click="step = 1"
+                  color="primary"
+                  :label="$t('form.previous')"
+                  class="q-ml-sm"
+                />
               </q-stepper-navigation>
             </q-step>
 
@@ -587,7 +593,7 @@
               :header-class="stepErrors[3] ? 'bg-red text-white' : ''"
               :disable="!isStepAllowed(3)"
             >
-              <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
+              <div class="justify-center row" :class="{ column: !$q.screen.gt.sm }">
                 <q-input
                   v-model="form.nomPere"
                   :label="$t('inputassu.last_name')"
@@ -622,7 +628,7 @@
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
                           v-model="form.dateNaissancePere"
-                           :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
+                          :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           :options="optionsDn"
                           color="primary"
                         />
@@ -692,7 +698,13 @@
               </div>
               <q-stepper-navigation>
                 <q-btn @click="goToNextStep(4)" color="primary" :label="$t('form.next')" />
-                <q-btn flat @click="step = 2" color="primary" :label="$t('form.previous')" class="q-ml-sm" />
+                <q-btn
+                  flat
+                  @click="step = 2"
+                  color="primary"
+                  :label="$t('form.previous')"
+                  class="q-ml-sm"
+                />
               </q-stepper-navigation>
             </q-step>
 
@@ -706,7 +718,7 @@
               :header-class="stepErrors[4] ? 'bg-red text-white' : ''"
               :disable="!isStepAllowed(4)"
             >
-              <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
+              <div class="justify-center row" :class="{ column: !$q.screen.gt.sm }">
                 <q-input
                   v-model="form.nomMere"
                   :label="$t('inputassu.last_name')"
@@ -870,7 +882,13 @@
 
               <q-stepper-navigation>
                 <q-btn @click="goToNextStep(5)" color="primary" :label="$t('form.next')" />
-                <q-btn flat @click="step = 3" color="primary" :label="$t('form.previous')" class="q-ml-sm" />
+                <q-btn
+                  flat
+                  @click="step = 3"
+                  color="primary"
+                  :label="$t('form.previous')"
+                  class="q-ml-sm"
+                />
               </q-stepper-navigation>
             </q-step>
 
@@ -884,7 +902,7 @@
               :header-class="stepErrors[5] ? 'bg-red text-white' : ''"
               :disable="!isStepAllowed(5)"
             >
-              <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
+              <div class="justify-center row" :class="{ column: !$q.screen.gt.sm }">
                 <q-select
                   v-model="form.ville"
                   :label="$t('inputassu.city_of_residence')"
@@ -1026,7 +1044,13 @@
 
               <q-stepper-navigation>
                 <q-btn @click="goToNextStep(6)" color="primary" :label="$t('form.next')" />
-                <q-btn flat @click="step = 4" color="primary" :label="$t('form.previous')" class="q-ml-sm" />
+                <q-btn
+                  flat
+                  @click="step = 4"
+                  color="primary"
+                  :label="$t('form.previous')"
+                  class="q-ml-sm"
+                />
               </q-stepper-navigation>
             </q-step>
 
@@ -1040,7 +1064,7 @@
               :header-class="stepErrors[6] ? 'bg-red text-white' : ''"
               :disable="!isStepAllowed(6)"
             >
-              <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
+              <div class="justify-center row" :class="{ column: !$q.screen.gt.sm }">
                 <q-input
                   v-model="form.nombreEnfants"
                   :label="$t('inputassu.number_of_children')"
@@ -1055,7 +1079,9 @@
                 <q-file
                   v-if="form.nombreEnfants > 0"
                   v-model="form.actesNaissance"
-                  :label="$t('inputassu.children_birth_certificates', { count: form.nombreEnfants })"
+                  :label="
+                    $t('inputassu.children_birth_certificates', { count: form.nombreEnfants })
+                  "
                   :hint="$t('inputassu.children_birth_certificates', { count: form.nombreEnfants })"
                   outlined
                   dense
@@ -1067,7 +1093,11 @@
                   max-file-size="3072000"
                   class="q-mr-sm q-mb-sm"
                   :rules="[requiredFiles(form.nombreEnfants)]"
-                  :error="stepErrors[6] && form.nombreEnfants > 0 && (!form.actesNaissance || form.actesNaissance.length === 0)"
+                  :error="
+                    stepErrors[6] &&
+                    form.nombreEnfants > 0 &&
+                    (!form.actesNaissance || form.actesNaissance.length === 0)
+                  "
                   @update:model-value="onFileSelected('actesNaissance')"
                   @rejected="onRejected"
                 >
@@ -1111,7 +1141,11 @@
                   max-file-size="3072000"
                   class="q-mr-sm q-mb-sm"
                   :rules="[requiredFiles(form.nombreCertificat)]"
-                  :error="stepErrors[6] && form.nombreCertificat > 0 && (!form.certificatsTravail || form.certificatsTravail.length === 0)"
+                  :error="
+                    stepErrors[6] &&
+                    form.nombreCertificat > 0 &&
+                    (!form.certificatsTravail || form.certificatsTravail.length === 0)
+                  "
                   @update:model-value="onFileSelected('certificatsTravail')"
                   @rejected="onRejected"
                 >
@@ -1154,7 +1188,11 @@
                   max-file-size="3072000"
                   class="q-mr-sm q-mb-sm"
                   :rules="[requiredFiles(form.nombreConjoints)]"
-                  :error="stepErrors[6] && form.nombreConjoints > 0 && (!form.actesMariage || form.actesMariage.length === 0)"
+                  :error="
+                    stepErrors[6] &&
+                    form.nombreConjoints > 0 &&
+                    (!form.actesMariage || form.actesMariage.length === 0)
+                  "
                   @update:model-value="onFileSelected('actesMariage')"
                   @rejected="onRejected"
                 >
@@ -1175,12 +1213,18 @@
 
               <q-stepper-navigation>
                 <q-btn @click="goToNextStep(7)" color="primary" :label="$t('form.next')" />
-                <q-btn flat @click="step = 5" color="primary" :label="$t('form.previous')" class="q-ml-sm" />
+                <q-btn
+                  flat
+                  @click="step = 5"
+                  color="primary"
+                  :label="$t('form.previous')"
+                  class="q-ml-sm"
+                />
               </q-stepper-navigation>
             </q-step>
 
             <!-- Étape 7 : Validation finale -->
-             <q-step
+            <q-step
               :name="7"
               :title="$t('immat.stepp7')"
               icon="check_circle"
@@ -1188,8 +1232,8 @@
               :header-class="stepErrors[7] ? 'bg-red text-white' : ''"
               :disable="!isStepAllowed(7)"
             >
-               <div class="q-pa-md" ref="recapContent">
-                   <!-- En-tête avec animation -->
+              <div class="q-pa-md" ref="recapContent">
+                <!-- En-tête avec animation -->
                 <div class="text-center">
                   <div :class="dynamicTextClass">
                     {{ $t('immat.stepp7') }}
@@ -1211,7 +1255,7 @@
                       flat
                       bordered
                       class="recap-card q-mb-md"
-                      :class="{'shadow-10': $q.dark.isActive, 'shadow-2': !$q.dark.isActive}"
+                      :class="{ 'shadow-10': $q.dark.isActive, 'shadow-2': !$q.dark.isActive }"
                     >
                       <q-card-section class="bg-gradient-primary text-white">
                         <div class="row items-center no-wrap">
@@ -1241,7 +1285,9 @@
                               <q-icon name="badge" color="primary" />
                             </q-item-section>
                             <q-item-section>
-                              <q-item-label class="text-weight-medium">{{ $t('inputassu.employer_cnps_registration_number') }}</q-item-label>
+                              <q-item-label class="text-weight-medium">{{
+                                $t('inputassu.employer_cnps_registration_number')
+                              }}</q-item-label>
                               <q-item-label caption class="text-body2">
                                 {{ form.mat_employeur || $t('inputassu.not_specified') }}
                               </q-item-label>
@@ -1252,7 +1298,9 @@
                               <q-icon name="store" color="primary" />
                             </q-item-section>
                             <q-item-section>
-                              <q-item-label class="text-weight-medium">{{ $t('inputassu.legal_name') }}</q-item-label>
+                              <q-item-label class="text-weight-medium">{{
+                                $t('inputassu.legal_name')
+                              }}</q-item-label>
                               <q-item-label caption class="text-body2">
                                 {{ form.NOM_COMMERCIAL || $t('inputassu.not_specified') }}
                               </q-item-label>
@@ -1264,7 +1312,9 @@
                               <q-icon name="business_center" color="primary" />
                             </q-item-section>
                             <q-item-section>
-                              <q-item-label class="text-weight-medium">{{ $t('inputassu.trade_name') }}</q-item-label>
+                              <q-item-label class="text-weight-medium">{{
+                                $t('inputassu.trade_name')
+                              }}</q-item-label>
                               <q-item-label caption class="text-body2">
                                 {{ form.RAISON_SOCIALE || $t('inputassu.not_specified') }}
                               </q-item-label>
@@ -1276,7 +1326,9 @@
                               <q-icon name="location_on" color="primary" />
                             </q-item-section>
                             <q-item-section>
-                              <q-item-label class="text-weight-medium">{{ $t('inputassu.company_location') }}</q-item-label>
+                              <q-item-label class="text-weight-medium">{{
+                                $t('inputassu.company_location')
+                              }}</q-item-label>
                               <q-item-label caption class="text-body2">
                                 {{ form.ADRESSE_EMPLOYEUR || $t('inputassu.not_specified') }}
                               </q-item-label>
@@ -1295,8 +1347,12 @@
                                   <q-icon name="event" color="secondary" />
                                 </q-item-section>
                                 <q-item-section>
-                                  <q-item-label class="text-weight-medium">{{ $t('inputassu.first_employee_hiring_date') }}</q-item-label>
-                                  <q-item-label caption>{{ form.DATE_EMB_PREM_TRAV || $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.first_employee_hiring_date')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.DATE_EMB_PREM_TRAV || $t('inputassu.not_specified')
+                                  }}</q-item-label>
                                 </q-item-section>
                               </q-item>
 
@@ -1305,8 +1361,12 @@
                                   <q-icon name="attach_money" color="secondary" />
                                 </q-item-section>
                                 <q-item-section>
-                                  <q-item-label class="text-weight-medium">{{ $t('inputassu.minimum_wage') }}</q-item-label>
-                                  <q-item-label caption>{{ form.SMIG_VALUE || $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.minimum_wage')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.SMIG_VALUE || $t('inputassu.not_specified')
+                                  }}</q-item-label>
                                 </q-item-section>
                               </q-item>
                               <q-item class="q-py-sm">
@@ -1314,8 +1374,12 @@
                                   <q-icon name="calendar_today" color="secondary" />
                                 </q-item-section>
                                 <q-item-section>
-                                  <q-item-label class="text-weight-medium">{{ $t('inputassu.hiring_date') }}</q-item-label>
-                                  <q-item-label caption>{{ form.DATE_EMB_PRE_SALL || $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.hiring_date')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.DATE_EMB_PRE_SALL || $t('inputassu.not_specified')
+                                  }}</q-item-label>
                                 </q-item-section>
                               </q-item>
 
@@ -1324,18 +1388,26 @@
                                   <q-icon name="work" color="secondary" />
                                 </q-item-section>
                                 <q-item-section>
-                                  <q-item-label class="text-weight-medium">{{ $t('inputassu.category') }}</q-item-label>
-                                  <q-item-label caption>{{ form.CODE_categ || $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.category')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.CODE_categ || $t('inputassu.not_specified')
+                                  }}</q-item-label>
                                 </q-item-section>
                               </q-item>
 
-                               <q-item class="q-py-sm">
+                              <q-item class="q-py-sm">
                                 <q-item-section avatar>
                                   <q-icon name="trending_up" color="secondary" />
                                 </q-item-section>
                                 <q-item-section>
-                                  <q-item-label class="text-weight-medium">{{ $t('inputassu.level') }}</q-item-label>
-                                  <q-item-label caption>{{ form.CODE_echelon || $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.level')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.CODE_echelon || $t('inputassu.not_specified')
+                                  }}</q-item-label>
                                 </q-item-section>
                               </q-item>
 
@@ -1344,8 +1416,12 @@
                                   <q-icon name="build" color="secondary" />
                                 </q-item-section>
                                 <q-item-section>
-                                  <q-item-label class="text-weight-medium">{{ $t('inputassu.specialty') }}</q-item-label>
-                                  <q-item-label caption>{{ form.Specialite || $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.specialty')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.Specialite || $t('inputassu.not_specified')
+                                  }}</q-item-label>
                                 </q-item-section>
                               </q-item>
 
@@ -1354,28 +1430,40 @@
                                   <q-icon name="group" color="secondary" />
                                 </q-item-section>
                                 <q-item-section>
-                                  <q-item-label class="text-weight-medium">{{ $t('inputassu.approximate_workforce') }}</q-item-label>
-                                  <q-item-label caption>{{ form.EFFECTIF_APPROX || $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.approximate_workforce')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.EFFECTIF_APPROX || $t('inputassu.not_specified')
+                                  }}</q-item-label>
                                 </q-item-section>
                               </q-item>
 
-                               <q-item class="q-py-sm">
+                              <q-item class="q-py-sm">
                                 <q-item-section avatar>
                                   <q-icon name="school" color="secondary" />
                                 </q-item-section>
                                 <q-item-section>
-                                  <q-item-label class="text-weight-medium">{{ $t('inputassu.education_level') }}</q-item-label>
-                                  <q-item-label caption>{{ form.NiveauAss || $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.education_level')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.NiveauAss || $t('inputassu.not_specified')
+                                  }}</q-item-label>
                                 </q-item-section>
                               </q-item>
 
-                               <q-item class="q-py-sm">
+                              <q-item class="q-py-sm">
                                 <q-item-section avatar>
                                   <q-icon name="payments" color="secondary" />
                                 </q-item-section>
                                 <q-item-section>
-                                  <q-item-label class="text-weight-medium">{{ $t('inputassu.current_income') }}</q-item-label>
-                                  <q-item-label caption>{{ form.ActuelRevenu || $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.current_income')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.ActuelRevenu || $t('inputassu.not_specified')
+                                  }}</q-item-label>
                                 </q-item-section>
                               </q-item>
 
@@ -1384,8 +1472,12 @@
                                   <q-icon name="description" color="secondary" />
                                 </q-item-section>
                                 <q-item-section>
-                                  <q-item-label class="text-weight-medium">{{ $t('inputassu.hiring_notice') }}</q-item-label>
-                                  <q-item-label caption>{{ form.avisEmbauche?.name || $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.hiring_notice')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.avisEmbauche?.name || $t('inputassu.not_specified')
+                                  }}</q-item-label>
                                 </q-item-section>
                               </q-item>
                             </q-list>
@@ -1401,7 +1493,7 @@
                       flat
                       bordered
                       class="recap-card q-mb-md"
-                      :class="{'shadow-10': $q.dark.isActive, 'shadow-2': !$q.dark.isActive}"
+                      :class="{ 'shadow-10': $q.dark.isActive, 'shadow-2': !$q.dark.isActive }"
                     >
                       <q-card-section class="bg-gradient-secondary text-white">
                         <div class="row items-center no-wrap">
@@ -1429,14 +1521,18 @@
                           <q-item class="q-py-sm">
                             <q-item-section avatar>
                               <q-avatar color="secondary" text-color="white" size="md">
-                                {{ (form.nom || 'N')[0].toUpperCase() }}{{ (form.prenom || 'P')[0].toUpperCase() }}
+                                {{ (form.nom || 'N')[0].toUpperCase()
+                                }}{{ (form.prenom || 'P')[0].toUpperCase() }}
                               </q-avatar>
                             </q-item-section>
                             <q-item-section>
                               <q-item-label class="text-weight-bold text-h6">
-                                {{ form.nom || $t('inputassu.not_specified') }} {{ form.prenom || '' }}
+                                {{ form.nom || $t('inputassu.not_specified') }}
+                                {{ form.prenom || '' }}
                               </q-item-label>
-                              <q-item-label caption>{{ form.sexe || $t('inputassu.not_specified') }}</q-item-label>
+                              <q-item-label caption>{{
+                                form.sexe || $t('inputassu.not_specified')
+                              }}</q-item-label>
                             </q-item-section>
                           </q-item>
 
@@ -1445,8 +1541,12 @@
                               <q-icon name="cake" color="secondary" />
                             </q-item-section>
                             <q-item-section>
-                              <q-item-label class="text-weight-medium">{{ $t('inputassu.date_of_birth') }}</q-item-label>
-                              <q-item-label caption>{{ form.dateNaissance || $t('inputassu.not_specified') }}</q-item-label>
+                              <q-item-label class="text-weight-medium">{{
+                                $t('inputassu.date_of_birth')
+                              }}</q-item-label>
+                              <q-item-label caption>{{
+                                form.dateNaissance || $t('inputassu.not_specified')
+                              }}</q-item-label>
                             </q-item-section>
                           </q-item>
 
@@ -1455,8 +1555,12 @@
                               <q-icon name="place" color="secondary" />
                             </q-item-section>
                             <q-item-section>
-                              <q-item-label class="text-weight-medium">{{ $t('inputassu.place_of_birth') }}</q-item-label>
-                              <q-item-label caption>{{ form.lieuNaissance || $t('inputassu.not_specified') }}</q-item-label>
+                              <q-item-label class="text-weight-medium">{{
+                                $t('inputassu.place_of_birth')
+                              }}</q-item-label>
+                              <q-item-label caption>{{
+                                form.lieuNaissance || $t('inputassu.not_specified')
+                              }}</q-item-label>
                             </q-item-section>
                           </q-item>
 
@@ -1465,11 +1569,17 @@
                               <q-icon name="domain" color="secondary" />
                             </q-item-section>
                             <q-item-section>
-                              <q-item-label class="text-weight-medium">{{ $t('inputassu.birth_district') }}</q-item-label>
-                              <q-item-label caption>{{ form.arrondissementAssure && form.arrondissementAssure.NOM_ARROND ? form.arrondissementAssure.NOM_ARROND : $t('inputassu.not_specified') }}</q-item-label>
+                              <q-item-label class="text-weight-medium">{{
+                                $t('inputassu.birth_district')
+                              }}</q-item-label>
+                              <q-item-label caption>{{
+                                form.arrondissementAssure && form.arrondissementAssure.NOM_ARROND
+                                  ? form.arrondissementAssure.NOM_ARROND
+                                  : $t('inputassu.not_specified')
+                              }}</q-item-label>
                             </q-item-section>
-                        </q-item>
-                        <q-expansion-item
+                          </q-item>
+                          <q-expansion-item
                             icon="more_horiz"
                             :label="$t('form.more_details')"
                             class="text-secondary"
@@ -1480,8 +1590,12 @@
                                   <q-icon name="favorite" color="pink" />
                                 </q-item-section>
                                 <q-item-section>
-                                  <q-item-label class="text-weight-medium">{{ $t('inputassu.marital_status') }}</q-item-label>
-                                  <q-item-label caption>{{ form.etatCivil || $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.marital_status')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.etatCivil || $t('inputassu.not_specified')
+                                  }}</q-item-label>
                                 </q-item-section>
                               </q-item>
 
@@ -1490,48 +1604,73 @@
                                   <q-icon name="flag" color="pink" />
                                 </q-item-section>
                                 <q-item-section>
-                                  <q-item-label class="text-weight-medium">{{ $t('inputassu.nationality') }}</q-item-label>
-                                  <q-item-label caption>{{ form.nationaliteAssure && form.nationaliteAssure.nationalite ? form.nationaliteAssure.nationalite : $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.nationality')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.nationaliteAssure && form.nationaliteAssure.nationalite
+                                      ? form.nationaliteAssure.nationalite
+                                      : $t('inputassu.not_specified')
+                                  }}</q-item-label>
                                 </q-item-section>
                               </q-item>
                               <q-item class="q-py-sm">
-                               <q-item-section avatar>
-                                <q-icon name="credit_card" color="pink" />
-                              </q-item-section>
-                              <q-item-section>
-                                <q-item-label class="text-weight-medium">{{ $t('inputassu.identity_document_type') }}</q-item-label>
-                                <q-item-label caption>{{ form.pieceIdentiteAssure || $t('inputassu.not_specified') }}</q-item-label>
-                              </q-item-section>
-                            </q-item>
+                                <q-item-section avatar>
+                                  <q-icon name="credit_card" color="pink" />
+                                </q-item-section>
+                                <q-item-section>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.identity_document_type')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.pieceIdentiteAssure || $t('inputassu.not_specified')
+                                  }}</q-item-label>
+                                </q-item-section>
+                              </q-item>
 
-                            <q-item class="q-py-sm">
-                              <q-item-section avatar>
-                                <q-icon name="confirmation_number" color="pink" />
-                              </q-item-section>
-                              <q-item-section>
-                                <q-item-label class="text-weight-medium">{{ $t('inputassu.identity_document_number') }}</q-item-label>
-                                <q-item-label caption>{{ form.numeroPieceIdentite || $t('inputassu.not_specified') }}</q-item-label>
-                              </q-item-section>
-                            </q-item>
+                              <q-item class="q-py-sm">
+                                <q-item-section avatar>
+                                  <q-icon name="confirmation_number" color="pink" />
+                                </q-item-section>
+                                <q-item-section>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.identity_document_number')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.numeroPieceIdentite || $t('inputassu.not_specified')
+                                  }}</q-item-label>
+                                </q-item-section>
+                              </q-item>
 
-                             <q-item class="q-py-sm">
-                              <q-item-section avatar>
-                                <q-icon name="date_range" color="pink" />
-                              </q-item-section>
-                              <q-item-section>
-                                <q-item-label class="text-weight-medium">{{ $t('inputassu.issued_on') }}</q-item-label>
-                                <q-item-label caption>{{ form.datePieceIdentite || $t('inputassu.not_specified') }}</q-item-label>
-                              </q-item-section>
-                            </q-item>
-                             <q-item class="q-py-sm">
-                              <q-item-section avatar>
-                                <q-icon name="location_city" color="pink" />
-                              </q-item-section>
-                              <q-item-section>
-                                <q-item-label class="text-weight-medium">{{ $t('inputassu.place_issuance_identity_document') }}</q-item-label>
-                                <q-item-label caption>{{ form.lieuDelivrancePieceIdentiteAssure && form.lieuDelivrancePieceIdentiteAssure.NOM_ARROND ? form.lieuDelivrancePieceIdentiteAssure.NOM_ARROND : $t('inputassu.not_specified') }}</q-item-label>
-                              </q-item-section>
-                            </q-item>
+                              <q-item class="q-py-sm">
+                                <q-item-section avatar>
+                                  <q-icon name="date_range" color="pink" />
+                                </q-item-section>
+                                <q-item-section>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.issued_on')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.datePieceIdentite || $t('inputassu.not_specified')
+                                  }}</q-item-label>
+                                </q-item-section>
+                              </q-item>
+                              <q-item class="q-py-sm">
+                                <q-item-section avatar>
+                                  <q-icon name="location_city" color="pink" />
+                                </q-item-section>
+                                <q-item-section>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.place_issuance_identity_document')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.lieuDelivrancePieceIdentiteAssure &&
+                                    form.lieuDelivrancePieceIdentiteAssure.NOM_ARROND
+                                      ? form.lieuDelivrancePieceIdentiteAssure.NOM_ARROND
+                                      : $t('inputassu.not_specified')
+                                  }}</q-item-label>
+                                </q-item-section>
+                              </q-item>
                             </q-list>
                           </q-expansion-item>
                         </q-list>
@@ -1544,25 +1683,29 @@
                       flat
                       bordered
                       class="recap-card q-mb-md"
-                      :class="{'shadow-10': $q.dark.isActive, 'shadow-2': !$q.dark.isActive}"
+                      :class="{ 'shadow-10': $q.dark.isActive, 'shadow-2': !$q.dark.isActive }"
                     >
                       <q-card-section class="bg-gradient-accent text-white">
                         <div class="row items-center no-wrap">
                           <q-icon name="family_restroom" size="md" class="q-mr-md" />
                           <div>
-                            <div class="text-h6 text-weight-bold">{{ $t('immat.parents_info') }}</div>
+                            <div class="text-h6 text-weight-bold">
+                              {{ $t('immat.parents_info') }}
+                            </div>
                           </div>
                         </div>
                       </q-card-section>
                       <q-card-section>
-                         <div class="row q-col-gutter-md">
+                        <div class="row q-col-gutter-md">
                           <!-- Père -->
                           <div class="col-12 col-md-6">
                             <q-card flat class="bg-blue-1">
                               <q-card-section class="q-pb-sm">
                                 <div class="row items-center">
                                   <q-icon name="man" color="blue" size="sm" class="q-mr-sm" />
-                                  <span class="text-weight-bold text-blue">{{ $t('immat.stepp3') }}</span>
+                                  <span class="text-weight-bold text-blue">{{
+                                    $t('immat.stepp3')
+                                  }}</span>
                                   <q-space />
                                   <q-btn
                                     flat
@@ -1577,29 +1720,49 @@
                               </q-card-section>
                               <q-card-section class="q-pt-none">
                                 <div class="text-subtitle2 text-weight-medium">
-                                  {{ form.nomPere || $t('inputassu.not_specified') }} {{ form.prenomPere || '' }}
+                                  {{ form.nomPere || $t('inputassu.not_specified') }}
+                                  {{ form.prenomPere || '' }}
                                 </div>
                                 <div class="text-caption">
-                                  {{ $t('inputassu.date_of_birth') }}: {{ form.dateNaissancePere || $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.date_of_birth') }}:
+                                  {{ form.dateNaissancePere || $t('inputassu.not_specified') }}
                                 </div>
                                 <div class="text-caption">
-                                  {{ $t('inputassu.place_of_birth') }}: {{ form.lieuNaissancePere || $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.place_of_birth') }}:
+                                  {{ form.lieuNaissancePere || $t('inputassu.not_specified') }}
                                 </div>
                                 <div class="text-caption">
-                                  {{ $t('inputassu.birth_district') }}: {{ form.arrondissementPere && form.arrondissementPere.NOM_ARROND ? form.arrondissementPere.NOM_ARROND : $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.birth_district') }}:
+                                  {{
+                                    form.arrondissementPere && form.arrondissementPere.NOM_ARROND
+                                      ? form.arrondissementPere.NOM_ARROND
+                                      : $t('inputassu.not_specified')
+                                  }}
                                 </div>
                                 <q-badge
-                                  :color="form.vivantPere === $t('inputassu.yes') || form.vivantPere === 'OUI' || form.vivantPere === 'YES' ? 'positive' : 'negative'"
+                                  :color="
+                                    form.vivantPere === $t('inputassu.yes') ||
+                                    form.vivantPere === 'OUI' ||
+                                    form.vivantPere === 'YES'
+                                      ? 'positive'
+                                      : 'negative'
+                                  "
                                   :label="form.vivantPere || $t('inputassu.not_specified')"
                                   class="q-mt-sm"
                                 />
                                 <!-- Afficher la date de décès seulement si le père est décédé -->
                                 <div
                                   class="text-caption q-mt-sm"
-                                  v-if="form.vivantPere === $t('inputassu.no') || form.vivantPere === 'NON' || form.vivantPere === 'NO' || form.dateDecesPere"
+                                  v-if="
+                                    form.vivantPere === $t('inputassu.no') ||
+                                    form.vivantPere === 'NON' ||
+                                    form.vivantPere === 'NO' ||
+                                    form.dateDecesPere
+                                  "
                                 >
                                   <q-icon name="event" color="grey-7" size="xs" class="q-mr-xs" />
-                                  {{ $t('inputassu.date_death') }}: {{ form.dateDecesPere || $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.date_death') }}:
+                                  {{ form.dateDecesPere || $t('inputassu.not_specified') }}
                                 </div>
                               </q-card-section>
                             </q-card>
@@ -1610,7 +1773,9 @@
                               <q-card-section class="q-pb-sm">
                                 <div class="row items-center">
                                   <q-icon name="woman" color="pink" size="sm" class="q-mr-sm" />
-                                  <span class="text-weight-bold text-pink">{{ $t('immat.stepp4') }}</span>
+                                  <span class="text-weight-bold text-pink">{{
+                                    $t('immat.stepp4')
+                                  }}</span>
                                   <q-space />
                                   <q-btn
                                     flat
@@ -1625,29 +1790,49 @@
                               </q-card-section>
                               <q-card-section class="q-pt-none">
                                 <div class="text-subtitle2 text-weight-medium">
-                                  {{ form.nomMere || $t('inputassu.not_specified') }} {{ form.prenomMere || '' }}
+                                  {{ form.nomMere || $t('inputassu.not_specified') }}
+                                  {{ form.prenomMere || '' }}
                                 </div>
                                 <div class="text-caption">
-                                  {{ $t('inputassu.date_of_birth') }}: {{ form.dateNaissanceMere || $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.date_of_birth') }}:
+                                  {{ form.dateNaissanceMere || $t('inputassu.not_specified') }}
                                 </div>
                                 <div class="text-caption">
-                                  {{ $t('inputassu.place_of_birth') }}: {{ form.lieuNaissanceMere || $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.place_of_birth') }}:
+                                  {{ form.lieuNaissanceMere || $t('inputassu.not_specified') }}
                                 </div>
                                 <div class="text-caption">
-                                  {{ $t('inputassu.birth_district') }}: {{ form.arrondissementMere && form.arrondissementMere.NOM_ARROND ? form.arrondissementMere.NOM_ARROND : $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.birth_district') }}:
+                                  {{
+                                    form.arrondissementMere && form.arrondissementMere.NOM_ARROND
+                                      ? form.arrondissementMere.NOM_ARROND
+                                      : $t('inputassu.not_specified')
+                                  }}
                                 </div>
                                 <q-badge
-                                  :color="form.vivantMere === $t('inputassu.yes') || form.vivantMere === 'OUI' || form.vivantMere === 'YES' ? 'positive' : 'negative'"
+                                  :color="
+                                    form.vivantMere === $t('inputassu.yes') ||
+                                    form.vivantMere === 'OUI' ||
+                                    form.vivantMere === 'YES'
+                                      ? 'positive'
+                                      : 'negative'
+                                  "
                                   :label="form.vivantMere || $t('inputassu.not_specified')"
                                   class="q-mt-sm"
                                 />
                                 <!-- Afficher la date de décès seulement si la mère est décédée -->
                                 <div
                                   class="text-caption q-mt-sm"
-                                  v-if="form.vivantMere === $t('inputassu.no') || form.vivantMere === 'NON' || form.vivantMere === 'NO' || form.dateDecesMere"
+                                  v-if="
+                                    form.vivantMere === $t('inputassu.no') ||
+                                    form.vivantMere === 'NON' ||
+                                    form.vivantMere === 'NO' ||
+                                    form.dateDecesMere
+                                  "
                                 >
                                   <q-icon name="event" color="grey-7" size="xs" class="q-mr-xs" />
-                                  {{ $t('inputassu.date_death') }}: {{ form.dateDecesMere || $t('inputassu.not_specified') }}
+                                  {{ $t('inputassu.date_death') }}:
+                                  {{ form.dateDecesMere || $t('inputassu.not_specified') }}
                                 </div>
                               </q-card-section>
                             </q-card>
@@ -1655,272 +1840,311 @@
                         </div>
                       </q-card-section>
                     </q-card>
-                </div>
-                   <!-- Section Contact -->
-                <div class="col-12 col-lg-6">
-                  <q-card
-                    flat
-                    bordered
-                    class="recap-card q-mb-md"
-                    :class="{'shadow-10': $q.dark.isActive, 'shadow-2': !$q.dark.isActive}"
-                  >
-                    <q-card-section class="bg-gradient-info text-white">
-                      <div class="row items-center no-wrap">
-                        <q-icon name="contact_mail" size="md" class="q-mr-md" />
-                        <div>
-                          <div class="text-h6 text-weight-bold">{{ $t('immat.stepp5') }}</div>
+                  </div>
+                  <!-- Section Contact -->
+                  <div class="col-12 col-lg-6">
+                    <q-card
+                      flat
+                      bordered
+                      class="recap-card q-mb-md"
+                      :class="{ 'shadow-10': $q.dark.isActive, 'shadow-2': !$q.dark.isActive }"
+                    >
+                      <q-card-section class="bg-gradient-info text-white">
+                        <div class="row items-center no-wrap">
+                          <q-icon name="contact_mail" size="md" class="q-mr-md" />
+                          <div>
+                            <div class="text-h6 text-weight-bold">{{ $t('immat.stepp5') }}</div>
+                          </div>
+                          <q-space />
+                          <q-btn
+                            flat
+                            round
+                            color="white"
+                            icon="edit"
+                            size="sm"
+                            @click="step = 5"
+                            class="hover-scale"
+                          >
+                            <q-tooltip>{{ $t('form.edit') }}</q-tooltip>
+                          </q-btn>
                         </div>
-                        <q-space />
-                        <q-btn
-                          flat
-                          round
-                          color="white"
-                          icon="edit"
-                          size="sm"
-                          @click="step = 5"
-                          class="hover-scale"
-                        >
-                          <q-tooltip>{{ $t('form.edit') }}</q-tooltip>
-                        </q-btn>
-                      </div>
-                    </q-card-section>
+                      </q-card-section>
 
-                    <q-card-section class="q-pa-none">
-                      <q-list separator>
-                        <q-item class="q-py-sm">
-                          <q-item-section avatar>
-                            <q-icon name="location_city" color="info" />
-                          </q-item-section>
-                          <q-item-section>
-                            <q-item-label class="text-weight-medium">{{ $t('inputassu.city_of_residence') }}</q-item-label>
-                            <q-item-label caption>{{ form.ville.NOM_ARROND || $t('inputassu.not_specified') }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
-
-                        <q-item class="q-py-sm">
-                          <q-item-section avatar>
-                            <q-icon name="home" color="info" />
-                          </q-item-section>
-                          <q-item-section>
-                            <q-item-label class="text-weight-medium">{{ $t('inputassu.neighborhood') }}</q-item-label>
-                            <q-item-label caption>{{ form.quartier || $t('inputassu.not_specified') }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
-
-                        <q-item class="q-py-sm">
-                          <q-item-section avatar>
-                            <q-icon name="phone" color="info" />
-                          </q-item-section>
-                          <q-item-section>
-                            <q-item-label class="text-weight-medium">{{ $t('inputassu.phone') }}</q-item-label>
-                            <q-item-label caption>{{ form.telephone || $t('inputassu.not_specified') }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
-
-                        <q-item class="q-py-sm">
-                          <q-item-section avatar>
-                            <q-icon name="print" color="info" />
-                          </q-item-section>
-                          <q-item-section>
-                            <q-item-label class="text-weight-medium">{{ $t('inputassu.fax') }}</q-item-label>
-                            <q-item-label caption>{{ form.fax || $t('inputassu.not_specified') }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
-                        <q-expansion-item
-                          icon="more_horiz"
-                          :label="$t('form.more_details')"
-                          class="text-secondary"
-                        >
-                          <q-list>
-                            <q-item class="q-py-sm">
-                              <q-item-section avatar>
-                                <q-icon name="place" color="pink" />
-                              </q-item-section>
-                              <q-item-section>
-                                <q-item-label class="text-weight-medium">{{ $t('inputassu.address') }}</q-item-label>
-                                <q-item-label caption>{{ form.addresse || $t('inputassu.not_specified') }}</q-item-label>
-                              </q-item-section>
-                            </q-item>
-
-                            <q-item class="q-py-sm">
-                              <q-item-section avatar>
-                                <q-icon name="email" color="info" />
-                              </q-item-section>
-                              <q-item-section>
-                                <q-item-label class="text-weight-medium">{{ $t('inputassu.email') }}</q-item-label>
-                                <q-item-label caption>{{ form.email || $t('inputassu.not_specified') }}</q-item-label>
-                              </q-item-section>
-                            </q-item>
-
-                            <q-item class="q-py-sm">
-                              <q-item-section avatar>
-                                <q-icon name="markunread_mailbox" color="pink" />
-                              </q-item-section>
-                              <q-item-section>
-                                <q-item-label class="text-weight-medium">{{ $t('inputassu.postal_box') }}</q-item-label>
-                                <q-item-label caption>{{form.boitePostale || $t('inputassu.not_specified') }}</q-item-label>
-                              </q-item-section>
-                            </q-item>
-
-                            <q-item class="q-py-sm">
-                              <q-item-section avatar>
-                                <q-icon name="business" color="pink" />
-                              </q-item-section>
-                              <q-item-section>
-                                <q-item-label class="text-weight-medium">{{ $t('inputassu.centreCNPS') }}</q-item-label>
-                                <q-item-label caption>{{form.centreCNPS.LIB_CENTRE || $t('inputassu.not_specified') }}</q-item-label>
-                              </q-item-section>
-                            </q-item>
-                          </q-list>
-                        </q-expansion-item>
-                      </q-list>
-                    </q-card-section>
-                  </q-card>
-                </div>
-
-                <!-- Section Documents -->
-                <div class="col-12 col-lg-6">
-                  <q-card
-                    flat
-                    bordered
-                    class="recap-card q-mb-md"
-                    :class="{'shadow-10': $q.dark.isActive, 'shadow-2': !$q.dark.isActive}"
-                  >
-                    <q-card-section class="bg-gradient-warning text-white">
-                      <div class="row items-center no-wrap">
-                        <q-icon name="folder" size="md" class="q-mr-md" />
-                        <div>
-                          <div class="text-h6 text-weight-bold">{{ $t('immat.stepp6') }}</div>
-                        </div>
-                        <q-space />
-                        <q-btn
-                          flat
-                          round
-                          color="white"
-                          icon="edit"
-                          size="sm"
-                          @click="step = 6"
-                          class="hover-scale"
-                        >
-                          <q-tooltip>{{ $t('form.edit') }}</q-tooltip>
-                        </q-btn>
-                      </div>
-                    </q-card-section>
-
-                    <q-card-section>
-                      <div class="row q-col-gutter-sm">
-                        <!-- Enfants -->
-                        <div class="col-12">
-                          <q-item class="q-px-none">
+                      <q-card-section class="q-pa-none">
+                        <q-list separator>
+                          <q-item class="q-py-sm">
                             <q-item-section avatar>
-                              <q-icon name="child_care" color="warning" />
+                              <q-icon name="location_city" color="info" />
                             </q-item-section>
                             <q-item-section>
-                              <q-item-label class="text-weight-medium">{{ $t('inputassu.number_of_children') }}</q-item-label>
-                              <q-item-label caption>
-                                <q-chip
-                                  :color="form.actesNaissance.length > 0 ? 'positive' : 'grey'"
-                                  text-color="white"
-                                  size="sm"
-                                >
-                                  {{ form.actesNaissance.length }} {{ $t('form.children') }}
-                                </q-chip>
-                              </q-item-label>
-                                 <!-- Affichage des noms de fichiers -->
-                              <div v-if="form.actesNaissance.length > 0" class="q-mt-xs">
-                                <q-chip
-                                  v-for="(file, index) in form.actesNaissance"
-                                  :key="index"
-                                  color="blue-grey-3"
-                                  text-color="dark"
-                                  size="sm"
-                                  class="q-mr-xs q-mb-xs"
-                                  icon="description"
-                                >
-                                  {{ file.name || file.nom || 'Fichier ' + (index + 1) }}
-                                </q-chip>
-                              </div>
+                              <q-item-label class="text-weight-medium">{{
+                                $t('inputassu.city_of_residence')
+                              }}</q-item-label>
+                              <q-item-label caption>{{
+                                form.ville.NOM_ARROND || $t('inputassu.not_specified')
+                              }}</q-item-label>
                             </q-item-section>
                           </q-item>
-                        </div>
-                        <!-- Certificats de travail -->
-                        <div class="col-12">
-                          <q-item class="q-px-none">
-                            <q-item-section avatar>
-                              <q-icon name="work_history" color="warning" />
-                            </q-item-section>
-                            <q-item-section>
-                              <q-item-label class="text-weight-medium">{{ $t('inputassu.work_certificates') }}</q-item-label>
-                              <q-item-label caption>
-                                <q-chip
-                                  :color="form.certificatsTravail.length > 0 ? 'positive' : 'grey'"
-                                  text-color="white"
-                                  size="sm"
-                                >
-                                  {{ form.certificatsTravail.length }} {{ $t('form.certificat') }}
-                                </q-chip>
-                              </q-item-label>
-                              <!-- Affichage des noms de fichiers -->
-                              <div v-if="form.certificatsTravail.length > 0" class="q-mt-xs">
-                                <q-chip
-                                  v-for="(file, index) in form.certificatsTravail"
-                                  :key="index"
-                                  color="blue-grey-3"
-                                  text-color="dark"
-                                  size="sm"
-                                  class="q-mr-xs q-mb-xs"
-                                  icon="description"
-                                >
-                                  {{ file.name || file.nom || 'Fichier ' + (index + 1) }}
-                                </q-chip>
-                              </div>
-                            </q-item-section>
-                          </q-item>
-                        </div>
 
-                        <!-- Conjoints -->
-                        <div class="col-12">
-                          <q-item class="q-px-none">
+                          <q-item class="q-py-sm">
                             <q-item-section avatar>
-                              <q-icon name="people" color="warning" />
+                              <q-icon name="home" color="info" />
                             </q-item-section>
                             <q-item-section>
-                              <q-item-label class="text-weight-medium">{{ $t('inputassu.number_of_spouses') }}</q-item-label>
-                              <q-item-label caption>
-                                <q-chip
-                                  :color="form.actesMariage.length > 0 ? 'positive' : 'grey'"
-                                  text-color="white"
-                                  size="sm"
-                                >
-                                  {{ form.actesMariage.length }}   {{ $t('form.conjoint') }}
-                                </q-chip>
-                              </q-item-label>
-                              <!-- Affichage des noms de fichiers -->
-                              <div v-if="form.actesMariage.length > 0" class="q-mt-xs">
-                                <q-chip
-                                  v-for="(file, index) in form.actesMariage"
-                                  :key="index"
-                                  color="blue-grey-3"
-                                  text-color="dark"
-                                  size="sm"
-                                  class="q-mr-xs q-mb-xs"
-                                  icon="description"
-                                >
-                                  {{ file.name || file.nom || 'Fichier ' + (index + 1) }}
-                                </q-chip>
-                              </div>
+                              <q-item-label class="text-weight-medium">{{
+                                $t('inputassu.neighborhood')
+                              }}</q-item-label>
+                              <q-item-label caption>{{
+                                form.quartier || $t('inputassu.not_specified')
+                              }}</q-item-label>
                             </q-item-section>
                           </q-item>
+
+                          <q-item class="q-py-sm">
+                            <q-item-section avatar>
+                              <q-icon name="phone" color="info" />
+                            </q-item-section>
+                            <q-item-section>
+                              <q-item-label class="text-weight-medium">{{
+                                $t('inputassu.phone')
+                              }}</q-item-label>
+                              <q-item-label caption>{{
+                                form.telephone || $t('inputassu.not_specified')
+                              }}</q-item-label>
+                            </q-item-section>
+                          </q-item>
+
+                          <q-item class="q-py-sm">
+                            <q-item-section avatar>
+                              <q-icon name="print" color="info" />
+                            </q-item-section>
+                            <q-item-section>
+                              <q-item-label class="text-weight-medium">{{
+                                $t('inputassu.fax')
+                              }}</q-item-label>
+                              <q-item-label caption>{{
+                                form.fax || $t('inputassu.not_specified')
+                              }}</q-item-label>
+                            </q-item-section>
+                          </q-item>
+                          <q-expansion-item
+                            icon="more_horiz"
+                            :label="$t('form.more_details')"
+                            class="text-secondary"
+                          >
+                            <q-list>
+                              <q-item class="q-py-sm">
+                                <q-item-section avatar>
+                                  <q-icon name="place" color="pink" />
+                                </q-item-section>
+                                <q-item-section>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.address')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.addresse || $t('inputassu.not_specified')
+                                  }}</q-item-label>
+                                </q-item-section>
+                              </q-item>
+
+                              <q-item class="q-py-sm">
+                                <q-item-section avatar>
+                                  <q-icon name="email" color="info" />
+                                </q-item-section>
+                                <q-item-section>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.email')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.email || $t('inputassu.not_specified')
+                                  }}</q-item-label>
+                                </q-item-section>
+                              </q-item>
+
+                              <q-item class="q-py-sm">
+                                <q-item-section avatar>
+                                  <q-icon name="markunread_mailbox" color="pink" />
+                                </q-item-section>
+                                <q-item-section>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.postal_box')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.boitePostale || $t('inputassu.not_specified')
+                                  }}</q-item-label>
+                                </q-item-section>
+                              </q-item>
+
+                              <q-item class="q-py-sm">
+                                <q-item-section avatar>
+                                  <q-icon name="business" color="pink" />
+                                </q-item-section>
+                                <q-item-section>
+                                  <q-item-label class="text-weight-medium">{{
+                                    $t('inputassu.centreCNPS')
+                                  }}</q-item-label>
+                                  <q-item-label caption>{{
+                                    form.centreCNPS.LIB_CENTRE || $t('inputassu.not_specified')
+                                  }}</q-item-label>
+                                </q-item-section>
+                              </q-item>
+                            </q-list>
+                          </q-expansion-item>
+                        </q-list>
+                      </q-card-section>
+                    </q-card>
+                  </div>
+
+                  <!-- Section Documents -->
+                  <div class="col-12 col-lg-6">
+                    <q-card
+                      flat
+                      bordered
+                      class="recap-card q-mb-md"
+                      :class="{ 'shadow-10': $q.dark.isActive, 'shadow-2': !$q.dark.isActive }"
+                    >
+                      <q-card-section class="bg-gradient-warning text-white">
+                        <div class="row items-center no-wrap">
+                          <q-icon name="folder" size="md" class="q-mr-md" />
+                          <div>
+                            <div class="text-h6 text-weight-bold">{{ $t('immat.stepp6') }}</div>
+                          </div>
+                          <q-space />
+                          <q-btn
+                            flat
+                            round
+                            color="white"
+                            icon="edit"
+                            size="sm"
+                            @click="step = 6"
+                            class="hover-scale"
+                          >
+                            <q-tooltip>{{ $t('form.edit') }}</q-tooltip>
+                          </q-btn>
                         </div>
-                      </div>
-                    </q-card-section>
-                  </q-card>
-                </div>
+                      </q-card-section>
+
+                      <q-card-section>
+                        <div class="row q-col-gutter-sm">
+                          <!-- Enfants -->
+                          <div class="col-12">
+                            <q-item class="q-px-none">
+                              <q-item-section avatar>
+                                <q-icon name="child_care" color="warning" />
+                              </q-item-section>
+                              <q-item-section>
+                                <q-item-label class="text-weight-medium">{{
+                                  $t('inputassu.number_of_children')
+                                }}</q-item-label>
+                                <q-item-label caption>
+                                  <q-chip
+                                    :color="form.actesNaissance.length > 0 ? 'positive' : 'grey'"
+                                    text-color="white"
+                                    size="sm"
+                                  >
+                                    {{ form.actesNaissance.length }} {{ $t('form.children') }}
+                                  </q-chip>
+                                </q-item-label>
+                                <!-- Affichage des noms de fichiers -->
+                                <div v-if="form.actesNaissance.length > 0" class="q-mt-xs">
+                                  <q-chip
+                                    v-for="(file, index) in form.actesNaissance"
+                                    :key="index"
+                                    color="blue-grey-3"
+                                    text-color="dark"
+                                    size="sm"
+                                    class="q-mr-xs q-mb-xs"
+                                    icon="description"
+                                  >
+                                    {{ file.name || file.nom || 'Fichier ' + (index + 1) }}
+                                  </q-chip>
+                                </div>
+                              </q-item-section>
+                            </q-item>
+                          </div>
+                          <!-- Certificats de travail -->
+                          <div class="col-12">
+                            <q-item class="q-px-none">
+                              <q-item-section avatar>
+                                <q-icon name="work_history" color="warning" />
+                              </q-item-section>
+                              <q-item-section>
+                                <q-item-label class="text-weight-medium">{{
+                                  $t('inputassu.work_certificates')
+                                }}</q-item-label>
+                                <q-item-label caption>
+                                  <q-chip
+                                    :color="
+                                      form.certificatsTravail.length > 0 ? 'positive' : 'grey'
+                                    "
+                                    text-color="white"
+                                    size="sm"
+                                  >
+                                    {{ form.certificatsTravail.length }} {{ $t('form.certificat') }}
+                                  </q-chip>
+                                </q-item-label>
+                                <!-- Affichage des noms de fichiers -->
+                                <div v-if="form.certificatsTravail.length > 0" class="q-mt-xs">
+                                  <q-chip
+                                    v-for="(file, index) in form.certificatsTravail"
+                                    :key="index"
+                                    color="blue-grey-3"
+                                    text-color="dark"
+                                    size="sm"
+                                    class="q-mr-xs q-mb-xs"
+                                    icon="description"
+                                  >
+                                    {{ file.name || file.nom || 'Fichier ' + (index + 1) }}
+                                  </q-chip>
+                                </div>
+                              </q-item-section>
+                            </q-item>
+                          </div>
+
+                          <!-- Conjoints -->
+                          <div class="col-12">
+                            <q-item class="q-px-none">
+                              <q-item-section avatar>
+                                <q-icon name="people" color="warning" />
+                              </q-item-section>
+                              <q-item-section>
+                                <q-item-label class="text-weight-medium">{{
+                                  $t('inputassu.number_of_spouses')
+                                }}</q-item-label>
+                                <q-item-label caption>
+                                  <q-chip
+                                    :color="form.actesMariage.length > 0 ? 'positive' : 'grey'"
+                                    text-color="white"
+                                    size="sm"
+                                  >
+                                    {{ form.actesMariage.length }} {{ $t('form.conjoint') }}
+                                  </q-chip>
+                                </q-item-label>
+                                <!-- Affichage des noms de fichiers -->
+                                <div v-if="form.actesMariage.length > 0" class="q-mt-xs">
+                                  <q-chip
+                                    v-for="(file, index) in form.actesMariage"
+                                    :key="index"
+                                    color="blue-grey-3"
+                                    text-color="dark"
+                                    size="sm"
+                                    class="q-mr-xs q-mb-xs"
+                                    icon="description"
+                                  >
+                                    {{ file.name || file.nom || 'Fichier ' + (index + 1) }}
+                                  </q-chip>
+                                </div>
+                              </q-item-section>
+                            </q-item>
+                          </div>
+                        </div>
+                      </q-card-section>
+                    </q-card>
+                  </div>
                 </div>
                 <!-- Actions finales -->
                 <q-card flat class="bg-grey-1 q-mt-md">
                   <q-card-section class="text-center">
-
                     <q-stepper-navigation class="justify-center">
                       <q-btn
                         type="submit"
@@ -1990,7 +2214,7 @@
     </q-dialog>
     <!-- Confirmation Dialog -->
     <q-dialog v-model="showConfirmationDialog" persistent>
-      <q-card class="confirmation-card" style="min-width: 500px;">
+      <q-card class="confirmation-card" style="min-width: 500px">
         <!-- Header avec icône -->
         <q-card-section class="bg-primary text-white text-center q-pa-md">
           <q-icon name="help_outline" size="35px" class="q-mb-sm" />
@@ -2102,43 +2326,43 @@
   </q-dialog>
 </template>
 <script setup>
-import { ref, computed, watch, defineProps, defineEmits } from 'vue';
-import { useNotify } from './useNotify.js';
-import { arrondissements as rawArrondissements } from '../data/Arrondissements.js';
-import { pays as rawPays } from '../data/Pays.js';
-import { pieces as rawPieces } from '../data/Pieces.js';
-import { centres as rawCentres } from '../data/Centres.js';
-import { useI18n } from 'vue-i18n';
-import html2pdf from 'html2pdf.js';
+import { ref, computed, watch, defineProps, defineEmits } from 'vue'
+import { useNotify } from './useNotify.js'
+import { arrondissements as rawArrondissements } from '../data/Arrondissements.js'
+import { pays as rawPays } from '../data/Pays.js'
+import { pieces as rawPieces } from '../data/Pieces.js'
+import { centres as rawCentres } from '../data/Centres.js'
+import { useI18n } from 'vue-i18n'
+import html2pdf from 'html2pdf.js'
 // import axios from 'axios';
- import { useQuasar } from 'quasar';
+import { useQuasar } from 'quasar'
 
-const $q = useQuasar();
+const $q = useQuasar()
 defineProps({
   service: Object,
-});
+})
 
-const { t, locale } = useI18n();
-const emit = defineEmits(['close']);
+const { t, locale } = useI18n()
+const emit = defineEmits(['close'])
 
-const { notifyError, notifySuccess } = useNotify();
+const { notifyError, notifySuccess } = useNotify()
 
-const open = ref(true);
-const step = ref(1);
-const maxStep = ref(1);
-const formRef = ref(null);
-const recapContent = ref(null);
-const pdfDialog = ref(false);
-const pdfBlobUrl = ref(null);
-const spinner = ref(false);
-const showConfirmationDialog = ref(false);
-const submissionType = ref(null);
-const stepErrors = ref({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false });
+const open = ref(true)
+const step = ref(1)
+const maxStep = ref(1)
+const formRef = ref(null)
+const recapContent = ref(null)
+const pdfDialog = ref(false)
+const pdfBlobUrl = ref(null)
+const spinner = ref(false)
+const showConfirmationDialog = ref(false)
+const submissionType = ref(null)
+const stepErrors = ref({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false })
 
-const arrondissements = ref([...rawArrondissements]);
-const pays = ref([...rawPays]);
-const pieces = ref([...rawPieces]);
-const centres = ref([...rawCentres]);
+const arrondissements = ref([...rawArrondissements])
+const pays = ref([...rawPays])
+const pieces = ref([...rawPieces])
+const centres = ref([...rawCentres])
 
 // Mock data for employers
 const employeurs = ref([
@@ -2150,7 +2374,7 @@ const employeurs = ref([
     DATE_EMB_PREM_TRAV: '25/10/1998',
     EFFECTIF_APPROX: 500,
   },
-]);
+])
 
 const form = ref({
   mat_employeur: '',
@@ -2158,13 +2382,13 @@ const form = ref({
   NOM_COMMERCIAL: '',
   avisEmbauche: null,
   DATE_EMB_PRE_SALL: '',
-  DATE_DEMANDE:'',
-  code_tele:'',
-  code_secret:'',
-  minDateAffi:'',
+  DATE_DEMANDE: '',
+  code_tele: '',
+  code_secret: '',
+  minDateAffi: '',
   CODE_echelon: '',
-  regimeAffiC:'',
-  regimeAffi:'',
+  regimeAffiC: '',
+  regimeAffi: '',
   Specialite: '',
   ADRESSE_EMPLOYEUR: '',
   DATE_EMB_PREM_TRAV: '',
@@ -2213,19 +2437,16 @@ const form = ref({
   certificatsTravail: [],
   nombreConjoints: 0,
   actesMariage: [],
-});
+})
 
-const genderOptions = computed(() => [
-  t('inputassu.male'),
-  t('inputassu.female'),
-]);
+const genderOptions = computed(() => [t('inputassu.male'), t('inputassu.female')])
 
 const maritalStatusOptions = computed(() => [
   t('inputassu.single'),
   t('inputassu.married'),
   t('inputassu.divorced'),
   t('inputassu.widowed'),
-]);
+])
 const documentsOptions = computed(() => [
   t('inputassu.national_Identity_Card'),
   t('inputassu.residence_Permit'),
@@ -2233,50 +2454,43 @@ const documentsOptions = computed(() => [
   t('inputassu.Copy_Birth_Certificate'),
   t('inputassu.passport'),
   t('inputassu.drivers_License'),
-
-]);
+])
 
 const dynamicTextClass = computed(() => [
   $q.screen.gt.sm ? 'text-h5' : 'custom-mobile-text',
   'text-primary',
   'text-uppercase',
   'q-mb-sm',
-]);
+])
 
-const yesNoOptions = computed(() => [
-  t('inputassu.yes'),
-  t('inputassu.no'),
-]);
-const required = (val) => !!val || 'Ce champ est requis / This field is required';
+const yesNoOptions = computed(() => [t('inputassu.yes'), t('inputassu.no')])
+const required = (val) => !!val || 'Ce champ est requis / This field is required'
 //const required = (val) => (val && val.length > 0) || t('input.required');
-const requiredFiles = (count) => (val) => (val && val.length >= count) || t('errors.file_too_large', { count });
+const requiredFiles = (count) => (val) =>
+  (val && val.length >= count) || t('errors.file_too_large', { count })
 
-const validateEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || t('errors.invalidEmail');
+const validateEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || t('errors.invalidEmail')
 
 const validateMatriculeCNPS = (val) => {
-  const regex = /^(?:\d{3}-\d{7}-\d{3}-[A-Z]|\d{3}-\d{7}-[A-Z])$/.test(val);
-  return regex || t('errors.invalid_cnps_format');
-};
-
+  const regex = /^(?:\d{3}-\d{7}-\d{3}-[A-Z]|\d{3}-\d{7}-[A-Z])$/.test(val)
+  return regex || t('errors.invalid_cnps_format')
+}
 
 const validateDateNaissance = (val) => {
-  if (!val) return t('errors.invalidDate');
-  const [day, month, year] = val.split('/').map(Number);
-  const date = new Date(year, month - 1, day);
-  const today = new Date();
-  return (date < today) || t('errors.invalidDate');
-};
-
+  if (!val) return t('errors.invalidDate')
+  const [day, month, year] = val.split('/').map(Number)
+  const date = new Date(year, month - 1, day)
+  const today = new Date()
+  return date < today || t('errors.invalidDate')
+}
 
 const validateDateNaissanceMere = (val) => {
-  if (!val) return t('errors.invalidDate');
-  const [day, month, year] = val.split('/').map(Number);
-  const date = new Date(year, month - 1, day);
-  const today = new Date();
-  return (date < today) || t('errors.invalidDate');
-};
-
-
+  if (!val) return t('errors.invalidDate')
+  const [day, month, year] = val.split('/').map(Number)
+  const date = new Date(year, month - 1, day)
+  const today = new Date()
+  return date < today || t('errors.invalidDate')
+}
 
 const optionsDn = (date) => {
   const today = new Date()
@@ -2289,239 +2503,273 @@ const optionsDn = (date) => {
 
 const filterArrondissement = (val, update) => {
   update(() => {
-    arrondissements.value = rawArrondissements.filter(
-      (arr) => arr.NOM_ARROND.toLowerCase().includes(val.toLowerCase())
-    );
-  });
-};
+    arrondissements.value = rawArrondissements.filter((arr) =>
+      arr.NOM_ARROND.toLowerCase().includes(val.toLowerCase()),
+    )
+  })
+}
 
 const filterPays = (val, update) => {
   update(() => {
-    pays.value = rawPays.filter(
-      (pays) => pays.nationalite.toLowerCase().includes(val.toLowerCase())
-    );
-  });
-};
+    pays.value = rawPays.filter((pays) =>
+      pays.nationalite.toLowerCase().includes(val.toLowerCase()),
+    )
+  })
+}
 
 const filterPieces = (val, update) => {
   update(() => {
-    pieces.value = rawPieces.filter(
-      (piece) => piece.LIBELLE.toLowerCase().includes(val.toLowerCase())
-    );
-  });
-};
+    pieces.value = rawPieces.filter((piece) =>
+      piece.LIBELLE.toLowerCase().includes(val.toLowerCase()),
+    )
+  })
+}
 
 const filterCentreCNPS = (val, update) => {
   update(() => {
-    centres.value = rawCentres.filter(
-      (centre) => centre.LIB_CENTRE.toLowerCase().includes(val.toLowerCase())
-    );
-  });
-};
+    centres.value = rawCentres.filter((centre) =>
+      centre.LIB_CENTRE.toLowerCase().includes(val.toLowerCase()),
+    )
+  })
+}
 
 const getArrondissementName = (id) => {
-  const arr = arrondissements.value.find((a) => a.ID_ARROND === id);
-  return arr ? arr.NOM_ARROND : '';
-};
+  const arr = arrondissements.value.find((a) => a.ID_ARROND === id)
+  return arr ? arr.NOM_ARROND : ''
+}
 
 const getPaysName = (id) => {
-  const paysItem = pays.value.find((p) => p.ID_PAYS === id);
-  return paysItem ? paysItem.nationalite : '';
-};
+  const paysItem = pays.value.find((p) => p.ID_PAYS === id)
+  return paysItem ? paysItem.nationalite : ''
+}
 
 const getPieceName = (id) => {
-  const piece = pieces.value.find((p) => p.ID_PIECE === id);
-  return piece ? piece.LIBELLE : '';
-};
+  const piece = pieces.value.find((p) => p.ID_PIECE === id)
+  return piece ? piece.LIBELLE : ''
+}
 
 const getCentreCNPSName = (id) => {
-  const centre = centres.value.find((c) => c.ID_CENTRE === id);
-  return centre ? centre.LIB_CENTRE : '';
-};
+  const centre = centres.value.find((c) => c.ID_CENTRE === id)
+  return centre ? centre.LIB_CENTRE : ''
+}
 
 const calculateSmig = () => {
-  const DATE_EMB_PRE_SALL = form.value.DATE_EMB_PRE_SALL;
-  const [day, month, year] = DATE_EMB_PRE_SALL.split('/').map(Number);
-  const hireDate = new Date(year, month - 1, day);
-  const smigValue = hireDate.getFullYear() >= 2014 ? 36270 : 28182;
-  form.value.SMIG_VALUE = smigValue;
-};
+  const DATE_EMB_PRE_SALL = form.value.DATE_EMB_PRE_SALL
+  const [day, month, year] = DATE_EMB_PRE_SALL.split('/').map(Number)
+  const hireDate = new Date(year, month - 1, day)
+  const smigValue = hireDate.getFullYear() >= 2014 ? 36270 : 28182
+  form.value.SMIG_VALUE = smigValue
+}
 
 const fetchEmployerData = async () => {
-  const matricule = form.value.mat_employeur;
+  const matricule = form.value.mat_employeur
   if (!validateMatriculeCNPS(matricule)) {
-    notifyError(t('messages.error'));
-    return;
+    notifyError(t('messages.error'))
+    return
   }
-  const employer = employeurs.value.find((e) => e.numeroEmployeur === matricule);
+  const employer = employeurs.value.find((e) => e.numeroEmployeur === matricule)
   if (employer) {
-    form.value.NOM_COMMERCIAL = employer.NOM_COMMERCIAL;
-    form.value.RAISON_SOCIALE = employer.RAISON_SOCIALE;
-    form.value.ADRESSE_EMPLOYEUR = employer.ADRESSE_EMPLOYEUR;
-    form.value.DATE_EMB_PREM_TRAV = employer.DATE_EMB_PREM_TRAV;
-    form.value.EFFECTIF_APPROX = employer.EFFECTIF_APPROX;
-    notifySuccess(t('messages.employer_found'));
+    form.value.NOM_COMMERCIAL = employer.NOM_COMMERCIAL
+    form.value.RAISON_SOCIALE = employer.RAISON_SOCIALE
+    form.value.ADRESSE_EMPLOYEUR = employer.ADRESSE_EMPLOYEUR
+    form.value.DATE_EMB_PREM_TRAV = employer.DATE_EMB_PREM_TRAV
+    form.value.EFFECTIF_APPROX = employer.EFFECTIF_APPROX
+    notifySuccess(t('messages.employer_found'))
   } else {
-    notifyError(t('messages.employer_not_found'));
+    notifyError(t('messages.employer_not_found'))
   }
-};
+}
 
 const resetFileField = (field) => {
-  form.value[field] = field === 'avisEmbauche' ? null : [];
-};
-
+  form.value[field] = field === 'avisEmbauche' ? null : []
+}
 
 const onFileSelected = (field) => (file) => {
   if (file && file.size > 3072000) {
-    notifyError(t('errors.file_too_large'));
-    form[field] = null; // Réinitialise le champ
-    return;
+    notifyError(t('errors.file_too_large'))
+    form[field] = null // Réinitialise le champ
+    return
   }
-  validateStep(step.value);
-};
+  validateStep(step.value)
+}
 
 const onRejected = (rejectedEntries) => {
   rejectedEntries.forEach((entry) => {
     if (entry.failedPropValidation === 'accept') {
-      notifyError(t('errors.invalid_file_type'));
+      notifyError(t('errors.invalid_file_type'))
     } else if (entry.failedPropValidation === 'max-file-size') {
-      notifyError(t('errors.file_too_large'));
+      notifyError(t('errors.file_too_large'))
     } else {
-      notifyError(t('errors.file_error'));
+      notifyError(t('errors.file_error'))
     }
-  });
-};
+  })
+}
 
 /* const counterLabelFn = ({ files }) => {
   return files.length ? `${files.length} ${t('input.files_selected')}` : t('input.no_files_selected');
 }; */
 const counterLabelFn = ({ totalSize, filesCount, maxFiles }) => {
-  return `(${filesCount}/${maxFiles}) ${Math.round(totalSize / 1024)} KB`;
-};
+  return `(${filesCount}/${maxFiles}) ${Math.round(totalSize / 1024)} KB`
+}
 const isStepAllowed = (stepNumber) => {
-  return stepNumber <= maxStep.value;
-};
+  return stepNumber <= maxStep.value
+}
 
 const validateStep = async (stepNumber) => {
-  let isValid = true;
+  let isValid = true
   const requiredFields = {
     1: ['mat_employeur', 'RAISON_SOCIALE', 'DATE_EMB_PRE_SALL', 'avisEmbauche'],
-    2: ['nom', 'sexe', 'dateNaissance', 'lieuNaissance', 'arrondissementAssure', 'nationaliteAssure', 'pieceIdentiteAssure', 'numeroPieceIdentite', 'datePieceIdentite', 'lieuDelivrancePieceIdentiteAssure', 'etatCivil'],
+    2: [
+      'nom',
+      'sexe',
+      'dateNaissance',
+      'lieuNaissance',
+      'arrondissementAssure',
+      'nationaliteAssure',
+      'pieceIdentiteAssure',
+      'numeroPieceIdentite',
+      'datePieceIdentite',
+      'lieuDelivrancePieceIdentiteAssure',
+      'etatCivil',
+    ],
     3: [],
     4: ['nomMere', 'dateNaissanceMere', 'lieuNaissanceMere', 'arrondissementMere', 'vivantMere'],
     5: ['ville', 'telephone', 'email', 'centreCNPS'],
     6: [],
     7: [],
-  };
+  }
 
   if (requiredFields[stepNumber]) {
     for (const field of requiredFields[stepNumber]) {
-      const value = form.value[field];
+      const value = form.value[field]
       if (field === 'avisEmbauche') {
         if (!value) {
-          isValid = false;
-          break;
+          isValid = false
+          break
         }
       } else if (['actesNaissance', 'certificatsTravail', 'actesMariage'].includes(field)) {
         const countField = {
           actesNaissance: 'nombreEnfants',
           certificatsTravail: 'nombreCertificat',
           actesMariage: 'nombreConjoints',
-        }[field];
-        const count = form.value[countField] || 0;
+        }[field]
+        const count = form.value[countField] || 0
         if (count > 0 && (!value || value.length < count)) {
-          isValid = false;
-          break;
+          isValid = false
+          break
         }
       } else if (!value) {
-        isValid = false;
-        break;
+        isValid = false
+        break
       }
     }
   }
 
   if (stepNumber === 1) {
     if (!validateMatriculeCNPS(form.value.mat_employeur)) {
-      isValid = false;
+      isValid = false
     }
   } else if (stepNumber === 2) {
     if (!validateDateNaissance(form.value.dateNaissance)) {
-      isValid = false;
+      isValid = false
     }
   } else if (stepNumber === 4) {
-    if (!validateDateNaissanceMere(form.value.dateNaissanceMere) ) {
-      isValid = false;
+    if (!validateDateNaissanceMere(form.value.dateNaissanceMere)) {
+      isValid = false
     }
-    if (form.value.vivantMere === t('inputassu.no') && (!form.value.dateDecesMere)) {
-      isValid = false;
+    if (form.value.vivantMere === t('inputassu.no') && !form.value.dateDecesMere) {
+      isValid = false
     }
   } else if (stepNumber === 5) {
     if (!validateEmail(form.value.email)) {
-      isValid = false;
+      isValid = false
     }
   }
 
-  stepErrors.value[stepNumber] = !isValid;
-  return isValid;
-};
+  stepErrors.value[stepNumber] = !isValid
+  return isValid
+}
 
 const goToNextStep = async (nextStep) => {
   if (await validateStep(step.value)) {
-    step.value = nextStep;
+    step.value = nextStep
     if (nextStep > maxStep.value) {
-      maxStep.value = nextStep;
+      maxStep.value = nextStep
     }
   } else {
-    stepErrors.value[step.value] = true;
-    notifyError(t('form.step_incomplete'));
+    stepErrors.value[step.value] = true
+    notifyError(t('form.step_incomplete'))
   }
-};
+}
 
 const submitForm = async () => {
   const allStepsValid = await Promise.all(
-    Array.from({ length: 7 }, (_, i) => i + 1).map((stepNumber) => validateStep(stepNumber))
-  );
+    Array.from({ length: 7 }, (_, i) => i + 1).map((stepNumber) => validateStep(stepNumber)),
+  )
   if (allStepsValid.every((valid) => valid)) {
-    showConfirmationDialog.value = true;
+    showConfirmationDialog.value = true
   } else {
-    stepErrors.value[7] = true;
-    notifyError(t('form.incomplete'));
+    stepErrors.value[7] = true
+    notifyError(t('form.incomplete'))
   }
-};
+}
 
- const confirmSubmission = async () => {
-  spinner.value = true;
+const confirmSubmission = async () => {
+  spinner.value = true
   try {
-       // Prepare form data for submission
-    const formData = new FormData();
+    // Prepare form data for submission
+    const formData = new FormData()
 
-       // Append form fields
+    // Append form fields
     Object.keys(form.value).forEach((key) => {
       if (key === 'avisEmbauche' && form.value[key]) {
-        formData.append(key, form.value[key], form.value[key].name);
+        formData.append(key, form.value[key], form.value[key].name)
       } else if (['actesNaissance', 'certificatsTravail', 'actesMariage'].includes(key)) {
         form.value[key].forEach((file, index) => {
-          formData.append(`${key}[${index}]`, file, file.name);
-        });
+          formData.append(`${key}[${index}]`, file, file.name)
+        })
       } else if (form.value[key] !== null && form.value[key] !== undefined) {
-        formData.append(key, form.value[key]);
+        formData.append(key, form.value[key])
       }
-    });
-      // Append translated values for specific fields
-    formData.append('sexe', t(form.value.sexe));
-    formData.append('etatCivil', t(form.value.etatCivil));
-    formData.append('vivantPere', form.value.vivantPere ? t(form.value.vivantPere) : '');
-    formData.append('vivantMere', form.value.vivantMere ? t(form.value.vivantMere) : '');
-    formData.append('arrondissementAssure', form.value.arrondissementAssure ? getArrondissementName(form.value.arrondissementAssure) : '');
-    formData.append('nationaliteAssure', form.value.nationaliteAssure ? getPaysName(form.value.nationaliteAssure) : '');
-    formData.append('pieceIdentiteAssure', form.value.pieceIdentiteAssure ? getPieceName(form.value.pieceIdentiteAssure) : '');
-    formData.append('lieuDelivrancePieceIdentiteAssure', form.value.lieuDelivrancePieceIdentiteAssure ? getArrondissementName(form.value.lieuDelivrancePieceIdentiteAssure) : '');
-    formData.append('arrondissementPere', form.value.arrondissementPere ? getArrondissementName(form.value.arrondissementPere) : '');
-    formData.append('arrondissementMere', form.value.arrondissementMere ? getArrondissementName(form.value.arrondissementMere) : '');
-    formData.append('ville', form.value.ville ? getArrondissementName(form.value.ville) : '');
-    formData.append('centreCNPS', form.value.centreCNPS ? getCentreCNPSName(form.value.centreCNPS) : '');
+    })
+    // Append translated values for specific fields
+    formData.append('sexe', t(form.value.sexe))
+    formData.append('etatCivil', t(form.value.etatCivil))
+    formData.append('vivantPere', form.value.vivantPere ? t(form.value.vivantPere) : '')
+    formData.append('vivantMere', form.value.vivantMere ? t(form.value.vivantMere) : '')
+    formData.append(
+      'arrondissementAssure',
+      form.value.arrondissementAssure ? getArrondissementName(form.value.arrondissementAssure) : '',
+    )
+    formData.append(
+      'nationaliteAssure',
+      form.value.nationaliteAssure ? getPaysName(form.value.nationaliteAssure) : '',
+    )
+    formData.append(
+      'pieceIdentiteAssure',
+      form.value.pieceIdentiteAssure ? getPieceName(form.value.pieceIdentiteAssure) : '',
+    )
+    formData.append(
+      'lieuDelivrancePieceIdentiteAssure',
+      form.value.lieuDelivrancePieceIdentiteAssure
+        ? getArrondissementName(form.value.lieuDelivrancePieceIdentiteAssure)
+        : '',
+    )
+    formData.append(
+      'arrondissementPere',
+      form.value.arrondissementPere ? getArrondissementName(form.value.arrondissementPere) : '',
+    )
+    formData.append(
+      'arrondissementMere',
+      form.value.arrondissementMere ? getArrondissementName(form.value.arrondissementMere) : '',
+    )
+    formData.append('ville', form.value.ville ? getArrondissementName(form.value.ville) : '')
+    formData.append(
+      'centreCNPS',
+      form.value.centreCNPS ? getCentreCNPSName(form.value.centreCNPS) : '',
+    )
 
-     // API call to OneBase GED system
+    // API call to OneBase GED system
     /* const response = await axios.post('https://api.onebase.ged/submit', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
@@ -2532,88 +2780,104 @@ const submitForm = async () => {
     console.log(formData)
     if (submissionType.value === 'temporary') {
       // Handle temporary submission
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate temporary submission API call
-      notifySuccess(t('form.submitted'));
+      await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate temporary submission API call
+      notifySuccess(t('form.submitted'))
     } else if (submissionType.value === 'definitive') {
       // Handle definitive submission
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate definitive submission API call
-      notifySuccess(t('form.submitted'));
+      await new Promise((resolve) => setTimeout(resolve, 1000)) // Simulate definitive submission API call
+      notifySuccess(t('form.submitted'))
     } else {
-      throw new Error('No submission type selected');
+      throw new Error('No submission type selected')
     }
-    closeDialog();
+    closeDialog()
   } catch (error) {
-    notifyError(t('form.submit_error', { error: error.message }));
+    notifyError(t('form.submit_error', { error: error.message }))
   } finally {
-    spinner.value = false;
-    showConfirmationDialog.value = false;
-    submissionType.value = null; // Reset selection
+    spinner.value = false
+    showConfirmationDialog.value = false
+    submissionType.value = null // Reset selection
   }
-};
+}
 
 const downloadPDF = async () => {
-  spinner.value = true;
+  spinner.value = true
   try {
-    const element = recapContent.value;
+    const element = recapContent.value
     const opt = {
       margin: 1,
       filename: 'immatriculation_form.pdf',
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-    };
-    const pdf = await html2pdf().from(element).set(opt).toPdf().output('blob');
-    pdfBlobUrl.value = URL.createObjectURL(pdf);
-    pdfDialog.value = true;
+    }
+    const pdf = await html2pdf().from(element).set(opt).toPdf().output('blob')
+    pdfBlobUrl.value = URL.createObjectURL(pdf)
+    pdfDialog.value = true
   } catch (error) {
-    notifyError(t('pdf.generation_error',error));
+    notifyError(t('pdf.generation_error', error))
   } finally {
-    spinner.value = false;
+    spinner.value = false
   }
-};
+}
 
 const previewDocument = async () => {
-  spinner.value = true;
+  spinner.value = true
   try {
-    const element = recapContent.value;
+    const element = recapContent.value
     const opt = {
       margin: 1,
       filename: 'immatriculation_form.pdf',
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 2 },
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-    };
-    const pdf = await html2pdf().from(element).set(opt).toPdf().output('blob');
-    pdfBlobUrl.value = URL.createObjectURL(pdf);
-    pdfDialog.value = true;
+    }
+    const pdf = await html2pdf().from(element).set(opt).toPdf().output('blob')
+    pdfBlobUrl.value = URL.createObjectURL(pdf)
+    pdfDialog.value = true
   } catch (error) {
-    notifyError(t('pdf.generation_error',error));
+    notifyError(t('pdf.generation_error', error))
   } finally {
-    spinner.value = false;
+    spinner.value = false
   }
-};
+}
 
 const closeDialog = () => {
-  open.value = false;
-  emit('close');
-};
+  open.value = false
+  emit('close')
+}
 
 // Watch file inputs to update stepErrors
-watch(() => form.value.avisEmbauche, () => {
-  validateStep(1);
-}, { deep: true });
+watch(
+  () => form.value.avisEmbauche,
+  () => {
+    validateStep(1)
+  },
+  { deep: true },
+)
 
-watch(() => form.value.actesNaissance, () => {
-  validateStep(6);
-}, { deep: true });
+watch(
+  () => form.value.actesNaissance,
+  () => {
+    validateStep(6)
+  },
+  { deep: true },
+)
 
-watch(() => form.value.certificatsTravail, () => {
-  validateStep(6);
-}, { deep: true });
+watch(
+  () => form.value.certificatsTravail,
+  () => {
+    validateStep(6)
+  },
+  { deep: true },
+)
 
-watch(() => form.value.actesMariage, () => {
-  validateStep(6);
-}, { deep: true });
+watch(
+  () => form.value.actesMariage,
+  () => {
+    validateStep(6)
+  },
+  { deep: true },
+)
 
 // Watch other fields to update stepErrors
 watch(
@@ -2644,31 +2908,40 @@ watch(
     form.value.centreCNPS,
   ],
   () => {
-    validateStep(step.value);
+    validateStep(step.value)
   },
-  { deep: true }
-);
+  { deep: true },
+)
 
-watch(() => form.value.nombreEnfants, (newValue) => {
-  if (newValue < form.value.actesNaissance.length) {
-    form.value.actesNaissance = form.value.actesNaissance.slice(0, newValue);
-  }
-  validateStep(6);
-});
+watch(
+  () => form.value.nombreEnfants,
+  (newValue) => {
+    if (newValue < form.value.actesNaissance.length) {
+      form.value.actesNaissance = form.value.actesNaissance.slice(0, newValue)
+    }
+    validateStep(6)
+  },
+)
 
-watch(() => form.value.nombreCertificat, (newValue) => {
-  if (newValue < form.value.certificatsTravail.length) {
-    form.value.certificatsTravail = form.value.certificatsTravail.slice(0, newValue);
-  }
-  validateStep(6);
-});
+watch(
+  () => form.value.nombreCertificat,
+  (newValue) => {
+    if (newValue < form.value.certificatsTravail.length) {
+      form.value.certificatsTravail = form.value.certificatsTravail.slice(0, newValue)
+    }
+    validateStep(6)
+  },
+)
 
-watch(() => form.value.nombreConjoints, (newValue) => {
-  if (newValue < form.value.actesMariage.length) {
-    form.value.actesMariage = form.value.actesMariage.slice(0, newValue);
-  }
-  validateStep(6);
-});
+watch(
+  () => form.value.nombreConjoints,
+  (newValue) => {
+    if (newValue < form.value.actesMariage.length) {
+      form.value.actesMariage = form.value.actesMariage.slice(0, newValue)
+    }
+    validateStep(6)
+  },
+)
 </script>
 <style scoped>
 .confirmation-card {
@@ -2749,7 +3022,8 @@ watch(() => form.value.nombreConjoints, (newValue) => {
 }
 
 @keyframes pulse {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
   }
   50% {
