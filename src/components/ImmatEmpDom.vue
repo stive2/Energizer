@@ -1056,8 +1056,10 @@
     </q-card>
   </q-dialog>
 
-  <q-dialog persistent v-model="spinner">
-    <q-spinner-cube size="xl" color="primary" />
+  <q-dialog v-model="spinner" persistent>
+    <div class="row items-center justify-center q-pa-md">
+      <CustomSpinner :show="spinner" />
+    </div>
   </q-dialog>
 </template>
 
@@ -1072,6 +1074,7 @@ import { pieces as rawPieces } from '../data/Pieces.js'
 import { regexPatterns } from '../js/regex.js'
 import { useI18n } from 'vue-i18n'
 import html2pdf from 'html2pdf.js'
+import CustomSpinner from 'src/components/CustomSpinner.vue'
 
 defineProps({
   service: Object,
