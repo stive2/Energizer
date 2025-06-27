@@ -1,0 +1,8 @@
+export const secteursActivites = [
+  '1-PRIMAIRE',
+  '2-SECONDAIRE ET TERTIAIRE I',
+  '3-TERTIAIRE II',
+  '4-DOMESTIQUES DE MAISON',
+  '5-ENSEIGNEMENT PRIVE',
+  '6-PUBLIC',
+]

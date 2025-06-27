@@ -46,7 +46,7 @@
         v-model="search"
         :placeholder="$t('home.searchPlaceholder')"
         class="q-mb-md"
-        style="min-width: 300px; max-width: 500px"
+        style="min-width: 400px; max-width: 500px"
       >
         <template v-slot:prepend>
           <q-icon name="search" />
@@ -84,8 +84,8 @@
         >
           <q-card-section>
             <q-icon :name="getIcon(service.code)" size="40px" color="primary" class="q-mb-sm" />
-            <div class="text-h6 text-primary">{{ $t(service.name) }}</div>
-            <div class="text-caption text-grey-7">{{ $t(service.description) }}</div>
+            <div class="text-h6 text-primary text-uppercase">{{ $t(service.name) }}</div>
+            <div class="text-caption text-grey-7 text-uppercase">{{ $t(service.description) }}</div>
           </q-card-section>
         </q-card>
       </div>
@@ -132,6 +132,16 @@
         :service="selectedService"
         @close="((showStepperDialog = false), (showImmatAssuTrv = false))"
       />
+      <ReceptionDossier
+        v-if="showReceptionDossier"
+        :service="selectedService"
+        @close="((showStepperDialog = false), (showReceptionDossier = false))"
+      />
+      <LiquidationRP
+        v-if="showLiquidationRP"
+        :service="selectedService"
+        @close="((showStepperDialog = false), (showLiquidationRP = false))"
+      />
     </q-dialog>
   </q-page>
 </template>
@@ -142,6 +152,8 @@ import ImmatEmpPro from 'components/ImmatEmpPro.vue'
 import ImmatEmpDom from 'components/ImmatEmpDom.vue'
 import ImmatAssuTrv from 'components/ImmatAssuTrv.vue'
 import ImmatAssuVol from 'components/ImmatAssuVol.vue'
+import ReceptionDossier from 'components/ReceptionDossier.vue'
+import LiquidationRP from 'components/LiquidationRP.vue'
 import { useNotify } from 'components/useNotify.js'
 // import axios from 'axios' onMounted notifySuccess, notifyError, notifyWarning, notifyInfo
 
@@ -155,6 +167,8 @@ const showImmatEmpPro = ref(false)
 const showImmatEmpDom = ref(false)
 const showImmatAssuTrv = ref(false)
 const showImmatAssuVol = ref(false)
+const showReceptionDossier = ref(false)
+const showLiquidationRP = ref(false)
 // List of CNPS services
 const typesServices = [
   {
@@ -185,6 +199,25 @@ const typesServices = [
         name: 'services.immav.name',
         description: 'services.immav.description',
         code: 'IMMAV',
+      },
+    ],
+  },
+  {
+    id: 2,
+    name: 'Formulaire Energizer / Energizer Form',
+    code: 'ENERG',
+    services: [
+      {
+        id: 1,
+        name: 'services.form1.name',
+        description: 'services.form1.description',
+        code: 'FORM1',
+      },
+      {
+        id: 2,
+        name: 'services.form2.name',
+        description: 'services.form2.description',
+        code: 'FORM2',
       },
     ],
   },
@@ -240,6 +273,8 @@ const formDialogMap = {
   IMMED: showImmatEmpDom,
   IMMAV: showImmatAssuVol,
   IMMAT: showImmatAssuTrv,
+  FORM1: showReceptionDossier,
+  FORM2: showLiquidationRP,
 }
 
 const openForm = (service) => {
@@ -265,6 +300,10 @@ const getIcon = (code) => {
       return 'person_add_alt_1'
     case 'IMMAT':
       return 'engineering'
+    case 'FORM1':
+      return 'folder'
+    case 'FORM2':
+      return 'warning_amber'
     default:
       return 'info'
   }
