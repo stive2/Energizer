@@ -182,6 +182,7 @@ export default {
     passport: 'Passport',
     drivers_License: "Driver's License",
     invalid_cnps_format: 'Invalid CNPS format',
+    invalid_phone_format: 'Invalid phone number format',
   },
   form: {
     next: 'Next',

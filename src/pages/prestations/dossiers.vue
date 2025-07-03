@@ -2677,7 +2677,9 @@ const submitForm = async () => {
     notifySuccess(message);
     //resetForm();
     // Fermer le formulaire après soumission
+
     selectedPrestation.value = null;
+     formData.value = null;
   } catch (error) {
     if (error && error.message && [
       'checkbox_required_first_exam',
@@ -2692,7 +2694,7 @@ const submitForm = async () => {
       notifyError(t('form.submit_error'));
     }
     // Fermer le formulaire même en cas d'erreur de soumission
-    selectedPrestation.value = null;
+    //selectedPrestation.value = null;
   } finally {
     loading.value = false;
     isSubmitting.value = false;
