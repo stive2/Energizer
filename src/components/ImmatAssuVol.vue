@@ -1966,7 +1966,6 @@
           </q-stepper>
         </q-form>
       </q-card-section>
-
       <q-card-actions align="right">
         <q-btn flat :label="$t('form.cancel')" v-close-popup color="red" @click="closeDialog" />
       </q-card-actions>

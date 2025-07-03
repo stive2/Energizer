@@ -2344,6 +2344,8 @@ const fetchEmployerData = async () => {
   }
 };
 
+
+
 const resetFileField = (field) => {
   form.value[field] = field === 'avisEmbauche' ? null : [];
 };
