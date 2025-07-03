@@ -12,7 +12,7 @@
       <q-card-section>
         <div class="q-gutter-md justify-center row">
           <q-select
-            v-model="form.origineImmatriculation"
+            v-model="form.CAUSE_IMMA"
             :options="['Spontanee', 'Suite a controle', 'Immatriculation d office']"
             :label="$t('input.origineImmatriculation')"
             outlined
@@ -32,7 +32,7 @@
             </template>
           </q-select>
           <q-select
-            v-model="form.origineDossier"
+            v-model="form.CIRCUIT_DOSSIER"
             :options="['Centre Formalite Creation Entreprise(C.F.C.E)', 'AUTRE']"
             :label="$t('input.origineDossier')"
             outlined
@@ -55,8 +55,15 @@
       </q-card-section>
 
       <q-card-section>
-        <q-form ref="formRef" @submit.prevent="submitForm">
-          <q-stepper v-model="step" :vertical="$q.screen.lt.sm" color="primary" animated header-nav>
+        <q-form ref="formRef" @submit.prevent="dialValidation = true">
+          <q-stepper
+            v-model="step"
+            :vertical="$q.screen.lt.sm"
+            color="primary"
+            :inactive-color="maxStep >= step ? 'secondary' : ''"
+            animated
+            header-nav
+          >
             <!-- Etape 1 : Informations sur l'employeur -->
             <q-step
               :name="1"
@@ -67,14 +74,14 @@
             >
               <div class="q-gutter-md justify-center row">
                 <q-input
-                  v-model="form.raisonSociale"
+                  v-model="form.RAISON_SOCIALE"
                   :label="$t('input.raisonSociale')"
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
                   :rules="[required]"
                   style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.raisonSociale = val.toUpperCase())"
+                  @update:model-value="(val) => (form.RAISON_SOCIALE = val.toUpperCase())"
                 >
                   <template v-slot:label>
                     {{ $t('input.raisonSociale') }}
@@ -86,14 +93,14 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.nomCommercial"
+                  v-model="form.NOM_COMMERCIAL"
                   :label="$t('input.nomCommercial')"
                   class="col-md-5 col-xs-12 col-sm-12"
                   outlined
                   dense
                   :rules="[required]"
                   style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.nomCommercial = val.toUpperCase())"
+                  @update:model-value="(val) => (form.NOM_COMMERCIAL = val.toUpperCase())"
                 >
                   <template v-slot:label>
                     {{ $t('input.nomCommercial') }}
@@ -105,25 +112,25 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.sigle"
+                  v-model="form.Sigle"
                   :label="$t('input.sigle')"
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
                   style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.sigle = val.toUpperCase())"
+                  @update:model-value="(val) => (form.Sigle = val.toUpperCase())"
                 />
                 <q-input
-                  v-model="form.autreContact"
+                  v-model="form.AUTRE_CONTACT"
                   :label="$t('input.autreContact')"
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
                   style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.autreContact = val.toUpperCase())"
+                  @update:model-value="(val) => (form.AUTRE_CONTACT = val.toUpperCase())"
                 />
                 <q-input
-                  v-model="form.dateOuverture"
+                  v-model="form.DATE_DEB_SERVICE"
                   :label="$t('input.dateOuverture')"
                   outlined
                   dense
@@ -136,7 +143,7 @@
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
-                          v-model="form.dateOuverture"
+                          v-model="form.DATE_DEB_SERVICE"
                           :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           locale="fr"
                           :options="optionsDn"
@@ -155,7 +162,7 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.dateCreation"
+                  v-model="form.date_creation_empl"
                   :label="$t('input.dateCreation')"
                   outlined
                   dense
@@ -167,7 +174,7 @@
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
-                          v-model="form.dateCreation"
+                          v-model="form.date_creation_empl"
                           :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           :locale="locale"
                           :options="optionsDn"
@@ -178,7 +185,7 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.dateEmbauche"
+                  v-model="form.DATE_EFFET"
                   :label="$t('input.dateEmbauche')"
                   outlined
                   dense
@@ -190,7 +197,7 @@
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
-                          v-model="form.dateEmbauche"
+                          v-model="form.DATE_EFFET"
                           :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           :locale="locale"
                           :options="optionsDn"
@@ -201,7 +208,7 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.numRegistreCommerce"
+                  v-model="form.num_registre"
                   :label="$t('input.numRegistreCommerce')"
                   class="col-md-5 col-xs-12 col-sm-12"
                   outlined
@@ -211,7 +218,7 @@
                     (val) => !val || regexPatterns.regComm.test(val) || '(ex: RC/YAO/2020/B/0002)',
                   ]"
                   style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.numRegistreCommerce = val.toUpperCase())"
+                  @update:model-value="(val) => (form.num_registre = val.toUpperCase())"
                 >
                   <template v-slot:label>
                     {{ $t('input.numRegistreCommerce') }}
@@ -223,7 +230,7 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.numContribuable"
+                  v-model="form.num_contr"
                   :label="$t('input.numContribuable')"
                   class="col-md-5 col-xs-12 col-sm-12"
                   outlined
@@ -236,7 +243,7 @@
                       'Format invalide (ex: P123456789321M)',
                   ]"
                   style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.numContribuable = val.toUpperCase())"
+                  @update:model-value="(val) => (form.num_contr = val.toUpperCase())"
                 >
                   <template v-slot:label>
                     {{ $t('input.numContribuable') }}
@@ -248,7 +255,34 @@
                   </template>
                 </q-input>
                 <q-file
-                  v-model="formFile.registreCommerce"
+                  v-model="formFile.attestationImmatriculation"
+                  filled
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  label=""
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  :max-total-size="maxSize"
+                  @rejected="onRejected"
+                  :rules="[(val) => (val && val != '') || $t('input.requis')]"
+                  counter
+                  max-files="1"
+                  :hint="$t('input.max_size_hint')"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="attach_file" />
+                  </template>
+                  <template v-slot:label>
+                    {{ $t('input.attestationImmatriculation') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                    >
+                      {{ $t('input.requis') }}
+                    </span>
+                  </template>
+                </q-file>
+                <q-file
+                  v-model="formFile.IDREGICOMM"
                   filled
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
@@ -275,7 +309,7 @@
                   </template>
                 </q-file>
                 <q-file
-                  v-model="formFile.autorisationOuverture"
+                  v-model="formFile.IDAUTORISATION"
                   filled
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
@@ -302,7 +336,7 @@
                   </template>
                 </q-file>
                 <q-file
-                  v-model="formFile.carteContribuable"
+                  v-model="formFile.IDCONTRIBUABLE"
                   filled
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
@@ -319,7 +353,7 @@
                   </template>
                 </q-file>
                 <q-file
-                  v-model="formFile.statuts"
+                  v-model="formFile.IDSTATUTS"
                   filled
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
@@ -342,12 +376,13 @@
                   class="col-md-5 col-xs-12 col-sm-12"
                 />
                 <q-input
-                  v-model="form.matriculeSiege"
+                  v-model="form.NUM_EMPL_SIEGE"
                   v-if="form.isSuccursale"
                   :label="$t('input.matriculeSiege')"
                   class="col-md-5 col-xs-12 col-sm-12"
                   style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.matriculeSiege = val.toUpperCase())"
+                  @update:model-value="(val) => (form.NUM_EMPL_SIEGE = val.toUpperCase())"
+                  @blur="rechercherSiege"
                   outlined
                   dense
                   :rules="[
@@ -368,45 +403,27 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.nomCommercialSiege"
-                  v-if="form.isSuccursale"
-                  :label="$t('input.nomCommercialSiege')"
-                  class="col-md-5 col-xs-12 col-sm-12"
-                  outlined
-                  dense
-                  :rules="[required]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.nomCommercialSiege = val.toUpperCase())"
-                >
-                  <template v-slot:label>
-                    {{ $t('input.nomCommercialSiege') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.raisonSocialeSiege"
+                  v-model="form.RAISON_SOCIALE_SIEGE"
                   v-if="form.isSuccursale"
                   :label="$t('input.raisonSocialeSiege')"
                   class="col-md-5 col-xs-12 col-sm-12"
                   outlined
                   dense
-                  :rules="[required]"
+                  readonly
                   style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.raisonSocialeSiege = val.toUpperCase())"
-                >
-                  <template v-slot:label>
-                    {{ $t('input.raisonSocialeSiege') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-input>
+                  @update:model-value="(val) => (form.RAISON_SOCIALE_SIEGE = val.toUpperCase())"
+                />
+                <q-input
+                  v-model="form.NOM_COMMERCIAL_SIEGE"
+                  v-if="form.isSuccursale"
+                  :label="$t('input.nomCommercialSiege')"
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  outlined
+                  dense
+                  readonly
+                  style="text-transform: uppercase"
+                  @update:model-value="(val) => (form.NOM_COMMERCIAL_SIEGE = val.toUpperCase())"
+                />
               </div>
 
               <q-stepper-navigation>
@@ -414,7 +431,7 @@
               </q-stepper-navigation>
             </q-step>
 
-            <!-- Etape 2 : Coordonnées de l'entreprise -->
+            <!-- Etape 2 : Données administratives et fiscales -->
             <q-step
               :name="2"
               :title="$t('immep.step2')"
@@ -424,199 +441,7 @@
             >
               <div class="q-gutter-md justify-center row">
                 <q-select
-                  v-model="form.arrondissement"
-                  :options="arrondissements"
-                  option-label="NOM_ARROND"
-                  :label="$t('input.arrondissement')"
-                  outlined
-                  dense
-                  use-input
-                  input-debounce="0"
-                  emit-value
-                  map-options
-                  @filter="filterArrondissement"
-                  :rules="[required]"
-                  class="col-md-3 col-xs-12 col-sm-12"
-                >
-                  <template v-slot:label>
-                    {{ $t('input.arrondissement') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-select>
-                <q-input
-                  v-model="form.adresse"
-                  :label="$t('input.adresse')"
-                  outlined
-                  dense
-                  class="col-md-7 col-xs-12 col-sm-12"
-                  :rules="[required]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.adresse = val.toUpperCase())"
-                >
-                  <template v-slot:label>
-                    {{ $t('input.adresse') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.quartier"
-                  :label="$t('input.quartier')"
-                  outlined
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12"
-                  :rules="[required]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.quartier = val.toUpperCase())"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="map" />
-                  </template>
-                  <template v-slot:label>
-                    {{ $t('input.quartier') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.lieuDit"
-                  :label="$t('input.lieuDit')"
-                  outlined
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.lieuDit = val.toUpperCase())"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="place" />
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.boitePostale"
-                  :label="$t('input.boitePostale')"
-                  outlined
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.boitePostale = val.toUpperCase())"
-                />
-                <q-input
-                  v-model="form.numLogement"
-                  :label="$t('input.numLogement')"
-                  outlined
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.numLogement = val.toUpperCase())"
-                />
-                <q-input
-                  v-model="form.email"
-                  :label="$t('input.email')"
-                  outlined
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12"
-                  type="email"
-                  :rules="[
-                    required,
-                    (val) => regexPatterns.email.test(val) || '(ex: adresse@email.com)',
-                  ]"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="email" />
-                  </template>
-                  <template v-slot:label>
-                    {{ $t('input.email') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.telephone"
-                  :label="$t('input.telephone')"
-                  outlined
-                  prefix="+237"
-                  type="tel"
-                  mask="### ### ###"
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12"
-                  :rules="[required]"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="phone" />
-                  </template>
-                  <template v-slot:label>
-                    {{ $t('input.telephone') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-input>
-                <q-file
-                  v-model="formFile.planLocalisation"
-                  filled
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12"
-                  label=""
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  :max-total-size="maxSize"
-                  @rejected="onRejected"
-                  :rules="[(val) => (val && val != '') || $t('input.requis')]"
-                  counter
-                  max-files="1"
-                  :hint="$t('input.max_size_hint')"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="attach_file" />
-                  </template>
-                  <template v-slot:label>
-                    {{ $t('input.planLocalisation') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                    >
-                      {{ $t('input.requis') }}
-                    </span>
-                  </template>
-                </q-file>
-              </div>
-              <q-stepper-navigation>
-                <q-btn @click="goToNextStep(3)" color="primary" :label="$t('form.next')" />
-                <q-btn
-                  flat
-                  @click="step = 1"
-                  color="primary"
-                  :label="$t('form.previous')"
-                  class="q-ml-sm"
-                />
-              </q-stepper-navigation>
-            </q-step>
-
-            <!-- Etape 3 : Données administratives et fiscales -->
-            <q-step
-              :name="3"
-              :title="$t('immep.step3')"
-              icon="location_on"
-              :done="step > 3"
-              :disable="!isStepAllowed(3)"
-            >
-              <div class="q-gutter-md justify-center row">
-                <q-select
-                  v-model="form.formeJuridique"
+                  v-model="form.NATURE_JURC"
                   :options="formeJuridique"
                   option-label="LIBELLE_NATUREJUR"
                   :label="$t('input.formeJuridique')"
@@ -640,7 +465,7 @@
                   </template>
                 </q-select>
                 <q-input
-                  v-model="form.nombreTravailleurs"
+                  v-model="form.NBRE_EMPL"
                   :label="$t('input.nombreTravailleurs')"
                   outlined
                   type="number"
@@ -659,7 +484,7 @@
                   </template>
                 </q-input>
                 <q-select
-                  v-model="form.activiteEconomique"
+                  v-model="form.CODE_SECT_ACTIVITEC"
                   :options="activites"
                   v-model-options="{ trackBy: 'LIBELLE_SECT_ACTIVITE' }"
                   option-label="LIBELLE_SECT_ACTIVITE"
@@ -684,7 +509,7 @@
                   </template>
                 </q-select>
                 <q-input
-                  v-model="form.activiteEconomique.REGIME_CNPS"
+                  v-model="form.CODE_SECT_ACTIVITEC.REGIME_CNPS"
                   :label="$t('input.regimeCNPS')"
                   outlined
                   readonly
@@ -693,7 +518,7 @@
                   :rules="[required]"
                 />
                 <q-input
-                  v-model="form.activiteEconomique.DESCRIPTION"
+                  v-model="form.CODE_SECT_ACTIVITEC.DESCRIPTION"
                   :label="$t('input.groupeRisque')"
                   outlined
                   readonly
@@ -702,7 +527,7 @@
                   :rules="[required]"
                 />
                 <q-select
-                  v-model="form.centreImpots"
+                  v-model="form.CODE_CENTREIMPOTC"
                   :options="impots"
                   option-label="ABREVIATION"
                   :label="$t('input.centreImpots')"
@@ -713,9 +538,6 @@
                   emit-value
                   map-options
                   @filter="filterImpots"
-                  @update:model-value="
-                    (val) => (form.centreCNPS = findCentreCNPSByCentreImpots(val))
-                  "
                   :rules="[required]"
                   class="col-md-5 col-xs-12 col-sm-12"
                 >
@@ -726,10 +548,13 @@
                       style="font-size: 10px"
                       >{{ $t('input.requis') }}</span
                     >
+                    <!-- @update:model-value="
+                    (val) => (form.CODE_CENTRECNPSC = findCentreCNPSByCentreImpots(val))
+                  " -->
                   </template>
                 </q-select>
                 <q-select
-                  v-model="form.centreCNPS"
+                  v-model="form.CODE_CENTRECNPSC"
                   :options="centres"
                   option-label="LIB_CENTRE"
                   :label="$t('input.centreCNPS')"
@@ -753,7 +578,7 @@
                   </template>
                 </q-select>
                 <q-file
-                  v-model="formFile.listeTravailleurs"
+                  v-model="formFile.IDLISTTRAV"
                   filled
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
@@ -779,8 +604,176 @@
                     </span>
                   </template>
                 </q-file>
+              </div>
+              <q-stepper-navigation>
+                <q-btn @click="goToNextStep(3)" color="primary" :label="$t('form.next')" />
+                <q-btn
+                  flat
+                  @click="step = 1"
+                  color="primary"
+                  :label="$t('form.previous')"
+                  class="q-ml-sm"
+                />
+              </q-stepper-navigation>
+            </q-step>
+
+            <!-- Etape 3 : Coordonnées de l'entreprise -->
+            <q-step
+              :name="3"
+              :title="$t('immep.step3')"
+              icon="location_on"
+              :done="step > 3"
+              :disable="!isStepAllowed(3)"
+            >
+              <div class="q-gutter-md justify-center row">
+                <q-select
+                  v-model="form.CODE_ARRONDC"
+                  :options="arrondissements"
+                  option-label="NOM_ARROND"
+                  :label="$t('input.arrondissement')"
+                  outlined
+                  dense
+                  use-input
+                  input-debounce="0"
+                  emit-value
+                  map-options
+                  @filter="filterArrondissement"
+                  :rules="[required]"
+                  class="col-md-3 col-xs-12 col-sm-12"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.arrondissement') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-select>
+                <q-input
+                  v-model="form.ADRESSE_EMPL"
+                  :label="$t('input.adresse')"
+                  outlined
+                  dense
+                  class="col-md-7 col-xs-12 col-sm-12"
+                  :rules="[required]"
+                  style="text-transform: uppercase"
+                  @update:model-value="(val) => (form.ADRESSE_EMPL = val.toUpperCase())"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.adresse') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+                <q-input
+                  v-model="form.NOM_QUARTIER"
+                  :label="$t('input.quartier')"
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  :rules="[required]"
+                  style="text-transform: uppercase"
+                  @update:model-value="(val) => (form.NOM_QUARTIER = val.toUpperCase())"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="map" />
+                  </template>
+                  <template v-slot:label>
+                    {{ $t('input.quartier') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+                <q-input
+                  v-model="form.LIEUDIT_EMPL"
+                  :label="$t('input.lieuDit')"
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
+                  style="text-transform: uppercase"
+                  @update:model-value="(val) => (form.LIEUDIT_EMPL = val.toUpperCase())"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="place" />
+                  </template>
+                </q-input>
+                <q-input
+                  v-model="form.BOITE_POSTALE"
+                  :label="$t('input.boitePostale')"
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
+                  style="text-transform: uppercase"
+                  @update:model-value="(val) => (form.BOITE_POSTALE = val.toUpperCase())"
+                />
+                <q-input
+                  v-model="form.num_case"
+                  :label="$t('input.numLogement')"
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
+                  style="text-transform: uppercase"
+                  @update:model-value="(val) => (form.num_case = val.toUpperCase())"
+                />
+                <q-input
+                  v-model="form.EMAIL"
+                  :label="$t('input.email')"
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  type="email"
+                  :rules="[
+                    required,
+                    (val) => regexPatterns.email.test(val) || '(ex: adresse@email.com)',
+                  ]"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="email" />
+                  </template>
+                  <template v-slot:label>
+                    {{ $t('input.email') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+                <q-input
+                  v-model="form.TEL"
+                  :label="$t('input.telephone')"
+                  outlined
+                  prefix="+237"
+                  type="tel"
+                  maxlength="9"
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  :rules="[
+                    required,
+                    (val) => regexPatterns.telephone.test(val) || $t('input.invalidPhone'),
+                  ]"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="phone" />
+                  </template>
+                  <template v-slot:label>
+                    {{ $t('input.telephone') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
                 <q-file
-                  v-model="formFile.attestationImmatriculation"
+                  v-model="formFile.IDPLANLOCAL"
                   filled
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
@@ -797,7 +790,7 @@
                     <q-icon name="attach_file" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.attestationImmatriculation') }}
+                    {{ $t('input.planLocalisation') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
@@ -829,14 +822,14 @@
             >
               <div class="q-gutter-md justify-center row">
                 <q-input
-                  v-model="form.nomResponsable"
+                  v-model="form.NOM_PERSEMPL"
                   :label="$t('input.nomResponsable')"
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
                   :rules="[required]"
                   style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.nomResponsable = val.toUpperCase())"
+                  @update:model-value="(val) => (form.NOM_PERSEMPL = val.toUpperCase())"
                 >
                   <template v-slot:label>
                     {{ $t('input.nomResponsable') }}
@@ -848,16 +841,16 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.prenomResponsable"
+                  v-model="form.PRENOM_PERSEMPL"
                   :label="$t('input.prenomResponsable')"
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
                   style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.prenomResponsable = val.toUpperCase())"
+                  @update:model-value="(val) => (form.PRENOM_PERSEMPL = val.toUpperCase())"
                 />
                 <q-input
-                  v-model="form.dateNaissanceResponsable"
+                  v-model="form.DATE_NAISS_PERSEMPL"
                   :label="$t('input.dateNaissanceResponsable')"
                   outlined
                   dense
@@ -870,7 +863,7 @@
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
-                          v-model="form.dateNaissanceResponsable"
+                          v-model="form.DATE_NAISS_PERSEMPL"
                           :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           :locale="locale"
                           :options="optionsDn"
@@ -889,14 +882,14 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.lieuNaissanceResponsable"
+                  v-model="form.LOCALITE_NAISS_PERSEMPL"
                   :label="$t('input.lieuNaissanceResponsable')"
                   outlined
                   dense
                   class="col-md-7 col-xs-12 col-sm-12"
                   :rules="[required]"
                   style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.lieuNaissanceResponsable = val.toUpperCase())"
+                  @update:model-value="(val) => (form.LOCALITE_NAISS_PERSEMPL = val.toUpperCase())"
                 >
                   <template v-slot:prepend>
                     <q-icon name="place" />
@@ -911,7 +904,7 @@
                   </template>
                 </q-input>
                 <q-select
-                  v-model="form.arrondissementNaissanceResponsable"
+                  v-model="form.LieuNaissPe"
                   :options="arrondissements"
                   option-label="NOM_ARROND"
                   :label="$t('input.arrondissementNaissanceResponsable')"
@@ -935,7 +928,7 @@
                   </template>
                 </q-select>
                 <q-select
-                  v-model="form.sexeResponsable"
+                  v-model="form.SEXE_PERSEMPL"
                   :options="['FEMININ', 'MASCULIN']"
                   :label="$t('input.sexeResponsable')"
                   outlined
@@ -955,7 +948,7 @@
                   </template>
                 </q-select>
                 <q-select
-                  v-model="form.nationaliteResponsable"
+                  v-model="form.NATIONALITEC"
                   :options="pays"
                   option-label="nationalite"
                   :label="$t('input.nationaliteResponsable')"
@@ -980,14 +973,14 @@
                 </q-select>
 
                 <q-input
-                  v-model="form.adresseResponsable"
+                  v-model="form.ADR_PERSEMPL"
                   :label="$t('input.adresseResponsable')"
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
                   :rules="[required]"
                   style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.adresseResponsable = val.toUpperCase())"
+                  @update:model-value="(val) => (form.ADR_PERSEMPL = val.toUpperCase())"
                 >
                   <template v-slot:label>
                     {{ $t('input.adresseResponsable') }}
@@ -999,24 +992,27 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.boitePostaleResponsable"
+                  v-model="form.BP_PERSEMPL"
                   :label="$t('input.boitePostaleResponsable')"
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12 q-mb-sm"
                   style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.boitePostaleResponsable = val.toUpperCase())"
+                  @update:model-value="(val) => (form.BP_PERSEMPL = val.toUpperCase())"
                 />
                 <q-input
-                  v-model="form.telephoneResponsable"
+                  v-model="form.TEL_PERSEMPL"
                   :label="$t('input.telephoneResponsable')"
                   outlined
                   type="tel"
-                  mask="### ### ###"
+                  maxlength="9"
                   prefix="+237"
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
-                  :rules="[required]"
+                  :rules="[
+                    required,
+                    (val) => regexPatterns.telephone.test(val) || $t('input.invalidPhone'),
+                  ]"
                 >
                   <template v-slot:prepend>
                     <q-icon name="phone" />
@@ -1031,7 +1027,7 @@
                   </template>
                 </q-input>
                 <q-input
-                  v-model="form.emailResponsable"
+                  v-model="form.EMAIL_PERSEMPL"
                   :label="$t('input.emailResponsable')"
                   outlined
                   dense
@@ -1055,7 +1051,7 @@
                   </template>
                 </q-input>
                 <q-select
-                  v-model="form.pieceIdentiteResponsable"
+                  v-model="form.typepiece"
                   :options="pieces"
                   option-label="LIBELLE"
                   :label="$t('input.pieceIdentiteResponsable')"
@@ -1069,18 +1065,16 @@
                   class="col-md-5 col-xs-12 col-sm-12"
                 />
                 <q-input
-                  v-model="form.numPieceIdentiteResponsable"
+                  v-model="form.NUM_PIECE"
                   :label="$t('input.numPieceIdentiteResponsable')"
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
                   style="text-transform: uppercase"
-                  @update:model-value="
-                    (val) => (form.numPieceIdentiteResponsable = val.toUpperCase())
-                  "
+                  @update:model-value="(val) => (form.NUM_PIECE = val.toUpperCase())"
                 />
                 <q-input
-                  v-model="form.dateDelivrancePieceIdentiteResponsable"
+                  v-model="form.DATE_PIECE"
                   :label="$t('input.dateDelivrancePieceIdentiteResponsable')"
                   outlined
                   dense
@@ -1092,7 +1086,7 @@
                     <q-icon name="event" class="cursor-pointer" color="primary">
                       <q-popup-proxy transition-show="scale" transition-hide="scale">
                         <q-date
-                          v-model="form.dateDelivrancePieceIdentiteResponsable"
+                          v-model="form.DATE_PIECE"
                           :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                           :locale="locale"
                           :options="optionsDn"
@@ -1103,7 +1097,7 @@
                   </template>
                 </q-input>
                 <q-select
-                  v-model="form.lieuDelivrancePieceIdentiteResponsable"
+                  v-model="form.LIEU_PIECEC"
                   :options="arrondissements"
                   option-label="NOM_ARROND"
                   :label="$t('input.lieuDelivrancePieceIdentitePromoteur')"
@@ -1120,6 +1114,33 @@
                     <q-icon name="place" />
                   </template>
                 </q-select>
+                <q-file
+                  v-model="formFile.fichierIdentiteResponsable"
+                  filled
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  label=""
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  :max-total-size="maxSize"
+                  @rejected="onRejected"
+                  :rules="[(val) => (val && val != '') || $t('input.requis')]"
+                  counter
+                  max-files="1"
+                  :hint="$t('input.max_size_hint')"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="attach_file" />
+                  </template>
+                  <template v-slot:label>
+                    {{ $t('input.fichierIdentiteResponsable') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                    >
+                      {{ $t('input.requis') }}
+                    </span>
+                  </template>
+                </q-file>
               </div>
 
               <q-stepper-navigation>
@@ -1144,7 +1165,7 @@
             >
               <div class="q-gutter-md justify-center row">
                 <q-file
-                  v-model="formFile.contratBail"
+                  v-model="formFile.IDCONTRATBAIL"
                   filled
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
@@ -1161,7 +1182,34 @@
                   </template>
                 </q-file>
                 <q-file
-                  v-model="formFile.patente"
+                  v-model="formFile.acf"
+                  filled
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  :label="$t('input.acf')"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  :max-total-size="maxSize"
+                  @rejected="onRejected"
+                  :rules="[(val) => (val && val != '') || $t('input.requis')]"
+                  counter
+                  max-files="1"
+                  :hint="$t('input.max_size_hint')"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="attach_file" />
+                  </template>
+                  <template v-slot:label>
+                    {{ $t('input.acf') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                    >
+                      {{ $t('input.requis') }}
+                    </span>
+                  </template>
+                </q-file>
+                <q-file
+                  v-model="formFile.IDPATENTE"
                   filled
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
@@ -1188,7 +1236,7 @@
                   </template>
                 </q-file>
                 <q-file
-                  v-model="formFile.impotLiberatoire"
+                  v-model="formFile.IDIMPOT"
                   filled
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
@@ -1238,240 +1286,240 @@
             >
               <div class="q-pa-md" ref="recapContent">
                 <q-card flat bordered class="q-pa-md" style="text-transform: uppercase">
-                  <q-card-section>
-                    <div class="text-h6">{{ $t('immep.step1') }}</div>
+                  <q-card-section class="q-gutter-md justify-center row">
+                    <div class="text-h6 col-12">{{ $t('immep.step1') }}</div>
                     <q-separator class="q-my-sm" />
 
-                    <div>
-                      <strong>{{ $t('input.raisonSociale') }} : </strong> {{ form.raisonSociale }}
+                    <div class="col-md-5 col-xs-12 col-sm-12">
+                      <strong>{{ $t('input.raisonSociale') }} : </strong> {{ form.RAISON_SOCIALE }}
                     </div>
-                    <div>
-                      <strong>{{ $t('input.nomCommercial') }} : </strong> {{ form.nomCommercial }}
+                    <div class="col-md-5 col-xs-12 col-sm-12">
+                      <strong>{{ $t('input.nomCommercial') }} : </strong> {{ form.NOM_COMMERCIAL }}
                     </div>
-                    <div>
-                      <strong>{{ $t('input.sigle') }} : </strong> {{ form.sigle }}
+                    <div class="col-md-5 col-xs-12 col-sm-12">
+                      <strong>{{ $t('input.sigle') }} : </strong> {{ form.Sigle }}
                     </div>
-                    <div>
-                      <strong>{{ $t('input.autreContact') }} : </strong> {{ form.autreContact }}
+                    <div class="col-md-5 col-xs-12 col-sm-12">
+                      <strong>{{ $t('input.autreContact') }} : </strong> {{ form.AUTRE_CONTACT }}
                     </div>
-                    <div>
-                      <strong>{{ $t('input.dateOuverture') }} : </strong> {{ form.dateOuverture }}
+                    <div class="col-md-5 col-xs-12 col-sm-12">
+                      <strong>{{ $t('input.dateOuverture') }} : </strong>
+                      {{ form.DATE_DEB_SERVICE }}
                     </div>
-                    <div>
-                      <strong>{{ $t('input.dateCreation') }} : </strong> {{ form.dateCreation }}
+                    <div class="col-md-5 col-xs-12 col-sm-12">
+                      <strong>{{ $t('input.dateCreation') }} : </strong>
+                      {{ form.date_creation_empl }}
                     </div>
-                    <div>
-                      <strong>{{ $t('input.dateEmbauche') }} : </strong> {{ form.dateEmbauche }}
+                    <div class="col-md-5 col-xs-12 col-sm-12">
+                      <strong>{{ $t('input.dateEmbauche') }} : </strong> {{ form.DATE_EFFET }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.numRegistreCommerce') }} : </strong>
-                      {{ form.numRegistreCommerce }}
+                      {{ form.num_registre }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.numContribuable') }} : </strong>
-                      {{ form.numContribuable }}
+                      {{ form.num_contr }}
                     </div>
 
-                    <div>
-                      <strong>{{ $t('input.registreCommerce') }} : </strong>
-                      {{ formFile.registreCommerce?.name || $t('input.nonRenseigne') }}
-                    </div>
-                    <div>
-                      <strong>{{ $t('input.autorisationOuverture') }} : </strong>
-                      {{ formFile.autorisationOuverture?.name || $t('input.nonRenseigne') }}
-                    </div>
-                    <div>
-                      <strong>{{ $t('input.carteContribuable') }} : </strong>
-                      {{ formFile.carteContribuable?.name || $t('input.nonRenseigne') }}
-                    </div>
-                    <div>
-                      <strong>{{ $t('input.statuts') }} : </strong>
-                      {{ formFile.statuts?.name || $t('input.nonRenseigne') }}
-                    </div>
-
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.isSuccursale') }} : </strong>
-                      {{ form.isSuccursale ? $t('form.oui') : $t('form.non') }}
+                      {{ form.isSuccursale ? $t('input.yes') : $t('input.no') }}
                     </div>
 
                     <template v-if="form.isSuccursale">
-                      <div>
+                      <div class="col-md-5 col-xs-12 col-sm-12">
                         <strong>{{ $t('input.matriculeSiege') }} : </strong>
-                        {{ form.matriculeSiege }}
+                        {{ form.NUM_EMPL_SIEGE }}
                       </div>
-                      <div>
+                      <div class="col-md-5 col-xs-12 col-sm-12">
                         <strong>{{ $t('input.nomCommercialSiege') }} : </strong>
-                        {{ form.nomCommercialSiege }}
+                        {{ form.NOM_COMMERCIAL_SIEGE }}
                       </div>
-                      <div>
+                      <div class="col-md-5 col-xs-12 col-sm-12">
                         <strong>{{ $t('input.raisonSocialeSiege') }} : </strong>
-                        {{ form.raisonSocialeSiege }}
+                        {{ form.RAISON_SOCIALE_SIEGE }}
+                      </div>
+
+                      <div class="col-md-5 col-xs-12 col-sm-12">
+                        <strong>{{ $t('input.registreCommerce') }} : </strong>
+                        {{ formFile.IDREGICOMM?.name || $t('input.nonRenseigne') }}
+                      </div>
+                      <div class="col-md-5 col-xs-12 col-sm-12">
+                        <strong>{{ $t('input.autorisationOuverture') }} : </strong>
+                        {{ formFile.IDAUTORISATION?.name || $t('input.nonRenseigne') }}
+                      </div>
+                      <div class="col-md-5 col-xs-12 col-sm-12">
+                        <strong>{{ $t('input.carteContribuable') }} : </strong>
+                        {{ formFile.IDCONTRIBUABLE?.name || $t('input.nonRenseigne') }}
+                      </div>
+                      <div class="col-md-5 col-xs-12 col-sm-12">
+                        <strong>{{ $t('input.statuts') }} : </strong>
+                        {{ formFile.IDSTATUTS?.name || $t('input.nonRenseigne') }}
                       </div>
                     </template>
                   </q-card-section>
 
-                  <q-card-section>
-                    <div class="text-h6">{{ $t('immep.step2') }}</div>
+                  <q-card-section class="q-gutter-md justify-center row">
+                    <div class="text-h6 col-12">{{ $t('immep.step2') }}</div>
                     <q-separator class="q-my-sm" />
 
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.arrondissement') }} : </strong>
-                      {{ getArrondissementName(form.arrondissement?.NOM_ARROND) }}
+                      {{ getArrondissementName(form.CODE_ARRONDC?.NOM_ARROND) }}
                     </div>
-                    <div>
-                      <strong>{{ $t('input.adresse') }} : </strong> {{ form.adresse }}
+                    <div class="col-md-5 col-xs-12 col-sm-12">
+                      <strong>{{ $t('input.adresse') }} : </strong> {{ form.ADRESSE_EMPL }}
                     </div>
-                    <div>
-                      <strong>{{ $t('input.quartier') }} : </strong> {{ form.quartier }}
+                    <div class="col-md-5 col-xs-12 col-sm-12">
+                      <strong>{{ $t('input.quartier') }} : </strong> {{ form.NOM_QUARTIER }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.lieuDit') }} : </strong>
-                      {{ form.lieuDit || $t('input.nonRenseigne') }}
+                      {{ form.LIEUDIT_EMPL || $t('input.nonRenseigne') }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.boitePostale') }} : </strong>
-                      {{ form.boitePostale || $t('input.nonRenseigne') }}
+                      {{ form.BOITE_POSTALE || $t('input.nonRenseigne') }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.numLogement') }} : </strong>
-                      {{ form.numLogement || $t('input.nonRenseigne') }}
+                      {{ form.num_case || $t('input.nonRenseigne') }}
                     </div>
-                    <div>
-                      <strong>{{ $t('input.email') }} : </strong> {{ form.email }}
+                    <div class="col-md-5 col-xs-12 col-sm-12">
+                      <strong>{{ $t('input.email') }} : </strong> {{ form.EMAIL }}
                     </div>
-                    <div>
-                      <strong>{{ $t('input.telephone') }} : </strong> +237 {{ form.telephone }}
+                    <div class="col-md-5 col-xs-12 col-sm-12">
+                      <strong>{{ $t('input.telephone') }} : </strong> +237 {{ form.TEL }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.planLocalisation') }} : </strong>
-                      {{ formFile.planLocalisation?.name || $t('input.nonRenseigne') }}
+                      {{ formFile.IDPLANLOCAL?.name || $t('input.nonRenseigne') }}
                     </div>
                   </q-card-section>
 
-                  <q-card-section>
-                    <div class="text-h6">{{ $t('immep.step3') }}</div>
+                  <q-card-section class="q-gutter-md justify-center row">
+                    <div class="text-h6 col-12">{{ $t('immep.step3') }}</div>
                     <q-separator class="q-my-sm" />
 
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.formeJuridique') }} : </strong>
-                      {{ form.formeJuridique?.LIBELLE_NATUREJUR }}
+                      {{ form.NATURE_JURC?.LIBELLE_NATUREJUR }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.nombreTravailleurs') }} : </strong>
-                      {{ form.nombreTravailleurs }}
+                      {{ form.NBRE_EMPL }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.activiteEconomique') }} : </strong>
-                      {{ form.activiteEconomique?.LIBELLE_SECT_ACTIVITE }}
+                      {{ form.CODE_SECT_ACTIVITEC?.LIBELLE_SECT_ACTIVITE }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.regimeCNPS') }} : </strong>
-                      {{ form.activiteEconomique?.REGIME_CNPS }}
+                      {{ form.CODE_SECT_ACTIVITEC?.REGIME_CNPS }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.groupeRisque') }} : </strong>
-                      {{ form.activiteEconomique?.DESCRIPTION }}
+                      {{ form.CODE_SECT_ACTIVITEC?.DESCRIPTION }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.centreImpots') }} : </strong>
-                      {{ form.centreImpots?.ABREVIATION }}
+                      {{ form.CODE_CENTREIMPOTC?.ABREVIATION }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.centreCNPS') }} : </strong>
-                      {{ form.centreCNPS?.LIB_CENTRE }}
+                      {{ form.CODE_CENTRECNPSC?.LIB_CENTRE }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.listeTravailleurs') }} : </strong>
-                      {{ formFile.listeTravailleurs?.name || $t('input.nonRenseigne') }}
+                      {{ formFile.IDLISTTRAV?.name || $t('input.nonRenseigne') }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.attestationImmatriculation') }} : </strong>
                       {{ formFile.attestationImmatriculation?.name || $t('input.nonRenseigne') }}
                     </div>
                   </q-card-section>
 
-                  <q-card-section>
-                    <div class="text-h6">{{ $t('immep.step4') }}</div>
+                  <q-card-section class="q-gutter-md justify-center row">
+                    <div class="text-h6 col-12">{{ $t('immep.step4') }}</div>
                     <q-separator class="q-my-sm" />
 
-                    <div>
-                      <strong>{{ $t('input.nomResponsable') }} : </strong> {{ form.nomResponsable }}
+                    <div class="col-md-5 col-xs-12 col-sm-12">
+                      <strong>{{ $t('input.nomResponsable') }} : </strong> {{ form.NOM_PERSEMPL }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.prenomResponsable') }} : </strong>
-                      {{ form.prenomResponsable || $t('input.nonRenseigne') }}
+                      {{ form.PRENOM_PERSEMPL || $t('input.nonRenseigne') }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.dateNaissanceResponsable') }} : </strong>
-                      {{ form.dateNaissanceResponsable }}
+                      {{ form.DATE_NAISS_PERSEMPL }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.lieuNaissanceResponsable') }} : </strong>
-                      {{ form.lieuNaissanceResponsable }}
+                      {{ form.LOCALITE_NAISS_PERSEMPL }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.arrondissementNaissanceResponsable') }} : </strong>
-                      {{
-                        getArrondissementName(form.arrondissementNaissanceResponsable.NOM_ARROND)
-                      }}
+                      {{ getArrondissementName(form.LieuNaissPe?.NOM_ARROND) }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.sexeResponsable') }} : </strong>
-                      {{ form.sexeResponsable }}
+                      {{ form.SEXE_PERSEMPL }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.nationaliteResponsable') }} : </strong>
-                      {{ getNationaliteName(form.nationaliteResponsable.nationalite) }}
+                      {{ getNationaliteName(form.NATIONALITEC?.nationalite) }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.adresseResponsable') }} : </strong>
-                      {{ form.adresseResponsable }}
+                      {{ form.ADR_PERSEMPL }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.boitePostaleResponsable') }} : </strong>
-                      {{ form.boitePostaleResponsable || $t('input.nonRenseigne') }}
+                      {{ form.BP_PERSEMPL || $t('input.nonRenseigne') }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.telephoneResponsable') }} : </strong> +237
-                      {{ form.telephoneResponsable }}
+                      {{ form.TEL_PERSEMPL }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.emailResponsable') }} : </strong>
-                      {{ form.emailResponsable }}
+                      {{ form.EMAIL_PERSEMPL }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.pieceIdentiteResponsable') }} : </strong>
-                      {{ form.pieceIdentiteResponsable.LIBELLE }}
+                      {{ form.typepiece?.LIBELLE }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.numPieceIdentiteResponsable') }} : </strong>
-                      {{ form.numPieceIdentiteResponsable }}
+                      {{ form.NUM_PIECE }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.dateDelivrancePieceIdentiteResponsable') }} : </strong>
-                      {{ form.dateDelivrancePieceIdentiteResponsable }}
+                      {{ form.DATE_PIECE }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.lieuDelivrancePieceIdentitePromoteur') }} : </strong>
-                      {{ form.lieuDelivrancePieceIdentiteResponsable.NOM_ARROND }}
+                      {{ form.LIEU_PIECEC?.NOM_ARROND }}
                     </div>
                   </q-card-section>
 
-                  <q-card-section>
-                    <div class="text-h6">{{ $t('immep.step5') }}</div>
+                  <q-card-section class="q-gutter-md justify-center row">
+                    <div class="text-h6 col-12">{{ $t('immep.step5') }}</div>
                     <q-separator class="q-my-sm" />
 
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.contratbail') }} : </strong>
-                      {{ formFile.contratBail?.name || $t('input.nonRenseigne') }}
+                      {{ formFile.IDCONTRATBAIL?.name || $t('input.nonRenseigne') }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.patente') }} : </strong>
-                      {{ formFile.patente?.name || $t('input.nonRenseigne') }}
+                      {{ formFile.IDPATENTE?.name || $t('input.nonRenseigne') }}
                     </div>
-                    <div>
+                    <div class="col-md-5 col-xs-12 col-sm-12">
                       <strong>{{ $t('input.impotLiberatoire') }} : </strong>
-                      {{ formFile.impotLiberatoire?.name || $t('input.nonRenseigne') }}
+                      {{ formFile.IDIMPOT?.name || $t('input.nonRenseigne') }}
                     </div>
                   </q-card-section>
                 </q-card>
@@ -1520,6 +1568,45 @@
         </q-card>
       </q-dialog>
 
+      <q-dialog v-model="dialValidation" persistent>
+        <q-card>
+          <q-card-section class="row items-center justify-between">
+            <div class="text-h6">{{ $t('input.valid') }}</div>
+            <q-btn icon="close" flat round dense @click="dialValidation = false" />
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-section class="q-pa-none">
+            <div class="q-pa-md q-gutter-sm">
+              <div class="q-gutter-sm text-bold" style="text-transform: uppercase">
+                {{ $t('input.validtion') }} <br />
+                <q-radio
+                  dense
+                  v-model="form.validation"
+                  color="red"
+                  :val="false"
+                  :label="$t('input.no')"
+                />
+                <q-radio
+                  dense
+                  v-model="form.validation"
+                  color="primary"
+                  :val="true"
+                  :label="$t('input.yes')"
+                />
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-separator />
+
+          <q-card-actions align="right">
+            <q-btn color="primary" icon="send" :label="$t('input.confirm')" @click="submitForm" />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
       <q-card-actions align="right">
         <q-btn flat :label="$t('form.cancel')" v-close-popup color="red" @click="closeDialog" />
       </q-card-actions>
@@ -1560,6 +1647,7 @@ const formRef = ref(null)
 const displayDate = ref('')
 const spinner = ref(false)
 const pdfDialog = ref(false)
+const dialValidation = ref(false)
 const pdfBlobUrl = ref(null)
 const recapContent = ref()
 
@@ -1572,51 +1660,56 @@ const pays = ref([...rawPays])
 const pieces = ref([...rawPieces])
 
 const form = ref({
-  raisonSociale: '',
-  nomCommercial: '',
-  sigle: '',
-  adresse: '',
-  quartier: '',
-  email: '',
-  telephone: '',
-  nomResponsable: '',
-  prenomResponsable: '',
-  centreImpots: '',
-  centreCNPS: '',
-  origineImmatriculation: '',
-  origineDossier: '',
-  formeJuridique: '',
-  nombreTravailleurs: '',
-  activiteEconomique: '',
-  regimeCNPS: '',
-  groupeRisque: '',
-  arrondissement: '',
-  lieuDit: '',
-  boitePostale: '',
-  numLogement: '',
-  autreContact: '',
-  dateOuverture: '',
-  dateCreation: '',
-  dateEmbauche: '',
-  numRegistreCommerce: '',
-  numIdentifiantUnique: '',
+  RAISON_SOCIALE: '',
+  NOM_COMMERCIAL: '',
+  Sigle: '',
+  ADRESSE_EMPL: '',
+  NOM_QUARTIER: '',
+  EMAIL: '',
+  TEL: '',
+  NOM_PERSEMPL: '',
+  PRENOM_PERSEMPL: '',
+  CODE_CENTREIMPOTC: '',
+  CODE_CENTRECNPSC: '',
+  CAUSE_IMMA: '',
+  CIRCUIT_DOSSIER: '',
+  NATURE_JURC: '',
+  NBRE_EMPL: '',
+  CODE_SECT_ACTIVITEC: '',
+  CODE_REGIME: '',
+  CODE_GPE_RISQUE: '',
+  CODE_ARRONDC: '',
+  LIEUDIT_EMPL: '',
+  BOITE_POSTALE: '',
+  num_case: '',
+  AUTRE_CONTACT: '',
+  DATE_DEB_SERVICE: '',
+  date_creation_empl: '',
+  DATE_EFFET: '',
+  num_registre: '',
+  num_contr: '',
   isSuccursale: false,
-  nomCommercialSiege: '',
-  raisonSocialeSiege: '',
-  matriculeSiege: '',
+  NOM_COMMERCIAL_SIEGE: '',
+  RAISON_SOCIALE_SIEGE: '',
+  NUM_EMPL_SIEGE: '',
+  validation: false,
+  LOCALITE_NAISS_PERSEMPL: '',
+  DATE_NAISS_PERSEMPL: '',
+  LieuNaissPe: '',
+  SEXE_PERSEMPL: '',
 })
 
 const formFile = ref({
-  registreCommerce: ref(null),
-  autorisationOuverture: ref(null),
+  IDREGICOMM: ref(null),
+  IDAUTORISATION: ref(null),
   attestationImmatriculation: ref(null),
-  planLocalisation: ref(null),
-  contratBail: ref(null),
-  listeTravailleurs: ref(null),
-  patente: ref(null),
-  impotLiberatoire: ref(null),
-  statuts: ref(null),
-  carteContribuable: ref(null),
+  IDPLANLOCAL: ref(null),
+  IDCONTRATBAIL: ref(null),
+  IDLISTTRAV: ref(null),
+  IDPATENTE: ref(null),
+  IDIMPOT: ref(null),
+  IDSTATUTS: ref(null),
+  IDCONTRIBUABLE: ref(null),
 })
 
 const optionsDn = (date) => {
@@ -1632,7 +1725,7 @@ const optionsDn = (date) => {
 const required = (val) => !!val || 'Ce champ est requis / This field is required'
 
 const goToNextStep = async (nextStep) => {
-  if (!form.value.origineDossier || !form.value.origineImmatriculation) {
+  if (!form.value.CIRCUIT_DOSSIER || !form.value.CAUSE_IMMA) {
     notifyError(
       'Veuillez selectionner les origines du dossier tout en haut du formulaire / Please choose the file origins at the top section of the form.',
     )
@@ -1666,20 +1759,47 @@ const onRejected = (rejectedEntries) => {
 
 const maxSize = 3 * 1024 * 1024
 
-const findCentreCNPSByCentreImpots = (selectedCentreImpots) => {
+/* const findCentreCNPSByCentreImpots = (selectedCentreImpots) => {
   if (!selectedCentreImpots || !selectedCentreImpots.CODE_CENTRECNPS) return null
 
   return (
     rawCentres.find((cnps) => cnps.CODE_CENTRE === selectedCentreImpots.CODE_CENTRECNPS) || null
   )
-}
+} */
+
+/* watch(
+  () => form.value.CODE_CENTREIMPOTC,
+  (newValue) => {
+    form.value.CODE_CENTRECNPSC = findCentreCNPSByCentreImpots(newValue)
+  },
+) */
 
 watch(
-  () => form.value.centreImpots,
+  () => form.value.CODE_SECT_ACTIVITEC,
   (newValue) => {
-    form.value.centreCNPS = findCentreCNPSByCentreImpots(newValue)
+    form.value.CODE_REGIME = newValue.CODE_REGIME_CNPS
+    form.value.CODE_GPE_RISQUE = newValue.CODE_GPE_RISQUE
   },
 )
+
+const rechercherSiege = async () => {
+  const matricule = form.value.NUM_EMPL_SIEGE?.trim().toUpperCase()
+  if (!regexPatterns.numEmpl1.test(matricule) && !regexPatterns.numEmpl2.test(matricule)) {
+    notifyError(
+      'Le matricule saisi est invalide. Format attendu : 321-1234567-A ou 321-1234567-000-M!',
+    )
+    console.warn('Matricule invalide:', matricule)
+    return
+  }
+  spinner.value = true
+  notifyInfo('Recherche du siège!')
+  setTimeout(() => {
+    notifySuccess('Siège trouvé!')
+    ;(form.value.RAISON_SOCIALE_SIEGE = "Raison sociale de l'entreprise mère"),
+      (form.value.NOM_COMMERCIAL_SIEGE = "Sigle de l'entreprise mère")
+    spinner.value = false
+  }, 2000)
+}
 
 const submitForm = async () => {
   const valid = await formRef.value.validate()
@@ -1855,9 +1975,9 @@ const closeDialog = () => {
 /* function updateDateFromDisplay(val) {
   const [day, month, year] = val.split('/')
   if (day && month && year) {
-    form.value.dateCreation = `${year}-${month}-${day}`
+    form.value.date_creation_empl = `${year}-${month}-${day}`
   } else {
-    form.value.dateCreation = null
+    form.value.date_creation_empl = null
   }
 } */
 
@@ -1873,26 +1993,26 @@ function updateDisplayFromDate(val) {
 
 // ✅ Synchroniser displayDate si dateOuverture est défini initialement
 watch(
-  () => form.value.dateOuverture,
-  (val) => updateDisplayFromDate(val, 'dateOuverture'),
+  () => form.value.DATE_DEB_SERVICE,
+  (val) => updateDisplayFromDate(val, 'DATE_DEB_SERVICE'),
   { immediate: true },
 )
 
 watch(
-  () => form.value.dateCreation,
-  (val) => updateDisplayFromDate(val, 'dateCreation'),
+  () => form.value.date_creation_empl,
+  (val) => updateDisplayFromDate(val, 'date_creation_empl'),
   { immediate: true },
 )
 
 watch(
-  () => form.value.dateEmbauche,
-  (val) => updateDisplayFromDate(val, 'dateEmbauche'),
+  () => form.value.DATE_EFFET,
+  (val) => updateDisplayFromDate(val, 'DATE_EFFET'),
   { immediate: true },
 )
 
 watch(
-  () => form.value.dateNaissanceResponsable,
-  (val) => updateDisplayFromDate(val, 'dateNaissanceResponsable'),
+  () => form.value.DATE_NAISS_PERSEMPL,
+  (val) => updateDisplayFromDate(val, 'DATE_NAISS_PERSEMPL'),
   { immediate: true },
 )
 
