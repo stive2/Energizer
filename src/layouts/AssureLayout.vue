@@ -113,7 +113,7 @@
             </q-item-section>
             <q-item-section>
               <q-item-label class="text-weight-medium">
-                {{ $t('Dépot des dossiers prestations') }}
+                {{ $t('Dépot dossiers prestations') }}
               </q-item-label>
             </q-item-section>
           </q-item>
