@@ -6,7 +6,7 @@
           <q-img src="icons/logo.jpg" style="width: 150px" class="q-ml-md logo" />
         </div>
         <q-toolbar-title class="text-bold text-center">
-          <span class="q-mx-md">{{ $t('title') }}</span>
+          <span class="q-mx-md">{{ t('title') }}</span>
         </q-toolbar-title>
         <q-btn
           dense
@@ -43,8 +43,8 @@
     <q-footer reveal elevated>
       <q-toolbar>
         <q-toolbar-title class="text-bold text-center" style="font-size: 15px">
-          Copyright © 2021-{{ new Date().getFullYear() }} {{ $t('footer.rights') }} <br />
-          "{{ $t('footer.message') }}"
+          Copyright © 2021-{{ new Date().getFullYear() }} {{ t('footer.rights') }} <br />
+          "{{ t('footer.message') }}"
         </q-toolbar-title>
       </q-toolbar>
     </q-footer>
@@ -54,8 +54,7 @@
 <script setup>
 import { useI18n } from 'vue-i18n'
 import { computed } from 'vue'
-
-const { locale } = useI18n()
+const { locale, t } = useI18n()
 
 const changeLang = (lang) => {
   locale.value = lang

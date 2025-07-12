@@ -3,7 +3,7 @@
     <q-card :style="$q.screen.gt.sm ? 'width: 900px' : 'width: 100%'">
       <q-card-section>
         <div class="text-h6 text-primary text-center text-bold">
-          {{ $t(service.name) }}
+          {{ t(service.name) }}
         </div>
       </q-card-section>
 
@@ -23,11 +23,11 @@
             class="col-md-5 col-xs-12 col-sm-12"
           >
             <template v-slot:label>
-              {{ $t('input.origineImmatriculation') }}
+              {{ t('input.origineImmatriculation') }}
               <span
                 class="q-px-sm bg-red text-white text-italic rounded-borders"
                 style="font-size: 10px"
-                >{{ $t('input.requis') }}</span
+                >{{ t('input.requis') }}</span
               >
             </template>
           </q-select>
@@ -43,11 +43,11 @@
             class="col-md-5 col-xs-12 col-sm-12"
           >
             <template v-slot:label>
-              {{ $t('input.origineDossier') }}
+              {{ t('input.origineDossier') }}
               <span
                 class="q-px-sm bg-red text-white text-italic rounded-borders"
                 style="font-size: 10px"
-                >{{ $t('input.requis') }}</span
+                >{{ t('input.requis') }}</span
               >
             </template>
           </q-select>
@@ -84,11 +84,11 @@
                   @update:model-value="(val) => (form.RAISON_SOCIALE = val.toUpperCase())"
                 >
                   <template v-slot:label>
-                    {{ $t('input.raisonSociale') }}
+                    {{ t('input.raisonSociale') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -103,11 +103,11 @@
                   @update:model-value="(val) => (form.NOM_COMMERCIAL = val.toUpperCase())"
                 >
                   <template v-slot:label>
-                    {{ $t('input.nomCommercial') }}
+                    {{ t('input.nomCommercial') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -153,11 +153,11 @@
                     </q-icon>
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.dateOuverture') }}
+                    {{ t('input.dateOuverture') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -221,11 +221,11 @@
                   @update:model-value="(val) => (form.num_registre = val.toUpperCase())"
                 >
                   <template v-slot:label>
-                    {{ $t('input.numRegistreCommerce') }}
+                    {{ t('input.numRegistreCommerce') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -246,11 +246,11 @@
                   @update:model-value="(val) => (form.num_contr = val.toUpperCase())"
                 >
                   <template v-slot:label>
-                    {{ $t('input.numContribuable') }}
+                    {{ t('input.numContribuable') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -263,7 +263,7 @@
                   accept=".pdf,.jpg,.jpeg,.png"
                   :max-total-size="maxSize"
                   @rejected="onRejected"
-                  :rules="[(val) => (val && val != '') || $t('input.requis')]"
+                  :rules="[(val) => (val && val != '') || t('input.requis')]"
                   counter
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
@@ -272,12 +272,12 @@
                     <q-icon name="attach_file" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.attestationImmatriculation') }}
+                    {{ t('input.attestationImmatriculation') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
                     >
-                      {{ $t('input.requis') }}
+                      {{ t('input.requis') }}
                     </span>
                   </template>
                 </q-file>
@@ -290,7 +290,7 @@
                   accept=".pdf,.jpg,.jpeg,.png"
                   :max-total-size="maxSize"
                   @rejected="onRejected"
-                  :rules="[(val) => (val && val != '') || $t('input.requis')]"
+                  :rules="[(val) => (val && val != '') || t('input.requis')]"
                   counter
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
@@ -299,12 +299,12 @@
                     <q-icon name="attach_file" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.registreCommerce') }}
+                    {{ t('input.registreCommerce') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
                     >
-                      {{ $t('input.requis') }}
+                      {{ t('input.requis') }}
                     </span>
                   </template>
                 </q-file>
@@ -317,7 +317,7 @@
                   accept=".pdf,.jpg,.jpeg,.png"
                   :max-total-size="maxSize"
                   @rejected="onRejected"
-                  :rules="[(val) => (val && val != '') || $t('input.requis')]"
+                  :rules="[(val) => (val && val != '') || t('input.requis')]"
                   counter
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
@@ -326,12 +326,12 @@
                     <q-icon name="attach_file" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.autorisationOuverture') }}
+                    {{ t('input.autorisationOuverture') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
                     >
-                      {{ $t('input.requis') }}
+                      {{ t('input.requis') }}
                     </span>
                   </template>
                 </q-file>
@@ -394,11 +394,11 @@
                   ]"
                 >
                   <template v-slot:label>
-                    {{ $t('input.matriculeSiege') }}
+                    {{ t('input.matriculeSiege') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -456,11 +456,11 @@
                   class="col-md-7 col-xs-12 col-sm-12"
                 >
                   <template v-slot:label>
-                    {{ $t('input.formeJuridique') }}
+                    {{ t('input.formeJuridique') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-select>
@@ -475,11 +475,11 @@
                   :rules="[required]"
                 >
                   <template v-slot:label>
-                    {{ $t('input.nombreTravailleurs') }}
+                    {{ t('input.nombreTravailleurs') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -500,11 +500,11 @@
                   class="col-md-6 col-xs-12 col-sm-12"
                 >
                   <template v-slot:label>
-                    {{ $t('input.activiteEconomique') }}
+                    {{ t('input.activiteEconomique') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-select>
@@ -542,11 +542,11 @@
                   class="col-md-5 col-xs-12 col-sm-12"
                 >
                   <template v-slot:label>
-                    {{ $t('input.centreImpots') }}
+                    {{ t('input.centreImpots') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                     <!-- @update:model-value="
                     (val) => (form.CODE_CENTRECNPSC = findCentreCNPSByCentreImpots(val))
@@ -569,11 +569,11 @@
                   class="col-md-5 col-xs-12 col-sm-12"
                 >
                   <template v-slot:label>
-                    {{ $t('input.centreCNPS') }}
+                    {{ t('input.centreCNPS') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-select>
@@ -586,7 +586,7 @@
                   accept=".pdf,.jpg,.jpeg,.png,.xlsx"
                   :max-total-size="maxSize"
                   @rejected="onRejected"
-                  :rules="[(val) => (val && val != '') || $t('input.requis')]"
+                  :rules="[(val) => (val && val != '') || t('input.requis')]"
                   counter
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
@@ -595,12 +595,12 @@
                     <q-icon name="attach_file" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.listeTravailleurs') }}
+                    {{ t('input.listeTravailleurs') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
                     >
-                      {{ $t('input.requis') }}
+                      {{ t('input.requis') }}
                     </span>
                   </template>
                 </q-file>
@@ -642,11 +642,11 @@
                   class="col-md-3 col-xs-12 col-sm-12"
                 >
                   <template v-slot:label>
-                    {{ $t('input.arrondissement') }}
+                    {{ t('input.arrondissement') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-select>
@@ -661,11 +661,11 @@
                   @update:model-value="(val) => (form.ADRESSE_EMPL = val.toUpperCase())"
                 >
                   <template v-slot:label>
-                    {{ $t('input.adresse') }}
+                    {{ t('input.adresse') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -683,11 +683,11 @@
                     <q-icon name="map" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.quartier') }}
+                    {{ t('input.quartier') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -738,11 +738,11 @@
                     <q-icon name="email" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.email') }}
+                    {{ t('input.email') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -757,18 +757,18 @@
                   class="col-md-5 col-xs-12 col-sm-12"
                   :rules="[
                     required,
-                    (val) => regexPatterns.telephone.test(val) || $t('input.invalidPhone'),
+                    (val) => regexPatterns.telephone.test(val) || t('input.invalidPhone'),
                   ]"
                 >
                   <template v-slot:prepend>
                     <q-icon name="phone" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.telephone') }}
+                    {{ t('input.telephone') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -781,7 +781,7 @@
                   accept=".pdf,.jpg,.jpeg,.png"
                   :max-total-size="maxSize"
                   @rejected="onRejected"
-                  :rules="[(val) => (val && val != '') || $t('input.requis')]"
+                  :rules="[(val) => (val && val != '') || t('input.requis')]"
                   counter
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
@@ -790,12 +790,12 @@
                     <q-icon name="attach_file" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.planLocalisation') }}
+                    {{ t('input.planLocalisation') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
                     >
-                      {{ $t('input.requis') }}
+                      {{ t('input.requis') }}
                     </span>
                   </template>
                 </q-file>
@@ -832,11 +832,11 @@
                   @update:model-value="(val) => (form.NOM_PERSEMPL = val.toUpperCase())"
                 >
                   <template v-slot:label>
-                    {{ $t('input.nomResponsable') }}
+                    {{ t('input.nomResponsable') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -873,11 +873,11 @@
                     </q-icon>
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.dateNaissanceResponsable') }}
+                    {{ t('input.dateNaissanceResponsable') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -895,11 +895,11 @@
                     <q-icon name="place" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.lieuNaissanceResponsable') }}
+                    {{ t('input.lieuNaissanceResponsable') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -919,11 +919,11 @@
                   class="col-md-4 col-xs-12 col-sm-12"
                 >
                   <template v-slot:label>
-                    {{ $t('input.arrondissementNaissanceResponsable') }}
+                    {{ t('input.arrondissementNaissanceResponsable') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-select>
@@ -939,11 +939,11 @@
                   class="col-md-3 col-xs-12 col-sm-12"
                 >
                   <template v-slot:label>
-                    {{ $t('input.sexeResponsable') }}
+                    {{ t('input.sexeResponsable') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-select>
@@ -963,11 +963,11 @@
                   class="col-md-3 col-xs-12 col-sm-12"
                 >
                   <template v-slot:label>
-                    {{ $t('input.nationaliteResponsable') }}
+                    {{ t('input.nationaliteResponsable') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-select>
@@ -983,11 +983,11 @@
                   @update:model-value="(val) => (form.ADR_PERSEMPL = val.toUpperCase())"
                 >
                   <template v-slot:label>
-                    {{ $t('input.adresseResponsable') }}
+                    {{ t('input.adresseResponsable') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -1011,18 +1011,18 @@
                   class="col-md-5 col-xs-12 col-sm-12"
                   :rules="[
                     required,
-                    (val) => regexPatterns.telephone.test(val) || $t('input.invalidPhone'),
+                    (val) => regexPatterns.telephone.test(val) || t('input.invalidPhone'),
                   ]"
                 >
                   <template v-slot:prepend>
                     <q-icon name="phone" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.telephoneResponsable') }}
+                    {{ t('input.telephoneResponsable') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -1042,11 +1042,11 @@
                     <q-icon name="email" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.emailResponsable') }}
+                    {{ t('input.emailResponsable') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
+                      >{{ t('input.requis') }}</span
                     >
                   </template>
                 </q-input>
@@ -1123,7 +1123,7 @@
                   accept=".pdf,.jpg,.jpeg,.png"
                   :max-total-size="maxSize"
                   @rejected="onRejected"
-                  :rules="[(val) => (val && val != '') || $t('input.requis')]"
+                  :rules="[(val) => (val && val != '') || t('input.requis')]"
                   counter
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
@@ -1132,12 +1132,12 @@
                     <q-icon name="attach_file" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.fichierIdentiteResponsable') }}
+                    {{ t('input.fichierIdentiteResponsable') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
                     >
-                      {{ $t('input.requis') }}
+                      {{ t('input.requis') }}
                     </span>
                   </template>
                 </q-file>
@@ -1190,7 +1190,7 @@
                   accept=".pdf,.jpg,.jpeg,.png"
                   :max-total-size="maxSize"
                   @rejected="onRejected"
-                  :rules="[(val) => (val && val != '') || $t('input.requis')]"
+                  :rules="[(val) => (val && val != '') || t('input.requis')]"
                   counter
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
@@ -1199,12 +1199,12 @@
                     <q-icon name="attach_file" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.acf') }}
+                    {{ t('input.acf') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
                     >
-                      {{ $t('input.requis') }}
+                      {{ t('input.requis') }}
                     </span>
                   </template>
                 </q-file>
@@ -1217,7 +1217,7 @@
                   accept=".pdf,.jpg,.jpeg,.png"
                   :max-total-size="maxSize"
                   @rejected="onRejected"
-                  :rules="[(val) => (val && val != '') || $t('input.requis')]"
+                  :rules="[(val) => (val && val != '') || t('input.requis')]"
                   counter
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
@@ -1226,12 +1226,12 @@
                     <q-icon name="attach_file" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.patente') }}
+                    {{ t('input.patente') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
                     >
-                      {{ $t('input.requis') }}
+                      {{ t('input.requis') }}
                     </span>
                   </template>
                 </q-file>
@@ -1244,7 +1244,7 @@
                   accept=".pdf,.jpg,.jpeg,.png"
                   :max-total-size="maxSize"
                   @rejected="onRejected"
-                  :rules="[(val) => (val && val != '') || $t('input.requis')]"
+                  :rules="[(val) => (val && val != '') || t('input.requis')]"
                   counter
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
@@ -1253,12 +1253,12 @@
                     <q-icon name="attach_file" />
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.impotLiberatoire') }}
+                    {{ t('input.impotLiberatoire') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
                     >
-                      {{ $t('input.requis') }}
+                      {{ t('input.requis') }}
                     </span>
                   </template>
                 </q-file>
@@ -1287,239 +1287,239 @@
               <div class="q-pa-md" ref="recapContent">
                 <q-card flat bordered class="q-pa-md" style="text-transform: uppercase">
                   <q-card-section class="q-gutter-md justify-center row">
-                    <div class="text-h6 col-12">{{ $t('immep.step1') }}</div>
+                    <div class="text-h6 col-12">{{ t('immep.step1') }}</div>
                     <q-separator class="q-my-sm" />
 
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.raisonSociale') }} : </strong> {{ form.RAISON_SOCIALE }}
+                      <strong>{{ t('input.raisonSociale') }} : </strong> {{ form.RAISON_SOCIALE }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.nomCommercial') }} : </strong> {{ form.NOM_COMMERCIAL }}
+                      <strong>{{ t('input.nomCommercial') }} : </strong> {{ form.NOM_COMMERCIAL }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.sigle') }} : </strong> {{ form.Sigle }}
+                      <strong>{{ t('input.sigle') }} : </strong> {{ form.Sigle }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.autreContact') }} : </strong> {{ form.AUTRE_CONTACT }}
+                      <strong>{{ t('input.autreContact') }} : </strong> {{ form.AUTRE_CONTACT }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.dateOuverture') }} : </strong>
+                      <strong>{{ t('input.dateOuverture') }} : </strong>
                       {{ form.DATE_DEB_SERVICE }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.dateCreation') }} : </strong>
+                      <strong>{{ t('input.dateCreation') }} : </strong>
                       {{ form.date_creation_empl }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.dateEmbauche') }} : </strong> {{ form.DATE_EFFET }}
+                      <strong>{{ t('input.dateEmbauche') }} : </strong> {{ form.DATE_EFFET }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.numRegistreCommerce') }} : </strong>
+                      <strong>{{ t('input.numRegistreCommerce') }} : </strong>
                       {{ form.num_registre }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.numContribuable') }} : </strong>
+                      <strong>{{ t('input.numContribuable') }} : </strong>
                       {{ form.num_contr }}
                     </div>
 
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.isSuccursale') }} : </strong>
-                      {{ form.isSuccursale ? $t('input.yes') : $t('input.no') }}
+                      <strong>{{ t('input.isSuccursale') }} : </strong>
+                      {{ form.isSuccursale ? t('input.yes') : t('input.no') }}
                     </div>
 
                     <template v-if="form.isSuccursale">
                       <div class="col-md-5 col-xs-12 col-sm-12">
-                        <strong>{{ $t('input.matriculeSiege') }} : </strong>
+                        <strong>{{ t('input.matriculeSiege') }} : </strong>
                         {{ form.NUM_EMPL_SIEGE }}
                       </div>
                       <div class="col-md-5 col-xs-12 col-sm-12">
-                        <strong>{{ $t('input.nomCommercialSiege') }} : </strong>
+                        <strong>{{ t('input.nomCommercialSiege') }} : </strong>
                         {{ form.NOM_COMMERCIAL_SIEGE }}
                       </div>
                       <div class="col-md-5 col-xs-12 col-sm-12">
-                        <strong>{{ $t('input.raisonSocialeSiege') }} : </strong>
+                        <strong>{{ t('input.raisonSocialeSiege') }} : </strong>
                         {{ form.RAISON_SOCIALE_SIEGE }}
                       </div>
 
                       <div class="col-md-5 col-xs-12 col-sm-12">
-                        <strong>{{ $t('input.registreCommerce') }} : </strong>
-                        {{ formFile.IDREGICOMM?.name || $t('input.nonRenseigne') }}
+                        <strong>{{ t('input.registreCommerce') }} : </strong>
+                        {{ formFile.IDREGICOMM?.name || t('input.nonRenseigne') }}
                       </div>
                       <div class="col-md-5 col-xs-12 col-sm-12">
-                        <strong>{{ $t('input.autorisationOuverture') }} : </strong>
-                        {{ formFile.IDAUTORISATION?.name || $t('input.nonRenseigne') }}
+                        <strong>{{ t('input.autorisationOuverture') }} : </strong>
+                        {{ formFile.IDAUTORISATION?.name || t('input.nonRenseigne') }}
                       </div>
                       <div class="col-md-5 col-xs-12 col-sm-12">
-                        <strong>{{ $t('input.carteContribuable') }} : </strong>
-                        {{ formFile.IDCONTRIBUABLE?.name || $t('input.nonRenseigne') }}
+                        <strong>{{ t('input.carteContribuable') }} : </strong>
+                        {{ formFile.IDCONTRIBUABLE?.name || t('input.nonRenseigne') }}
                       </div>
                       <div class="col-md-5 col-xs-12 col-sm-12">
-                        <strong>{{ $t('input.statuts') }} : </strong>
-                        {{ formFile.IDSTATUTS?.name || $t('input.nonRenseigne') }}
+                        <strong>{{ t('input.statuts') }} : </strong>
+                        {{ formFile.IDSTATUTS?.name || t('input.nonRenseigne') }}
                       </div>
                     </template>
                   </q-card-section>
 
                   <q-card-section class="q-gutter-md justify-center row">
-                    <div class="text-h6 col-12">{{ $t('immep.step2') }}</div>
+                    <div class="text-h6 col-12">{{ t('immep.step2') }}</div>
                     <q-separator class="q-my-sm" />
 
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.arrondissement') }} : </strong>
+                      <strong>{{ t('input.arrondissement') }} : </strong>
                       {{ getArrondissementName(form.CODE_ARRONDC?.NOM_ARROND) }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.adresse') }} : </strong> {{ form.ADRESSE_EMPL }}
+                      <strong>{{ t('input.adresse') }} : </strong> {{ form.ADRESSE_EMPL }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.quartier') }} : </strong> {{ form.NOM_QUARTIER }}
+                      <strong>{{ t('input.quartier') }} : </strong> {{ form.NOM_QUARTIER }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.lieuDit') }} : </strong>
-                      {{ form.LIEUDIT_EMPL || $t('input.nonRenseigne') }}
+                      <strong>{{ t('input.lieuDit') }} : </strong>
+                      {{ form.LIEUDIT_EMPL || t('input.nonRenseigne') }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.boitePostale') }} : </strong>
-                      {{ form.BOITE_POSTALE || $t('input.nonRenseigne') }}
+                      <strong>{{ t('input.boitePostale') }} : </strong>
+                      {{ form.BOITE_POSTALE || t('input.nonRenseigne') }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.numLogement') }} : </strong>
-                      {{ form.num_case || $t('input.nonRenseigne') }}
+                      <strong>{{ t('input.numLogement') }} : </strong>
+                      {{ form.num_case || t('input.nonRenseigne') }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.email') }} : </strong> {{ form.EMAIL }}
+                      <strong>{{ t('input.email') }} : </strong> {{ form.EMAIL }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.telephone') }} : </strong> +237 {{ form.TEL }}
+                      <strong>{{ t('input.telephone') }} : </strong> +237 {{ form.TEL }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.planLocalisation') }} : </strong>
-                      {{ formFile.IDPLANLOCAL?.name || $t('input.nonRenseigne') }}
+                      <strong>{{ t('input.planLocalisation') }} : </strong>
+                      {{ formFile.IDPLANLOCAL?.name || t('input.nonRenseigne') }}
                     </div>
                   </q-card-section>
 
                   <q-card-section class="q-gutter-md justify-center row">
-                    <div class="text-h6 col-12">{{ $t('immep.step3') }}</div>
+                    <div class="text-h6 col-12">{{ t('immep.step3') }}</div>
                     <q-separator class="q-my-sm" />
 
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.formeJuridique') }} : </strong>
+                      <strong>{{ t('input.formeJuridique') }} : </strong>
                       {{ form.NATURE_JURC?.LIBELLE_NATUREJUR }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.nombreTravailleurs') }} : </strong>
+                      <strong>{{ t('input.nombreTravailleurs') }} : </strong>
                       {{ form.NBRE_EMPL }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.activiteEconomique') }} : </strong>
+                      <strong>{{ t('input.activiteEconomique') }} : </strong>
                       {{ form.CODE_SECT_ACTIVITEC?.LIBELLE_SECT_ACTIVITE }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.regimeCNPS') }} : </strong>
+                      <strong>{{ t('input.regimeCNPS') }} : </strong>
                       {{ form.CODE_SECT_ACTIVITEC?.REGIME_CNPS }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.groupeRisque') }} : </strong>
+                      <strong>{{ t('input.groupeRisque') }} : </strong>
                       {{ form.CODE_SECT_ACTIVITEC?.DESCRIPTION }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.centreImpots') }} : </strong>
+                      <strong>{{ t('input.centreImpots') }} : </strong>
                       {{ form.CODE_CENTREIMPOTC?.ABREVIATION }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.centreCNPS') }} : </strong>
+                      <strong>{{ t('input.centreCNPS') }} : </strong>
                       {{ form.CODE_CENTRECNPSC?.LIB_CENTRE }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.listeTravailleurs') }} : </strong>
-                      {{ formFile.IDLISTTRAV?.name || $t('input.nonRenseigne') }}
+                      <strong>{{ t('input.listeTravailleurs') }} : </strong>
+                      {{ formFile.IDLISTTRAV?.name || t('input.nonRenseigne') }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.attestationImmatriculation') }} : </strong>
-                      {{ formFile.attestationImmatriculation?.name || $t('input.nonRenseigne') }}
+                      <strong>{{ t('input.attestationImmatriculation') }} : </strong>
+                      {{ formFile.attestationImmatriculation?.name || t('input.nonRenseigne') }}
                     </div>
                   </q-card-section>
 
                   <q-card-section class="q-gutter-md justify-center row">
-                    <div class="text-h6 col-12">{{ $t('immep.step4') }}</div>
+                    <div class="text-h6 col-12">{{ t('immep.step4') }}</div>
                     <q-separator class="q-my-sm" />
 
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.nomResponsable') }} : </strong> {{ form.NOM_PERSEMPL }}
+                      <strong>{{ t('input.nomResponsable') }} : </strong> {{ form.NOM_PERSEMPL }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.prenomResponsable') }} : </strong>
-                      {{ form.PRENOM_PERSEMPL || $t('input.nonRenseigne') }}
+                      <strong>{{ t('input.prenomResponsable') }} : </strong>
+                      {{ form.PRENOM_PERSEMPL || t('input.nonRenseigne') }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.dateNaissanceResponsable') }} : </strong>
+                      <strong>{{ t('input.dateNaissanceResponsable') }} : </strong>
                       {{ form.DATE_NAISS_PERSEMPL }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.lieuNaissanceResponsable') }} : </strong>
+                      <strong>{{ t('input.lieuNaissanceResponsable') }} : </strong>
                       {{ form.LOCALITE_NAISS_PERSEMPL }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.arrondissementNaissanceResponsable') }} : </strong>
+                      <strong>{{ t('input.arrondissementNaissanceResponsable') }} : </strong>
                       {{ getArrondissementName(form.LieuNaissPe?.NOM_ARROND) }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.sexeResponsable') }} : </strong>
+                      <strong>{{ t('input.sexeResponsable') }} : </strong>
                       {{ form.SEXE_PERSEMPL }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.nationaliteResponsable') }} : </strong>
+                      <strong>{{ t('input.nationaliteResponsable') }} : </strong>
                       {{ getNationaliteName(form.NATIONALITEC?.nationalite) }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.adresseResponsable') }} : </strong>
+                      <strong>{{ t('input.adresseResponsable') }} : </strong>
                       {{ form.ADR_PERSEMPL }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.boitePostaleResponsable') }} : </strong>
-                      {{ form.BP_PERSEMPL || $t('input.nonRenseigne') }}
+                      <strong>{{ t('input.boitePostaleResponsable') }} : </strong>
+                      {{ form.BP_PERSEMPL || t('input.nonRenseigne') }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.telephoneResponsable') }} : </strong> +237
+                      <strong>{{ t('input.telephoneResponsable') }} : </strong> +237
                       {{ form.TEL_PERSEMPL }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.emailResponsable') }} : </strong>
+                      <strong>{{ t('input.emailResponsable') }} : </strong>
                       {{ form.EMAIL_PERSEMPL }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.pieceIdentiteResponsable') }} : </strong>
+                      <strong>{{ t('input.pieceIdentiteResponsable') }} : </strong>
                       {{ form.typepiece?.LIBELLE }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.numPieceIdentiteResponsable') }} : </strong>
+                      <strong>{{ t('input.numPieceIdentiteResponsable') }} : </strong>
                       {{ form.NUM_PIECE }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.dateDelivrancePieceIdentiteResponsable') }} : </strong>
+                      <strong>{{ t('input.dateDelivrancePieceIdentiteResponsable') }} : </strong>
                       {{ form.DATE_PIECE }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.lieuDelivrancePieceIdentitePromoteur') }} : </strong>
+                      <strong>{{ t('input.lieuDelivrancePieceIdentitePromoteur') }} : </strong>
                       {{ form.LIEU_PIECEC?.NOM_ARROND }}
                     </div>
                   </q-card-section>
 
                   <q-card-section class="q-gutter-md justify-center row">
-                    <div class="text-h6 col-12">{{ $t('immep.step5') }}</div>
+                    <div class="text-h6 col-12">{{ t('immep.step5') }}</div>
                     <q-separator class="q-my-sm" />
 
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.contratbail') }} : </strong>
-                      {{ formFile.IDCONTRATBAIL?.name || $t('input.nonRenseigne') }}
+                      <strong>{{ t('input.contratbail') }} : </strong>
+                      {{ formFile.IDCONTRATBAIL?.name || t('input.nonRenseigne') }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.patente') }} : </strong>
-                      {{ formFile.IDPATENTE?.name || $t('input.nonRenseigne') }}
+                      <strong>{{ t('input.patente') }} : </strong>
+                      {{ formFile.IDPATENTE?.name || t('input.nonRenseigne') }}
                     </div>
                     <div class="col-md-5 col-xs-12 col-sm-12">
-                      <strong>{{ $t('input.impotLiberatoire') }} : </strong>
-                      {{ formFile.IDIMPOT?.name || $t('input.nonRenseigne') }}
+                      <strong>{{ t('input.impotLiberatoire') }} : </strong>
+                      {{ formFile.IDIMPOT?.name || t('input.nonRenseigne') }}
                     </div>
                   </q-card-section>
                 </q-card>
@@ -1571,7 +1571,7 @@
       <q-dialog v-model="dialValidation" persistent>
         <q-card>
           <q-card-section class="row items-center justify-between">
-            <div class="text-h6">{{ $t('input.valid') }}</div>
+            <div class="text-h6">{{ t('input.valid') }}</div>
             <q-btn icon="close" flat round dense @click="dialValidation = false" />
           </q-card-section>
 
@@ -1580,7 +1580,7 @@
           <q-card-section class="q-pa-none">
             <div class="q-pa-md q-gutter-sm">
               <div class="q-gutter-sm text-bold" style="text-transform: uppercase">
-                {{ $t('input.validtion') }} <br />
+                {{ t('input.validtion') }} <br />
                 <q-radio
                   dense
                   v-model="form.validation"
@@ -1639,7 +1639,7 @@ defineProps({
   service: Object,
 })
 
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 const emit = defineEmits(['close'])
 
 const { notifyError, notifySuccess, notifyInfo } = useNotify()

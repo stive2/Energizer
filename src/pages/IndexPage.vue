@@ -1,19 +1,31 @@
-```vue
 <template>
-  <q-page class="column flex-center q-pa-md">
-    <div
-      class="text-primary q-mb-sm text-center text-bold"
-      :class="$q.screen.lt.sm ? 'text-h6' : 'text-h4'"
-    >
-      {{ $t('home.title') }}
+  <q-page>
+    <div v-if="login">
+      <LoginAssu />
     </div>
-    <br />
-    <div
-      class="text-grey-8 q-mb-md text-center text-bold"
-      :class="$q.screen.lt.sm ? 'text-subtitle2' : 'text-subtitle1'"
-    >
-      {{ $t('home.description') }}
+    <div v-else class="column flex-center q-pa-md">
+      <div
+        class="text-primary q-mb-sm text-center text-bold"
+        :class="$q.screen.lt.sm ? 'text-h6' : 'text-h4'"
+      >
+        <q-item>
+          <q-item-section class="text-grey"> {{ $t('home.noResults') }} </q-item-section>
+        </q-item>
+      </div>
     </div>
+
+    <!-- Barre de recherche -->
+    <q-input
+      outlined
+      dense
+      v-model="search"
+      :placeholder="$t('home.searchPlaceholder')"
+      class="q-mb-md"
+      style="min-width: 400px; max-width: 500px"
+    >
+      {{ t('home.description') }}
+    </q-input>
+
     <div class="q-pa-md row">
       <q-select
         rounded
@@ -21,7 +33,7 @@
         v-model="typeService"
         use-input
         input-debounce="0"
-        :label="$t('home.selectService')"
+        :label="t('home.selectService')"
         :options="options"
         option-label="name"
         @filter="filterFn"
@@ -32,7 +44,7 @@
       >
         <template v-slot:no-option>
           <q-item>
-            <q-item-section class="text-grey"> {{ $t('home.noResults') }} </q-item-section>
+            <q-item-section class="text-grey"> {{ t('home.noResults') }} </q-item-section>
           </q-item>
         </template>
       </q-select>
@@ -44,9 +56,9 @@
         outlined
         dense
         v-model="search"
-        :placeholder="$t('home.searchPlaceholder')"
+        :placeholder="t('home.searchPlaceholder')"
         class="q-mb-md"
-        style="min-width: 400px; max-width: 500px"
+        style="min-width: 300px; max-width: 500px"
       >
         <template v-slot:prepend>
           <q-icon name="search" />
@@ -54,7 +66,7 @@
       </q-input>
 
       <div class="text-subtitle2 text-grey-7 q-mb-md">
-        {{ filteredServices.length }} {{ $t('home.foundServices') }}
+        {{ filteredServices.length }} {{ t('home.foundServices') }}
       </div>
 
       <!-- Grille de cards -->
@@ -84,15 +96,15 @@
         >
           <q-card-section>
             <q-icon :name="getIcon(service.code)" size="40px" color="primary" class="q-mb-sm" />
-            <div class="text-h6 text-primary text-uppercase">{{ $t(service.name) }}</div>
-            <div class="text-caption text-grey-7 text-uppercase">{{ $t(service.description) }}</div>
+            <div class="text-h6 text-primary">{{ $t(service.name) }}</div>
+            <div class="text-caption text-grey-7">{{ t(service.description) }}</div>
           </q-card-section>
         </q-card>
       </div>
     </template>
     <template v-else>
       <div class="text-subtitle2 text-center q-my-md">
-        {{ $t('home.noServicesFound') }}
+        {{ t('home.noServicesFound') }}
       </div>
     </template>
 
@@ -100,8 +112,9 @@
     <q-dialog v-model="detailsDialog">
       <q-card class="q-pa-md" style="max-width: 500px">
         <q-card-section>
-          <div class="text-h6">Oops</div>
-          <div class="text-body1 q-mt-sm">{{ $t('home.sorry') }}</div>
+          <q-icon :name="getIcon(service.code)" size="40px" color="primary" class="q-mb-sm" />
+          <div class="text-h6 text-primary text-uppercase">{{ $t(service.name) }}</div>
+          <div class="text-caption text-grey-7 text-uppercase">{{ $t(service.description) }}</div>
         </q-card-section>
         <q-card-actions align="right">
           <q-btn flat label="Fermer" color="primary" v-close-popup />
@@ -148,6 +161,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import ImmatEmpPro from 'components/ImmatEmpPro.vue'
 import ImmatEmpDom from 'components/ImmatEmpDom.vue'
 import ImmatAssuTrv from 'components/ImmatAssuTrv.vue'
@@ -155,9 +169,14 @@ import ImmatAssuVol from 'components/ImmatAssuVol.vue'
 import ReceptionDossier from 'components/ReceptionDossier.vue'
 import LiquidationRP from 'components/LiquidationRP.vue'
 import { useNotify } from 'components/useNotify.js'
+import LoginAssu from 'components/logins/LoginAssu.vue'
+import { useRouter } from 'vue-router'
 // import axios from 'axios' onMounted notifySuccess, notifyError, notifyWarning, notifyInfo
 
+const { t } = useI18n()
+
 const { notifyWarning } = useNotify()
+const router = useRouter()
 
 const hoverId = ref(null)
 const search = ref('')
@@ -169,6 +188,8 @@ const showImmatAssuTrv = ref(false)
 const showImmatAssuVol = ref(false)
 const showReceptionDossier = ref(false)
 const showLiquidationRP = ref(false)
+
+const login = ref(false)
 // List of CNPS services
 const typesServices = [
   {
@@ -218,6 +239,19 @@ const typesServices = [
         name: 'services.form2.name',
         description: 'services.form2.description',
         code: 'FORM2',
+      },
+    ],
+  },
+  {
+    id: 3,
+    name: 'Dépôt des dossiers de prestations',
+    code: 'PRESTASSU',
+    services: [
+      {
+        id: 1,
+        name: 'services.prestassu.name',
+        description: 'services.prestassu.description',
+        code: 'PRESTASSU',
       },
     ],
   },
@@ -280,13 +314,17 @@ const formDialogMap = {
 const openForm = (service) => {
   selectedService.value = service
 
-  const dialogRef = formDialogMap[service.code]
-
-  if (dialogRef) {
-    dialogRef.value = true
-    showStepperDialog.value = true
+  if (selectedService.value.code === 'PRESTASSU') {
+    router.push('/user/depot-dossier')
   } else {
-    notifyWarning('Formulaire non disponible pour le moment.')
+    const dialogRef = formDialogMap[service.code]
+
+    if (dialogRef) {
+      dialogRef.value = true
+      showStepperDialog.value = true
+    } else {
+      notifyWarning('Formulaire non disponible pour le moment.')
+    }
   }
 }
 
@@ -304,6 +342,8 @@ const getIcon = (code) => {
       return 'folder'
     case 'FORM2':
       return 'warning_amber'
+    case 'PRESTASSU':
+      return 'note_add'
     default:
       return 'info'
   }
