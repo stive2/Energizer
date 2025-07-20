@@ -523,7 +523,7 @@ export default {
     form2: {
       name: 'Processing of RP Cases in Energizer',
       description: 'Processing of RP Cases in Energizer',
-
+    },
     prestassu: {
       name: 'Submission of benefit applications',
       description:

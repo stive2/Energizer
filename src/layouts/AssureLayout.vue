@@ -22,14 +22,7 @@
         </q-toolbar-title>
 
         <!-- Bouton de déconnexion (si authentifié) -->
-        <q-btn
-          flat
-          dense
-          round
-          icon="logout"
-          @click="logout"
-          class="q-mr-sm"
-        >
+        <q-btn flat dense round icon="logout" to="/" class="q-mr-sm">
           <q-tooltip>{{ $t('logout') }}</q-tooltip>
         </q-btn>
 
@@ -117,7 +110,6 @@
               </q-item-label>
             </q-item-section>
           </q-item>
-
         </q-list>
       </q-scroll-area>
     </q-drawer>
@@ -155,7 +147,7 @@ const isAuthenticated = ref(false)
 const userInfo = ref({
   nom: 'Utilisateur Test',
   email: 'user@example.com',
-  numeroAssure: '321-1256447-9'
+  numeroAssure: '321-1256447-9',
 })
 
 // Vérification de l'authentification au montage du composant
@@ -182,9 +174,7 @@ const changeLang = (lang) => {
   localStorage.setItem('lang', lang)
 }
 
-const currentLangLabel = computed(() =>
-  locale.value === 'fr' ? 'Français 🇫🇷' : 'English 🇬🇧'
-)
+const currentLangLabel = computed(() => (locale.value === 'fr' ? 'Français 🇫🇷' : 'English 🇬🇧'))
 
 const toggleLeftDrawer = () => {
   leftDrawerOpen.value = !leftDrawerOpen.value
@@ -195,7 +185,7 @@ const logout = () => {
     title: t('logout.confirm.title', 'Confirmation'),
     message: t('logout.confirm.message', 'Êtes-vous sûr de vouloir vous déconnecter ?'),
     cancel: true,
-    persistent: true
+    persistent: true,
   }).onOk(() => {
     // Logique de déconnexion
     localStorage.removeItem('auth_token')
@@ -206,11 +196,11 @@ const logout = () => {
     $q.notify({
       type: 'positive',
       message: t('logout.success', 'Déconnexion réussie'),
-      position: 'top'
+      position: 'top',
     })
 
     // Redirection vers la page de connexion
-    router.push({ name: 'login' })
+    router.push('/')
   })
 }
 
@@ -219,7 +209,7 @@ defineExpose({
   toggleLeftDrawer,
   logout,
   isAuthenticated,
-  userInfo
+  userInfo,
 })
 </script>
 
@@ -274,8 +264,6 @@ defineExpose({
   border-top: 1px solid #e0e0e0;
   background-color: white;
 }
-
-
 
 /* Responsive adjustments */
 @media (max-width: 1023px) {

@@ -537,6 +537,7 @@ export default {
     form2: {
       name: 'liquidation des dossier RP dans EnergiZer',
       description: 'liquidation des dossier RP dans EnergiZer',
+    },
     prestassu: {
       name: 'Dépôt des dossiers de prestations des assurés',
       description:
