@@ -28,6 +28,14 @@
               :disable="!isStepAllowed(1)"
             >
               <div class="q-gutter-md justify-center row">
+                <q-input
+                  v-model="form.today"
+                  label="Date du jour"
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  readonly
+                />
                 <q-select
                   v-model="form.objet"
                   :options="objetsD"
@@ -48,6 +56,62 @@
                     >
                   </template>
                 </q-select>
+
+                <q-select
+                  v-model="form.circuit"
+                  :options="['MANUEL']"
+                  label=""
+                  outlined
+                  dense
+                  use-input
+                  input-debounce="0"
+                  emit-value
+                  map-options
+                  :rules="[required]"
+                  class="col-md-5 col-xs-12 col-sm-12"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.circuit') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-select>
+
+                <q-input
+                  v-model="form.date_depot"
+                  :label="$t('input.date_depot')"
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  :rules="[required]"
+                  :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
+                  :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
+                >
+                  <template #append>
+                    <q-icon name="event" class="cursor-pointer" color="primary">
+                      <q-popup-proxy transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="form.date_depot"
+                          :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
+                          :options="optionsDn"
+                          color="primary"
+                        />
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                  <template v-slot:label>
+                    {{ $t('input.date_depot') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+
                 <q-input
                   v-model="form.numassu"
                   :label="$t('input.numassu')"
@@ -256,65 +320,6 @@
                     >
                   </template>
                 </q-input>
-
-                <q-input
-                  v-model="form.today"
-                  :label="$t('input.today')"
-                  outlined
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12"
-                  :rules="[required]"
-                  :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
-                  :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
-                >
-                  <template #append>
-                    <q-icon name="event" class="cursor-pointer" color="primary">
-                      <q-popup-proxy transition-show="scale" transition-hide="scale">
-                        <q-date
-                          v-model="form.today"
-                          :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
-                          :options="optionsDn"
-                          color="primary"
-                        />
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                  <template v-slot:label>
-                    {{ $t('input.today') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-input>
-                <q-select
-                  v-model="form.circuit"
-                  :options="[
-                    'MANUEL',
-                    'GED-LAB',
-                    'TELE-IMMATRICULATION',
-                    'Centre Formalité Création Entreprise (C.F.C.E)',
-                  ]"
-                  label=""
-                  outlined
-                  dense
-                  use-input
-                  input-debounce="0"
-                  emit-value
-                  map-options
-                  :rules="[required]"
-                  class="col-md-5 col-xs-12 col-sm-12"
-                >
-                  <template v-slot:label>
-                    {{ $t('input.circuit') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-select>
                 <div class="q-pa-md q-gutter-sm col-md-5 col-xs-12 col-sm-12">
                   <div class="q-gutter-sm text-bold" style="text-transform: uppercase">
                     {{ $t('input.revision') }}
@@ -839,7 +844,7 @@
 </template>
 
 <script setup>
-import { ref, defineProps, defineEmits, watch } from 'vue'
+import { ref, defineProps, defineEmits, watch, onMounted } from 'vue'
 import { useNotify } from './useNotify.js'
 import { regexPatterns } from '../js/regex.js'
 import { useI18n } from 'vue-i18n'
@@ -1028,6 +1033,26 @@ function updateDisplayFromDate(val) {
     displayDate.value = ''
   }
 }
+
+/* function updateDisplayFromDate2(val) {
+  if (val) {
+    const [year, month, day] = val.split('/')
+    displayDate.value = `${day}/${month}/${year}`
+  } else {
+    displayDate.value = ''
+  }
+} */
+
+function formatDate(date) {
+  const formattedDate = date.toLocaleDateString('fr-FR') // ex: 20/07/2025
+  const [year, month, day] = formattedDate.split('/')
+  displayDate.value = `${day}/${month}/${year}`
+  return displayDate.value
+}
+
+onMounted(() => {
+  form.value.today = formatDate(new Date())
+})
 
 // ✅ Synchroniser displayDate si dateOuverture est défini initialement
 watch(

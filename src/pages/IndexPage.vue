@@ -143,6 +143,11 @@
           :service="selectedService"
           @close="((showStepperDialog = false), (showReceptionDossier = false))"
         />
+        <ReceptionDossierManuel
+          v-if="showReceptionDossierManuel"
+          :service="selectedService"
+          @close="((showStepperDialog = false), (showReceptionDossierManuel = false))"
+        />
         <LiquidationRP
           v-if="showLiquidationRP"
           :service="selectedService"
@@ -161,6 +166,7 @@ import ImmatEmpDom from 'components/ImmatEmpDom.vue'
 import ImmatAssuTrv from 'components/ImmatAssuTrv.vue'
 import ImmatAssuVol from 'components/ImmatAssuVol.vue'
 import ReceptionDossier from 'components/ReceptionDossier.vue'
+import ReceptionDossierManuel from 'components/ReceptionDossierManuel.vue'
 import LiquidationRP from 'components/LiquidationRP.vue'
 import { useNotify } from 'components/useNotify.js'
 import LoginAssu from 'components/logins/LoginAssu.vue'
@@ -181,6 +187,7 @@ const showImmatEmpDom = ref(false)
 const showImmatAssuTrv = ref(false)
 const showImmatAssuVol = ref(false)
 const showReceptionDossier = ref(false)
+const showReceptionDossierManuel = ref(false)
 const showLiquidationRP = ref(false)
 
 const login = ref(false)
@@ -230,6 +237,12 @@ const typesServices = [
       },
       {
         id: 2,
+        name: 'services.form3.name',
+        description: 'services.form3.description',
+        code: 'FORM3',
+      },
+      {
+        id: 3,
         name: 'services.form2.name',
         description: 'services.form2.description',
         code: 'FORM2',
@@ -302,6 +315,7 @@ const formDialogMap = {
   IMMAV: showImmatAssuVol,
   IMMAT: showImmatAssuTrv,
   FORM1: showReceptionDossier,
+  FORM3: showReceptionDossierManuel,
   FORM2: showLiquidationRP,
 }
 
@@ -333,6 +347,8 @@ const getIcon = (code) => {
     case 'IMMAT':
       return 'engineering'
     case 'FORM1':
+      return 'folder'
+    case 'FORM3':
       return 'folder'
     case 'FORM2':
       return 'warning_amber'

@@ -534,6 +534,10 @@ export default {
       name: 'Reception des dossiers Energizer',
       description: 'Reception des dossiers Energizer',
     },
+    form3: {
+      name: 'Reception des dossiers Manuel',
+      description: 'Reception des dossiers Manuel',
+    },
     form2: {
       name: 'liquidation des dossier RP dans EnergiZer',
       description: 'liquidation des dossier RP dans EnergiZer',

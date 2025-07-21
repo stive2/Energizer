@@ -520,6 +520,10 @@ export default {
       name: 'Receipt of Energizer Cases',
       description: 'Receipt of Energizer Cases',
     },
+    form3: {
+      name: 'Receipt of Manual Cases',
+      description: 'Receipt of Manual Cases',
+    },
     form2: {
       name: 'Processing of RP Cases in Energizer',
       description: 'Processing of RP Cases in Energizer',
