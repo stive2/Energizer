@@ -148,6 +148,11 @@
           :service="selectedService"
           @close="((showStepperDialog = false), (showLiquidationRP = false))"
         />
+        <LiquidationPF
+          v-if="formDialogMap.LIQPF.value"
+          :service="selectedService"
+          @close="(() => { showStepperDialog = false; formDialogMap.LIQPF.value = false })()"
+        />
       </q-dialog>
     </div>
   </q-page>
@@ -162,6 +167,7 @@ import ImmatAssuTrv from 'components/ImmatAssuTrv.vue'
 import ImmatAssuVol from 'components/ImmatAssuVol.vue'
 import ReceptionDossier from 'components/ReceptionDossier.vue'
 import LiquidationRP from 'components/LiquidationRP.vue'
+import LiquidationPF from 'components/liquidationPF/LiquidationPF.vue'
 import { useNotify } from 'components/useNotify.js'
 import LoginAssu from 'components/logins/LoginAssu.vue'
 import { useRouter } from 'vue-router'
@@ -234,6 +240,12 @@ const typesServices = [
         description: 'services.form2.description',
         code: 'FORM2',
       },
+      {
+        id: 3,
+        name: 'services.liqpf.name',
+        description: 'services.liqpf.description',
+        code: 'LIQPF',
+      },
     ],
   },
   {
@@ -303,6 +315,7 @@ const formDialogMap = {
   IMMAT: showImmatAssuTrv,
   FORM1: showReceptionDossier,
   FORM2: showLiquidationRP,
+  LIQPF: ref(false), // Ajout pour la gestion du nouveau service
 }
 
 const openForm = (service) => {
@@ -310,6 +323,9 @@ const openForm = (service) => {
 
   if (selectedService.value.code === 'PRESTASSU') {
     router.push('/user/depot-dossier')
+  } else if (selectedService.value.code === 'LIQPF') {
+    formDialogMap.LIQPF.value = true
+    showStepperDialog.value = true
   } else {
     const dialogRef = formDialogMap[service.code]
 

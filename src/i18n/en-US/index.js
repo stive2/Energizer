@@ -524,6 +524,11 @@ export default {
       name: 'Processing of RP Cases in Energizer',
       description: 'Processing of RP Cases in Energizer',
     },
+    liqpf: {
+      name: 'Processing of PF cases in EnergiZer',
+      description: 'Processing of PF cases in EnergiZer',
+    },
+
     prestassu: {
       name: 'Submission of benefit applications',
       description:
@@ -537,4 +542,24 @@ export default {
   select: 'Select a type of service',
   failed: 'Action failed',
   success: 'Action succeeded',
+  LiquidationPF: {
+    mainCardTitle: 'Processing of PF cases in EnergiZer',
+    mainCardSubtitle: 'Click to access liquidation items',
+    mainCardBack: 'Back',
+    saisieCardTitle: 'Entry of liquidation items',
+    saisieCardSubtitle: 'Access the different entry items',
+    saisieCardBack: 'Back',
+    headerBack: 'Back',
+    headerTitle: 'Liquidation items',
+    placeholderSelect: 'Select an item',
+    placeholderChoose: 'Choose an item from the left menu to start',
+    sidebar: {
+      aperiodique: 'Aperiodic',
+      reprises: 'Entry of recoveries',
+      allocations: 'Family Allowances',
+      periodeActive: 'Active periods',
+      pieceMaintien: 'Pieces for maintaining rights',
+      statistiques: 'Statistics situation files by branch',
+    },
+  },
 }

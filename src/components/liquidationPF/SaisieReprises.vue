@@ -1,0 +1,9 @@
+<template>
+  <q-card class="q-pa-md">
+    <q-btn flat icon="arrow_back" label="Retour" class="q-mb-md" @click="$emit('close')" />
+    <div class="text-h6 text-primary">Formulaire Saisie des reprises</div>
+    <div class="q-mt-md">(Ici le formulaire Saisie des reprises...)</div>
+  </q-card>
+</template>
+<script setup>
+</script>

@@ -538,6 +538,10 @@ export default {
       name: 'liquidation des dossier RP dans EnergiZer',
       description: 'liquidation des dossier RP dans EnergiZer',
     },
+    liqpf: {
+      name: 'Liquidation des dossiers PF dans EnergiZer',
+      description: 'Liquidation des dossiers PF dans EnergiZer',
+    },
     prestassu: {
       name: 'Dépôt des dossiers de prestations des assurés',
       description:
@@ -551,4 +555,24 @@ export default {
   select: 'Sélectionner un type de service',
   failed: 'Action échouée',
   success: 'Action réussie',
+  LiquidationPF: {
+    mainCardTitle: 'Liquidation des dossiers PF dans EnergiZer',
+    mainCardSubtitle: 'Cliquez pour accéder aux éléments de liquidation',
+    mainCardBack: 'Retour',
+    saisieCardTitle: 'Saisie des éléments de liquidation',
+    saisieCardSubtitle: 'Accédez aux différents éléments de saisie',
+    saisieCardBack: 'Retour',
+    headerBack: 'Retour',
+    headerTitle: 'Éléments de liquidation',
+    placeholderSelect: 'Sélectionnez un élément',
+    placeholderChoose: 'Choisissez un élément dans le menu de gauche pour commencer',
+    sidebar: {
+      aperiodique: 'Apériodiques',
+      reprises: 'Saisie des reprises',
+      allocations: 'Allocations Familiales',
+      periodeActive: 'Périodes actives',
+      pieceMaintien: 'Pièces de maintien de droit',
+      statistiques: 'Statistiques situations dossiers par branche',
+    },
+  },
 }
