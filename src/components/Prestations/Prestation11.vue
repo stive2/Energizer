@@ -4,12 +4,12 @@
     <div class="row q-mb-md q-gutter-md">
       <q-checkbox
         v-model="formData.demandePremierExamen"
-        label="Demande de remboursement du Premier examen prénatal"
+        :label="$t('inputassu.demande_remboursement_premier_examen')"
         class="col-12 col-sm-6"
       />
       <q-checkbox
         v-model="formData.demandeDeuxiemeExamen"
-        label="Demande de remboursement du Deuxième examen prénatal au 8ème mois"
+        :label="$t('inputassu.demande_remboursement_deuxieme_examen')"
         class="col-12 col-sm-6"
         :rules="[() => validateSecondExamCheckboxes() || t('errors.checkbox_required_second_exam')]"
       />
@@ -18,7 +18,7 @@
     <q-expansion-item
       v-if="formData.demandePremierExamen"
       icon="looks_one"
-      label="Premier examen prénatal"
+      :label="$t('inputassu.premier_examen_prenatal')"
       default-opened
       class="bg-grey-1 rounded-borders"
     >
@@ -120,7 +120,7 @@
     <q-expansion-item
       v-if="formData.demandeDeuxiemeExamen"
       icon="looks_two"
-      label="Deuxième examen prénatal au 8ème mois"
+      :label="$t('inputassu.deuxieme_examen_prenatal')"
       class="bg-grey-1 rounded-borders q-mt-md"
     >
       <q-card-section>

@@ -82,7 +82,7 @@
           </template>
       </q-input>
       </div>
-      <div class="q-mt-md">Remboursement des frais relatifs</div>
+      <div class="q-mt-md">{{ t('inputassu.remboursement_frais_relatifs') }}</div>
       <div class="row q-gutter-md">
         <q-checkbox
           v-model="formData.fraisAccouchement"
@@ -111,7 +111,7 @@
         </q-file>
       </div>
       <div class="col-12 col-md-4">
-        <div class="text-subtitle2 q-mb-sm">Actes de naissance:</div>
+        <div class="text-subtitle2 q-mb-sm">{{ t('inputassu.actes_naissance') }}</div>
         <div v-for="i in nombreActesNaissance" :key="i" class="q-mb-sm">
           <q-file
             v-model="formData.actesNaissance[i]"
@@ -143,7 +143,7 @@
       <q-card-section>
         <div class="text-h6 text-secondary q-mb-md">
           <q-icon name="payments" class="q-mr-sm" />
-          Indemnité journalière
+          {{ t('inputassu.indemnite_journaliere') }}
         </div>
         <div class="row q-gutter-md">
           <!-- Première ligne -->

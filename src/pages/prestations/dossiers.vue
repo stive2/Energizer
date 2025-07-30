@@ -5,7 +5,7 @@
     <!-- Navigation breadcrumb -->
     <q-breadcrumbs v-if="selectedType || selectedPrestation" class="q-mb-md">
       <q-breadcrumbs-el
-        label="Accueil"
+        :label="t('inputassu.accueil')"
         @click="goHome"
         class="cursor-pointer text-primary"
       />
@@ -263,7 +263,7 @@
             <!-- Section Type de Soumission -->
             <div class="section-header">
               <q-icon name="send" class="q-mr-sm text-primary" />
-              <span class="text-h6 text-primary">Type de Soumission</span>
+              <span class="text-h6 text-primary">{{ t('inputassu.type_soumission') }}</span>
             </div>
             <q-option-group
               v-model="formData.typeSubmission"
@@ -276,7 +276,7 @@
             <div class="row justify-center q-gutter-md">
               <q-btn
                 type="submit"
-                :label="formData.typeSubmission === 'temporaire' ? 'Sauvegarde' : 'Soumission'"
+                :label="formData.typeSubmission === 'temporaire' ? t('inputassu.sauvegarde') : t('inputassu.soumission')"
                 :color="formData.typeSubmission === 'temporaire' ? 'orange' : 'primary'"
                 :icon="formData.typeSubmission === 'temporaire' ? 'save' : 'send'"
                 size="lg"
@@ -285,7 +285,7 @@
 
               />
               <q-btn
-                label="Annuler"
+                :label="t('inputassu.annuler')"
                 color="grey"
                 icon="cancel"
                 size="lg"
@@ -314,7 +314,7 @@
         <div class="search-container-right">
           <q-input
             v-model="searchQuery"
-            placeholder="Rechercher..."
+            :placeholder="t('inputassu.rechercher')"
             filled
             dense
             class="search-input"
@@ -348,7 +348,7 @@
               <q-btn
                 flat
                 color="primary"
-                label="Démarrer"
+                :label="t('inputassu.demarrer')"
                 class="text-weight-medium"
                 icon-right="arrow_forward"
               />
@@ -362,13 +362,13 @@
     <div v-else class="types-grid">
       <div class="text-center q-mb-xl">
         <div class="text-h5 q-mb-md text-primary text-weight-bold">
-          Types de Préstations
+          {{ t('inputassu.types_prestations') }}
         </div>
         <!-- Champ de recherche centré sous le titre -->
         <div class="search-container q-mt-md justify-end">
           <q-input
             v-model="searchQuery"
-            :placeholder="$t('Rechercher un type de prestation...')"
+            :placeholder="t('inputassu.rechercher_type_prestation')"
             filled
             dense
             class="search-input-center"
@@ -381,7 +381,7 @@
           </q-input>
         </div>
         <div class="text-body1 text-grey-7 q-mb-md">
-          Sélectionnez votre type de prestation
+          {{ t('inputassu.selectionnez_type_prestation') }}
         </div>
       </div>
       <div class="row q-gutter-md" style="width: 100%;">
