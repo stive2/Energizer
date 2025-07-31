@@ -7,7 +7,7 @@
       <!-- Informations Principales -->
       <q-expansion-item
         icon="info"
-        label="Informations Principales"
+        :label="t('inputassu.informations_principales')"
         default-opened
         class="bg-grey-1 rounded-borders q-mb-md"
       >
@@ -303,7 +303,7 @@
       <!-- Pièces Complémentaires -->
       <q-expansion-item
         icon="attach_file"
-        label="Pièces Complémentaires"
+        :label="t('inputassu.pieces_complementaires')"
         class="bg-grey-1 rounded-borders"
       >
         <q-card-section>
