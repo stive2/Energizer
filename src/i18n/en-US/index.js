@@ -36,6 +36,8 @@ export default {
     step2: 'Depositor and Case Processing',
   },
   input: {
+    date_depot: 'Deposit Date',
+    date_cessation: 'Stoped Cotisation Date',
     document: 'Documents',
     max_size_hint: 'Max size accepted : 3 Mo',
     requis: 'Required',

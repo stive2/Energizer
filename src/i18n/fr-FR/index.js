@@ -43,6 +43,8 @@ export default {
     step5: 'Informations sur le tiers responsable',
   },
   input: {
+    date_depot: 'Date de dépôt',
+    date_cessation: 'Date de cessation de cotisation',
     document: 'Documents',
     max_size_hint: 'Taille maximun accepté : 3 Mo',
     requis: 'Obligatoire',

@@ -36,6 +36,7 @@
                   class="col-md-5 col-xs-12 col-sm-12"
                   readonly
                 />
+
                 <q-select
                   v-model="form.objet"
                   :options="objetsD"
@@ -67,6 +68,7 @@
                   input-debounce="0"
                   emit-value
                   map-options
+                  readonly
                   :rules="[required]"
                   class="col-md-5 col-xs-12 col-sm-12"
                 >
@@ -112,6 +114,135 @@
                   </template>
                 </q-input>
 
+                <q-input
+                  v-model="form.nomcomplet"
+                  :label="$t('input.nomcomplet')"
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  :rules="[required]"
+                  style="text-transform: uppercase"
+                  @update:model-value="(val) => (form.nomcomplet = val.toUpperCase())"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="person" />
+                  </template>
+                  <template v-slot:label>
+                    {{ $t('input.nomcomplet') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+                <q-input
+                  v-model="form.adresse"
+                  :label="$t('input.adresse')"
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  :rules="[required]"
+                  style="text-transform: uppercase"
+                  @update:model-value="(val) => (form.adresse = val.toUpperCase())"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.adresse') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+                <q-input
+                  v-model="form.telephone"
+                  label=""
+                  outlined
+                  type="tel"
+                  prefix="+237"
+                  maxlength="9"
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  :rules="[
+                    required,
+                    (val) => regexPatterns.telephone.test(val) || $t('input.invalidPhone'),
+                  ]"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="phone" />
+                  </template>
+                  <template v-slot:label>
+                    {{ $t('input.mobile') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+                <q-input
+                  v-model="form.email"
+                  label=""
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  type="email"
+                  :rules="[
+                    required,
+                    (val) => regexPatterns.email.test(val) || '(ex: adresse@email.com)',
+                  ]"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="email" />
+                  </template>
+                  <template v-slot:label>
+                    {{ $t('input.emailc') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+              </div>
+
+              <q-stepper-navigation>
+                <q-btn @click="goToNextStep(2)" color="primary" :label="$t('form.next')" />
+              </q-stepper-navigation>
+            </q-step>
+
+            <!-- Etape 2 : Coordonnées de l'employeur -->
+            <q-step
+              :name="2"
+              :title="$t('form1.step2')"
+              icon="person"
+              :done="step > 2"
+              :disable="!isStepAllowed(2)"
+            >
+              <div class="q-gutter-md justify-center row">
+                <q-select
+                  v-model="form.typeimmas"
+                  :options="['OBLIGATOIRE', 'VOLONTAIRE']"
+                  label=""
+                  outlined
+                  dense
+                  use-input
+                  input-debounce="0"
+                  emit-value
+                  map-options
+                  :rules="[required]"
+                  class="col-md-5 col-xs-12 col-sm-12"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.typeimmas') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-select>
                 <q-input
                   v-model="form.numassu"
                   :label="$t('input.numassu')"
@@ -169,59 +300,30 @@
                   readonly
                   @update:model-value="(val) => (form.centre_ges = val.toUpperCase())"
                 />
-                <q-select
-                  v-model="form.typeimmas"
-                  :options="['OBLIGATOIRE', 'VOLONTAIRE']"
-                  label=""
-                  outlined
-                  dense
-                  use-input
-                  input-debounce="0"
-                  emit-value
-                  map-options
-                  :rules="[required]"
-                  class="col-md-5 col-xs-12 col-sm-12"
-                >
-                  <template v-slot:label>
-                    {{ $t('input.typeimmas') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-select>
-              </div>
-
-              <q-stepper-navigation>
-                <q-btn @click="goToNextStep(2)" color="primary" :label="$t('form.next')" />
-              </q-stepper-navigation>
-            </q-step>
-
-            <!-- Etape 2 : Coordonnées de l'employeur -->
-            <q-step
-              :name="2"
-              :title="$t('form1.step2')"
-              icon="person"
-              :done="step > 2"
-              :disable="!isStepAllowed(2)"
-            >
-              <div class="q-gutter-md justify-center row">
                 <q-input
-                  v-model="form.nomcomplet"
-                  :label="$t('input.nomcomplet')"
+                  v-model="form.date_cessation"
+                  :label="$t('input.date_cessation')"
                   outlined
                   dense
                   class="col-md-5 col-xs-12 col-sm-12"
                   :rules="[required]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.nomcomplet = val.toUpperCase())"
+                  :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
+                  :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
                 >
-                  <template v-slot:prepend>
-                    <q-icon name="person" />
+                  <template #append>
+                    <q-icon name="event" class="cursor-pointer" color="primary">
+                      <q-popup-proxy transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="form.date_cessation"
+                          :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
+                          :options="optionsDn"
+                          color="primary"
+                        />
+                      </q-popup-proxy>
+                    </q-icon>
                   </template>
                   <template v-slot:label>
-                    {{ $t('input.nomcomplet') }}
+                    {{ $t('input.date_cessation') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
@@ -229,139 +331,6 @@
                     >
                   </template>
                 </q-input>
-                <q-input
-                  v-model="form.nomtiers"
-                  :label="$t('input.nomtiers')"
-                  outlined
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12"
-                  :rules="[required]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.nomtiers = val.toUpperCase())"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="place" />
-                  </template>
-                  <template v-slot:label>
-                    {{ $t('input.nomtiers') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.email"
-                  label=""
-                  outlined
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12"
-                  type="email"
-                  :rules="[
-                    required,
-                    (val) => regexPatterns.email.test(val) || '(ex: adresse@email.com)',
-                  ]"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="email" />
-                  </template>
-                  <template v-slot:label>
-                    {{ $t('input.emailc') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.adresse"
-                  :label="$t('input.adresse')"
-                  outlined
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12"
-                  :rules="[required]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.adresse = val.toUpperCase())"
-                >
-                  <template v-slot:label>
-                    {{ $t('input.adresse') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.telephone"
-                  label=""
-                  outlined
-                  type="tel"
-                  prefix="+237"
-                  maxlength="9"
-                  dense
-                  class="col-md-5 col-xs-12 col-sm-12"
-                  :rules="[
-                    required,
-                    (val) => regexPatterns.telephone.test(val) || $t('input.invalidPhone'),
-                  ]"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="phone" />
-                  </template>
-                  <template v-slot:label>
-                    {{ $t('input.mobile') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-input>
-                <div class="q-pa-md q-gutter-sm col-md-5 col-xs-12 col-sm-12">
-                  <div class="q-gutter-sm text-bold" style="text-transform: uppercase">
-                    {{ $t('input.revision') }}
-                    <q-radio
-                      dense
-                      v-model="form.revision"
-                      color="red"
-                      :val="'NON'"
-                      :label="$t('input.non')"
-                    />
-                    <q-radio
-                      dense
-                      v-model="form.revision"
-                      color="primary"
-                      :val="'OUI'"
-                      :label="$t('input.oui')"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <q-stepper-navigation>
-                <q-btn @click="goToNextStep(3)" color="primary" :label="$t('form.next')" />
-                <q-btn
-                  flat
-                  @click="step = 1"
-                  color="primary"
-                  :label="$t('form.previous')"
-                  class="q-ml-sm"
-                />
-              </q-stepper-navigation>
-            </q-step>
-
-            <!-- Etape 3 : Informations sur l'entreprise -->
-            <q-step
-              :name="3"
-              :title="$t('form1.step3')"
-              icon="business"
-              :done="step > 3"
-              :disable="!isStepAllowed(3)"
-            >
-              <div class="q-gutter-md justify-center row">
                 <q-input
                   v-model="form.datedemande"
                   :label="$t('input.datedemande')"
@@ -534,26 +503,6 @@
                   </template>
                 </q-select>
                 <q-input
-                  v-model="form.tauxinvalide"
-                  :label="$t('input.tauxinvalide')"
-                  outlined
-                  dense
-                  type="number"
-                  class="col-md-5 col-xs-12 col-sm-12"
-                  :rules="[required]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.tauxinvalide = val.toUpperCase())"
-                >
-                  <template v-slot:label>
-                    {{ $t('input.tauxinvalide') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ $t('input.requis') }}</span
-                    >
-                  </template>
-                </q-input>
-                <q-input
                   v-model="form.dateaccident"
                   :label="$t('input.dateaccident')"
                   outlined
@@ -608,6 +557,91 @@
                   </template>
                   <template v-slot:label>
                     {{ $t('input.datedeclaration') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input>
+                <!-- <q-input
+                  v-model="form.nomtiers"
+                  :label="$t('input.nomtiers')"
+                  outlined
+                  dense
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  :rules="[required]"
+                  style="text-transform: uppercase"
+                  @update:model-value="(val) => (form.nomtiers = val.toUpperCase())"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="place" />
+                  </template>
+                  <template v-slot:label>
+                    {{ $t('input.nomtiers') }}
+                    <span
+                      class="q-px-sm bg-red text-white text-italic rounded-borders"
+                      style="font-size: 10px"
+                      >{{ $t('input.requis') }}</span
+                    >
+                  </template>
+                </q-input> -->
+
+                <div class="q-pa-md q-gutter-sm col-md-5 col-xs-12 col-sm-12">
+                  <div class="q-gutter-sm text-bold" style="text-transform: uppercase">
+                    {{ $t('input.revision') }}
+                    <q-radio
+                      dense
+                      v-model="form.revision"
+                      color="red"
+                      :val="'NON'"
+                      :label="$t('input.non')"
+                    />
+                    <q-radio
+                      dense
+                      v-model="form.revision"
+                      color="primary"
+                      :val="'OUI'"
+                      :label="$t('input.oui')"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <q-stepper-navigation>
+                <q-btn @click="goToNextStep(3)" color="primary" :label="$t('form.next')" />
+                <q-btn
+                  flat
+                  @click="step = 1"
+                  color="primary"
+                  :label="$t('form.previous')"
+                  class="q-ml-sm"
+                />
+              </q-stepper-navigation>
+            </q-step>
+
+            <!-- Etape 3 : Informations sur l'entreprise -->
+            <q-step
+              :name="3"
+              :title="$t('form1.step3')"
+              icon="business"
+              :done="step > 3"
+              :disable="!isStepAllowed(3)"
+            >
+              <div class="q-gutter-md justify-center row">
+                <q-input
+                  v-model="form.tauxinvalide"
+                  :label="$t('input.tauxinvalide')"
+                  outlined
+                  dense
+                  type="number"
+                  class="col-md-5 col-xs-12 col-sm-12"
+                  :rules="[required]"
+                  style="text-transform: uppercase"
+                  @update:model-value="(val) => (form.tauxinvalide = val.toUpperCase())"
+                >
+                  <template v-slot:label>
+                    {{ $t('input.tauxinvalide') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
@@ -900,6 +934,9 @@ const form = ref({
   CODE_ARRONDC: '',
   validation: false,
   today: new Date(),
+  typeimmas: 'OBLIGATOIRE',
+  circuit: 'MANUEL',
+  revision: 'NON',
 })
 
 const formFile = ref({
@@ -1046,7 +1083,11 @@ function updateDisplayFromDate(val) {
 function formatDate(date) {
   const formattedDate = date.toLocaleDateString('fr-FR') // ex: 20/07/2025
   const [year, month, day] = formattedDate.split('/')
-  displayDate.value = `${day}/${month}/${year}`
+  if (locale === 'fr') {
+    displayDate.value = `${day}/${month}/${year}`
+  } else {
+    displayDate.value = `${year}/${month}/${day}`
+  }
   return displayDate.value
 }
 
