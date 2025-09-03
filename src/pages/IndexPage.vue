@@ -153,6 +153,290 @@
           :service="selectedService"
           @close="(() => { showStepperDialog = false; formDialogMap.LIQPF.value = false })()"
         />
+        <Encaissement
+          v-if="formDialogMap.CPTCO.value"
+          :service="selectedService"
+          @close="(() => { showStepperDialog = false; formDialogMap.CPTCO.value = false })()"
+        />
+      </q-dialog>
+
+      <!-- Dialogue hiérarchique pour Tenue des comptes -->
+      <q-dialog v-model="showTenuComptesDialog" persistent>
+        <q-card class="q-pa-md" :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 90vw; max-width: 1200px;'">
+          <q-card-section class="row items-center q-pb-none">
+            <q-btn v-if="currentTenuComptesLevel > 0" icon="arrow_back" flat round dense @click="goBackTenuComptes" class="q-mr-sm" />
+            <div class="text-h6 text-primary">
+              <q-icon name="account_balance" class="q-mr-sm" />
+              <span v-if="currentTenuComptesLevel === 0">Gestion des encaissements de cotisations</span>
+              <span v-else>{{ currentTenuComptesComponent?.name }}</span>
+            </div>
+            <q-space />
+            <q-btn icon="close" flat round dense v-close-popup />
+          </q-card-section>
+
+          <q-card-section>
+            <!-- Barre outils: compteur + recherche -->
+            <div v-if="currentTenuComptesLevel === 0" class="q-mb-md">
+              <div class="row items-center q-gutter-md justify-center">
+                <q-input
+                  outlined
+                  dense
+                  v-model="tenuComptesSearch"
+                  placeholder="Rechercher un composant de gestion des encaissements..."
+                  style="max-width: 400px; width: 100%;"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="search" />
+                  </template>
+                  <template v-slot:append>
+                    <q-btn v-if="tenuComptesSearch" flat dense round icon="close" @click="tenuComptesSearch = ''" />
+                  </template>
+                </q-input>
+              </div>
+              <div class="text-caption text-grey-7 text-center">
+                  {{ visibleTenuComptesCount }} composant(s) trouvé(s)
+              </div>
+            </div>
+
+            <!-- Niveau 0: Composants de tenue des comptes -->
+            <div v-if="currentTenuComptesLevel === 0" class="q-gutter-md">
+              <div class="row q-col-gutter-md justify-center" :style="{ maxHeight: dialogContentHeight, overflowY: 'auto' }">
+                <q-card
+                  v-for="composant in filteredTenuComptesComponents"
+                  :key="composant.id"
+                  class="q-ma-xs col-12 col-sm-6 col-md-4 col-lg-3 cursor-pointer hoverable q-mb-md"
+                  :style="{ borderRadius: '16px' }"
+                  @click="selectTenuComptesComponent(composant)"
+                >
+                  <q-card-section class="text-center">
+                    <q-icon :name="composant.icon" size="48px" color="primary" class="q-mb-md" />
+                    <div class="text-h6 text-primary">{{ composant.name }}</div>
+                    <div class="text-caption text-grey-7">{{ composant.description }}</div>
+                  </q-card-section>
+                </q-card>
+              </div>
+            </div>
+
+            <!-- Niveau 1: Redirection vers la page appropriée -->
+            <div v-if="currentTenuComptesLevel === 1" class="q-gutter-md">
+              <div class="text-body2 text-center q-pa-lg">
+                <div class="text-h5 text-primary q-mb-md">
+                  {{ currentTenuComptesComponent?.description }}
+                </div>
+                <q-btn
+                  color="primary"
+                  label="Continuer"
+                  @click="navigateToTenuComptesPage"
+                  icon="arrow_forward"
+                  size="lg"
+                />
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-card-actions align="right" v-if="currentTenuComptesLevel > 0">
+            <q-btn
+              label="Retour"
+              color="secondary"
+              @click="goBackTenuComptes"
+              icon="arrow_back"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
+      <!-- Dialogue hiérarchique pour Liquidation RP -->
+      <q-dialog v-model="showLiquidationRPDialog" persistent>
+        <q-card class="q-pa-md" :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 90vw; max-width: 1200px;'">
+          <q-card-section class="row items-center q-pb-none">
+            <q-btn v-if="currentLiquidationLevel > 0" icon="arrow_back" flat round dense @click="goBackLiquidation" class="q-mr-sm" />
+            <div class="text-h6 text-primary">
+              <q-icon name="account_balance" class="q-mr-sm" />
+              <span v-if="currentLiquidationLevel === 0">Liquidation des dossiers RP</span>
+              <span v-else>{{ currentLiquidationComponent?.name }}</span>
+            </div>
+            <q-space />
+            <q-btn icon="close" flat round dense v-close-popup />
+          </q-card-section>
+
+          <q-card-section>
+            <!-- Barre outils: compteur + recherche -->
+            <div v-if="currentLiquidationLevel === 0" class="q-mb-md">
+              <div class="row items-center q-gutter-md justify-center">
+                <q-input
+                  outlined
+                  dense
+                  v-model="liquidationSearch"
+                  placeholder="Rechercher un composant de liquidation..."
+                  style="max-width: 400px; width: 100%;"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="search" />
+                  </template>
+                  <template v-slot:append>
+                    <q-btn v-if="liquidationSearch" flat dense round icon="close" @click="liquidationSearch = ''" />
+                  </template>
+                </q-input>
+              </div>
+              <div class="text-caption text-grey-7 text-center">
+                  {{ visibleLiquidationCount }} composant(s) trouvé(s)
+              </div>
+            </div>
+
+            <!-- Niveau 0: Composants de liquidation RP -->
+            <div v-if="currentLiquidationLevel === 0" class="q-gutter-md">
+              <div class="row q-col-gutter-md justify-center" :style="{ maxHeight: dialogContentHeight, overflowY: 'auto' }">
+                <q-card
+                  v-for="composant in filteredLiquidationComponents"
+                  :key="composant.id"
+                  class="q-ma-xs col-12 col-sm-6 col-md-4 col-lg-3 cursor-pointer hoverable q-mb-md"
+                  :style="{ borderRadius: '16px' }"
+                  @click="selectLiquidationComponent(composant)"
+                >
+                  <q-card-section class="text-center">
+                    <q-icon :name="composant.icon" size="48px" color="primary" class="q-mb-md" />
+                    <div class="text-h6 text-primary">{{ composant.name }}</div>
+                    <div class="text-caption text-grey-7">{{ composant.description }}</div>
+                  </q-card-section>
+                </q-card>
+              </div>
+            </div>
+
+            <!-- Niveau 1: Redirection vers la page appropriée -->
+            <div v-if="currentLiquidationLevel === 1" class="q-gutter-md">
+              <div class="text-body2 text-center q-pa-lg">
+                <div class="text-h5 text-primary q-mb-md">
+                  {{ currentLiquidationComponent?.description }}
+                </div>
+                <q-btn
+                  color="primary"
+                  label="Continuer"
+                  @click="navigateToLiquidationPage"
+                  icon="arrow_forward"
+                  size="lg"
+                />
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-card-actions align="right" v-if="currentLiquidationLevel > 0">
+            <q-btn
+              label="Retour"
+              color="secondary"
+              @click="goBackLiquidation"
+              icon="arrow_back"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
+
+      <!-- Dialogue hiérarchique pour Gestion des contrôleurs -->
+      <q-dialog v-model="showGestionControleursDialog" persistent>
+        <q-card class="q-pa-md" :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 90vw; max-width: 1200px;'">
+          <q-card-section class="row items-center q-pb-none">
+            <q-btn v-if="currentLevel > 0" icon="arrow_back" flat round dense @click="goBack" class="q-mr-sm" />
+            <div class="text-h6 text-primary">
+              <q-icon name="security" class="q-mr-sm" />
+              <span v-if="currentLevel === 0">Gestion des contrôleurs</span>
+              <span v-else-if="currentLevel === 1">{{ currentGroup?.name }}</span>
+              <span v-else>{{ currentComponent?.name }}</span>
+            </div>
+            <q-space />
+            <q-btn icon="close" flat round dense v-close-popup />
+          </q-card-section>
+
+          <q-card-section>
+
+            <!-- Barre outils: compteur + recherche (niveaux 0 et 1 sur une même ligne) -->
+            <div v-if="currentLevel === 0 || currentLevel === 1" class="q-mb-md">
+              <div class="row items-center q-gutter-md justify-center">
+                <q-input
+                  outlined
+                  dense
+                  v-model="gcSearch"
+                  :placeholder="currentLevel === 0 ? 'Rechercher un groupe…' : 'Rechercher un composant…'"
+                  style="max-width: 400px; width: 100%;"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="search" />
+                  </template>
+                  <template v-slot:append>
+                    <q-btn v-if="gcSearch" flat dense round icon="close" @click="gcSearch = ''" />
+                  </template>
+                </q-input>
+              </div>
+              <div class="text-caption text-grey-7 text-center">
+                  {{ visibleCount }} élément(s) trouvé(s)
+              </div>
+            </div>
+
+            <!-- Niveau 0: Groupes principaux -->
+            <div v-if="currentLevel === 0" class="q-gutter-md">
+              <div class="row q-col-gutter-md justify-center" :style="{ maxHeight: dialogContentHeight, overflowY: 'auto' }">
+                <q-card
+                  v-for="groupe in filteredGroupesControleurs"
+                  :key="groupe.id"
+                  class="q-ma-xs col-12 col-sm-6 col-md-4 col-lg-3 cursor-pointer hoverable q-mb-md"
+                  :style="{ borderRadius: '16px' }"
+                  @click="selectGroupe(groupe)"
+                >
+                  <q-card-section class="text-center">
+                    <q-icon :name="groupe.icon" size="48px" color="primary" class="q-mb-md" />
+                    <div class="text-h6 text-primary">{{ groupe.name }}</div>
+                    <div class="text-caption text-grey-7">{{ groupe.description }}</div>
+                  </q-card-section>
+                </q-card>
+              </div>
+            </div>
+
+            <!-- Niveau 1: Composants du groupe -->
+            <div v-if="currentLevel === 1" class="q-gutter-md">
+              <div class="text-h6 q-mb-md text-center text-primary">
+                 {{ currentGroup?.name }}
+              </div>
+              <div class="row q-col-gutter-md justify-center" :style="{ maxHeight: dialogContentHeight, overflowY: 'auto' }">
+                <q-card
+                  v-for="composant in filteredComposants"
+                  :key="composant.id"
+                  class="q-ma-xs col-12 col-sm-6 col-md-4 col-lg-3 cursor-pointer hoverable q-mb-md"
+                  :style="{ borderRadius: '16px' }"
+                  @click="selectComposant(composant)"
+                >
+                  <q-card-section class="text-center">
+                    <q-icon :name="composant.icon" size="48px" color="primary" class="q-mb-md" />
+                    <div class="text-h6 text-primary">{{ composant.name }}</div>
+                    <div class="text-caption text-grey-7">{{ composant.description }}</div>
+                  </q-card-section>
+                </q-card>
+              </div>
+            </div>
+
+            <!-- Niveau 2: Redirection vers la page appropriée -->
+            <div v-if="currentLevel === 2" class="q-gutter-md">
+              <div class="text-body2 text-center q-pa-lg">
+                <div class="text-h5 text-primary q-mb-md">
+                  {{ currentComponent?.description }}
+                </div>
+                <q-btn
+                  color="primary"
+                  label="Continuer"
+                  @click="navigateToComponentPage"
+                  icon="arrow_forward"
+                  size="lg"
+                />
+              </div>
+            </div>
+          </q-card-section>
+
+          <q-card-actions align="right" v-if="currentLevel > 0">
+            <q-btn
+              label="Retour"
+              color="secondary"
+              @click="goBack"
+              icon="arrow_back"
+            />
+          </q-card-actions>
+        </q-card>
       </q-dialog>
     </div>
   </q-page>
@@ -168,6 +452,7 @@ import ImmatAssuVol from 'components/ImmatAssuVol.vue'
 import ReceptionDossier from 'components/ReceptionDossier.vue'
 import LiquidationRP from 'components/LiquidationRP.vue'
 import LiquidationPF from 'components/liquidationPF/LiquidationPF.vue'
+import Encaissement from 'components/tenuCmptes/Encaissement.vue'
 import { useNotify } from 'components/useNotify.js'
 import LoginAssu from 'components/logins/LoginAssu.vue'
 import { useRouter } from 'vue-router'
@@ -190,6 +475,166 @@ const showReceptionDossier = ref(false)
 const showLiquidationRP = ref(false)
 
 const login = ref(false)
+
+// Variables pour le dialogue hiérarchique des contrôleurs
+const showGestionControleursDialog = ref(false)
+const currentLevel = ref(0)
+const currentGroup = ref(null)
+const currentComponent = ref(null)
+const gcSearch = ref('')
+
+// Variables pour le dialogue hiérarchique de liquidation RP
+const showLiquidationRPDialog = ref(false)
+const currentLiquidationLevel = ref(0)
+const currentLiquidationComponent = ref(null)
+const liquidationSearch = ref('')
+
+// Variables pour le dialogue hiérarchique de tenue des comptes
+const showTenuComptesDialog = ref(false)
+const currentTenuComptesLevel = ref(0)
+const currentTenuComptesComponent = ref(null)
+const tenuComptesSearch = ref('')
+
+// Structure des composants de tenue des comptes
+const tenuComptesComponents = [
+  {
+    id: 1,
+    name: 'Enregistrement encaissement',
+    description: 'Enregistrer un nouvel encaissement',
+    code: 'ENREGISTREMENT_ENCAISSEMENT',
+    icon: 'add_circle'
+  },
+  {
+    id: 2,
+    name: 'Saisie encaissement',
+    description: 'Saisir les détails d\'un encaissement',
+    code: 'SAISIE_ENCAISSEMENT',
+    icon: 'edit'
+  },
+  {
+    id: 3,
+    name: 'Suppression encaissement',
+    description: 'Supprimer un encaissement existant',
+    code: 'SUPPRESSION_ENCAISSEMENT',
+    icon: 'delete'
+  },
+  {
+    id: 4,
+    name: 'Validation encaissement',
+    description: 'Valider un encaissement',
+    code: 'VALIDATION_ENCAISSEMENT',
+    icon: 'verified'
+  }
+]
+
+// Structure des composants de liquidation RP
+const liquidationComponents = [
+  {
+    id: 1,
+    name: 'Saisie du dossier',
+    description: 'Saisir les informations du dossier de retraite',
+    code: 'SAISIE_DOSSIER_RP',
+    icon: 'edit'
+  },
+  {
+    id: 2,
+    name: 'Calcul de pension',
+    description: 'Calculer la pension de retraite',
+    code: 'CALCUL_PENSION',
+    icon: 'calculate'
+  },
+  {
+    id: 3,
+    name: 'Validation du dossier',
+    description: 'Valider le dossier de liquidation',
+    code: 'VALIDATION_DOSSIER',
+    icon: 'verified'
+  },
+  {
+    id: 4,
+    name: 'Génération arrêté',
+    description: 'Générer l\'arrêté de liquidation',
+    code: 'GENERATION_ARRETE',
+    icon: 'description'
+  },
+  {
+    id: 5,
+    name: 'Notification bénéficiaire',
+    description: 'Notifier le bénéficiaire',
+    code: 'NOTIFICATION_BENEFICIAIRE',
+    icon: 'notifications'
+  },
+  {
+    id: 6,
+    name: 'Archivage du dossier',
+    description: 'Archiver le dossier traité',
+    code: 'ARCHIVAGE_DOSSIER',
+    icon: 'archive'
+  }
+]
+
+// Structure des groupes de contrôleurs
+const groupesControleurs = [
+  {
+    id: 1,
+    name: 'Gestion des mises en demeure',
+    description: 'Gérer les mises en demeure des entreprises',
+    icon: 'warning',
+    composants: [
+      {
+        id: 1,
+        name: 'Saisie des mises en demeure',
+        description: 'Créer et saisir de nouvelles mises en demeure',
+        code: 'SAISIE_MISE_DEMEURE',
+        icon: 'edit'
+      },
+      {
+        id: 2,
+        name: 'Validation des mises en demeure',
+        description: 'Valider les mises en demeure saisies',
+        code: 'VALID_MISE_DEMEURE',
+        icon: 'check_circle'
+      },
+      {
+        id: 3,
+        name: 'Annulation des mises en demeure',
+        description: 'Annuler des mises en demeure existantes',
+        code: 'ANNULE_MISE_DEMEURE',
+        icon: 'cancel'
+      }
+    ]
+  },
+  {
+    id: 2,
+    name: 'Gestion des résultats de contrôle',
+    description: 'Gérer les résultats des contrôles effectués',
+    icon: 'assessment',
+    composants: [
+      {
+        id: 4,
+        name: 'Saisie des résultats',
+        description: 'Saisir les résultats des contrôles',
+        code: 'SAISIE_RESULTATS',
+        icon: 'edit_note'
+      },
+      {
+        id: 5,
+        name: 'Modification des rapports',
+        description: 'Modifier les rapports de contrôle existants',
+        code: 'MOD_RAPPORT_CTRLE',
+        icon: 'edit_document'
+      },
+      {
+        id: 6,
+        name: 'Validation des rapports',
+        description: 'Valider les rapports de contrôle',
+        code: 'VALID_RAPPORT_CTRLE',
+        icon: 'verified'
+      }
+    ]
+  }
+]
+
 // List of CNPS services
 const typesServices = [
   {
@@ -246,6 +691,19 @@ const typesServices = [
         description: 'services.liqpf.description',
         code: 'LIQPF',
       },
+       {
+        id: 4,
+        name: 'Tenue des comptes Cotisants',
+        description: 'services.cptco.description',
+        code: 'CPTCO',
+      },
+       {
+        id: 5,
+        name: 'Gestion des controleurs',
+        description: 'services.cptco.description',
+        code: 'GECTR',
+      },
+
     ],
   },
   {
@@ -315,7 +773,8 @@ const formDialogMap = {
   IMMAT: showImmatAssuTrv,
   FORM1: showReceptionDossier,
   FORM2: showLiquidationRP,
-  LIQPF: ref(false), // Ajout pour la gestion du nouveau service
+  LIQPF: ref(false),
+  CPTCO: ref(false) // Ajout pour la gestion du nouveau service
 }
 
 const openForm = (service) => {
@@ -326,6 +785,21 @@ const openForm = (service) => {
   } else if (selectedService.value.code === 'LIQPF') {
     formDialogMap.LIQPF.value = true
     showStepperDialog.value = true
+  } else if (selectedService.value.code === 'GECTR') {
+    // Ouvrir le dialogue hiérarchique pour la gestion des contrôleurs
+    showGestionControleursDialog.value = true
+    resetNavigation()
+    gcSearch.value = ''
+  } else if (selectedService.value.code === 'FORM2') {
+    // Ouvrir le dialogue hiérarchique pour la liquidation RP
+    showLiquidationRPDialog.value = true
+    resetLiquidationNavigation()
+    liquidationSearch.value = ''
+  } else if (selectedService.value.code === 'CPTCO') {
+    // Ouvrir le dialogue hiérarchique pour la tenue des comptes
+    showTenuComptesDialog.value = true
+    resetTenuComptesNavigation()
+    tenuComptesSearch.value = ''
   } else {
     const dialogRef = formDialogMap[service.code]
 
@@ -335,6 +809,141 @@ const openForm = (service) => {
     } else {
       notifyWarning('Formulaire non disponible pour le moment.')
     }
+  }
+}
+
+// Fonctions de navigation pour le dialogue hiérarchique des contrôleurs
+const resetNavigation = () => {
+  currentLevel.value = 0
+  currentGroup.value = null
+  currentComponent.value = null
+  gcSearch.value = ''
+}
+
+// Fonctions de navigation pour le dialogue hiérarchique de liquidation RP
+const resetLiquidationNavigation = () => {
+  currentLiquidationLevel.value = 0
+  currentLiquidationComponent.value = null
+  liquidationSearch.value = ''
+}
+
+// Fonctions de navigation pour le dialogue hiérarchique de tenue des comptes
+const resetTenuComptesNavigation = () => {
+  currentTenuComptesLevel.value = 0
+  currentTenuComptesComponent.value = null
+  tenuComptesSearch.value = ''
+}
+
+const selectGroupe = (groupe) => {
+  currentGroup.value = groupe
+  currentLevel.value = 1
+  gcSearch.value = ''
+}
+
+const selectComposant = (composant) => {
+  currentComponent.value = composant
+  currentLevel.value = 2
+}
+
+const selectLiquidationComponent = (composant) => {
+  currentLiquidationComponent.value = composant
+  currentLiquidationLevel.value = 1
+}
+
+const selectTenuComptesComponent = (composant) => {
+  currentTenuComptesComponent.value = composant
+  currentTenuComptesLevel.value = 1
+}
+
+// removed goToLevel after breadcrumb navigation was simplified
+
+const goBack = () => {
+  if (currentLevel.value > 0) {
+    currentLevel.value--
+    if (currentLevel.value === 0) {
+      currentGroup.value = null
+      currentComponent.value = null
+    } else if (currentLevel.value === 1) {
+      currentComponent.value = null
+    }
+  }
+}
+
+const goBackLiquidation = () => {
+  if (currentLiquidationLevel.value > 0) {
+    currentLiquidationLevel.value--
+    if (currentLiquidationLevel.value === 0) {
+      currentLiquidationComponent.value = null
+    }
+  }
+}
+
+const goBackTenuComptes = () => {
+  if (currentTenuComptesLevel.value > 0) {
+    currentTenuComptesLevel.value--
+    if (currentTenuComptesLevel.value === 0) {
+      currentTenuComptesComponent.value = null
+    }
+  }
+}
+
+const navigateToComponentPage = () => {
+  if (currentComponent.value) {
+    // Fermer le dialogue
+    showGestionControleursDialog.value = false
+
+    // Rediriger vers la page appropriée selon le groupe
+    if (currentGroup.value?.id === 1) {
+      // Gestion des mises en demeure
+      router.push({
+        path: '/gestion-controleurs/mise-demeure',
+        query: {
+          component: currentComponent.value.code,
+          componentName: currentComponent.value.name
+        }
+      })
+    } else if (currentGroup.value?.id === 2) {
+      // Gestion des résultats de contrôle
+      router.push({
+        path: '/gestion-controleurs/resultat-controle',
+        query: {
+          component: currentComponent.value.code,
+          componentName: currentComponent.value.name
+        }
+      })
+    }
+  }
+}
+
+const navigateToLiquidationPage = () => {
+  if (currentLiquidationComponent.value) {
+    // Fermer le dialogue
+    showLiquidationRPDialog.value = false
+
+    // Rediriger vers la page de gestion de liquidation RP
+    router.push({
+      path: '/liquidations/liquidationRP/gestionLiquidationRP',
+      query: {
+        component: currentLiquidationComponent.value.code,
+        componentName: currentLiquidationComponent.value.name
+      }
+    })
+  }
+}
+
+const navigateToTenuComptesPage = () => {
+  if (currentTenuComptesComponent.value) {
+    // Fermer le dialogue
+    showTenuComptesDialog.value = false
+
+    // Rediriger vers la page de gestion de tenue des comptes
+    router.push({
+      path: '/tenu-comptes/gestionTenuCmpt',
+      query: {
+        component: currentTenuComptesComponent.value.code,
+        componentName: currentTenuComptesComponent.value.name
+      }
+    })
   }
 }
 
@@ -354,20 +963,75 @@ const getIcon = (code) => {
       return 'warning_amber'
     case 'PRESTASSU':
       return 'note_add'
+    case 'LIQPF':
+      return 'calculate'
+    case 'CPTCO':
+      return 'account_balance'
+    case 'GECTR':
+      return 'security'
     default:
       return 'info'
   }
 }
 
-// 🔁 Appel à l’API au montage
-/* onMounted(async () => {
-  try {
-    const { data } = await axios.get('https://ton-api.com/api/services')
-    typesServices.value = data
-  } catch (error) {
-    console.error('Erreur lors du chargement des services', error)
-  }
-}) */
+// Filtres et hauteur dynamique pour le dialogue Gestion des contrôleurs
+const filteredGroupesControleurs = computed(() => {
+  const term = (gcSearch.value || '').toLowerCase().trim()
+  if (!term) return groupesControleurs
+  return groupesControleurs.filter((g) =>
+    [g.name, g.description].some((v) => (v || '').toLowerCase().includes(term))
+  )
+})
+
+const filteredComposants = computed(() => {
+  const term = (gcSearch.value || '').toLowerCase().trim()
+  const list = currentGroup.value?.composants || []
+  if (!term) return list
+  return list.filter((c) =>
+    [c.name, c.description].some((v) => (v || '').toLowerCase().includes(term))
+  )
+})
+
+const visibleCount = computed(() => {
+  if (currentLevel.value === 0) return filteredGroupesControleurs.value.length
+  if (currentLevel.value === 1) return filteredComposants.value.length
+  return 0
+})
+
+const dialogContentHeight = computed(() => {
+  const perItem = 200 // hauteur approximative d'une card + marges (augmentée)
+  const viewport = typeof window !== 'undefined' ? window.innerHeight : 800
+  const maxAvail = Math.max(400, viewport - 200) // laisser de la place pour l'entête et actions (hauteur augmentée)
+  const desired = Math.min(visibleCount.value * perItem, maxAvail)
+  return `${desired}px`
+})
+
+// Filtres pour le dialogue de liquidation RP
+const filteredLiquidationComponents = computed(() => {
+  const term = (liquidationSearch.value || '').toLowerCase().trim()
+  if (!term) return liquidationComponents
+  return liquidationComponents.filter((c) =>
+    [c.name, c.description].some((v) => (v || '').toLowerCase().includes(term))
+  )
+})
+
+const visibleLiquidationCount = computed(() => {
+  return filteredLiquidationComponents.value.length
+})
+
+// Filtres pour le dialogue de tenue des comptes
+const filteredTenuComptesComponents = computed(() => {
+  const term = (tenuComptesSearch.value || '').toLowerCase().trim()
+  if (!term) return tenuComptesComponents
+  return tenuComptesComponents.filter((c) =>
+    [c.name, c.description].some((v) => (v || '').toLowerCase().includes(term))
+  )
+})
+
+const visibleTenuComptesCount = computed(() => {
+  return filteredTenuComptesComponents.value.length
+})
+
 </script>
 
 <style scoped>
@@ -376,4 +1040,4 @@ const getIcon = (code) => {
   background-color: ghostwhite;
 }
 </style>
-``` // This is the main page of the application where users can select a type of service
+
