@@ -56,26 +56,52 @@
             class="section-container"
             default-opened
           >
-            <div class="row q-gutter-md q-pa-md">
-              <div class="col-12 col-md-6">
+            <div class="row q-gutter-sm q-pa-md justify-center">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model="formData.debutPeriodeSaisie"
-                  filled
-                  type="date"
-                  label="Début période"
-                  class="full-width"
+                  label="Début période (jj/mm/yyyy)"
+                  outlined
+                  dense
+                  class="q-mb-md field-input"
                   :rules="[val => !!val || 'Date de début requise']"
-                />
+                  readonly
+                >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer" color="primary">
+                      <q-popup-proxy transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="formData.debutPeriodeSaisie"
+                          :mask="'DD/MM/YYYY'"
+                          color="primary"
+                        />
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
               </div>
-              <div class="col-12 col-md-6">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model="formData.finPeriodeSaisie"
-                  filled
-                  type="date"
-                  label="Fin période"
-                  class="full-width"
+                  label="Fin période (jj/mm/yyyy)"
+                  outlined
+                  dense
+                  class="q-mb-md field-input"
                   :rules="[val => !!val || 'Date de fin requise']"
-                />
+                  readonly
+                >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer" color="primary">
+                      <q-popup-proxy transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="formData.finPeriodeSaisie"
+                          :mask="'DD/MM/YYYY'"
+                          color="primary"
+                        />
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
               </div>
             </div>
           </q-expansion-item>
@@ -87,24 +113,50 @@
             header-class="text-primary"
             class="section-container"
           >
-            <div class="row q-gutter-md q-pa-md">
-              <div class="col-12 col-md-6">
+            <div class="row q-gutter-sm q-pa-md justify-center">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model="formData.debutPeriodePaiement"
-                  filled
-                  type="date"
-                  label="Début période de paiement"
-                  class="full-width"
-                />
+                  label="Début période de paiement (jj/mm/yyyy)"
+                  outlined
+                  dense
+                  class="q-mb-md field-input"
+                  readonly
+                >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer" color="primary">
+                      <q-popup-proxy transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="formData.debutPeriodePaiement"
+                          :mask="'DD/MM/YYYY'"
+                          color="primary"
+                        />
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
               </div>
-              <div class="col-12 col-md-6">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model="formData.finPeriodePaiement"
-                  filled
-                  type="date"
-                  label="Fin période de paiement"
-                  class="full-width"
-                />
+                  label="Fin période de paiement (jj/mm/yyyy)"
+                  outlined
+                  dense
+                  class="q-mb-md field-input"
+                  readonly
+                >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer" color="primary">
+                      <q-popup-proxy transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="formData.finPeriodePaiement"
+                          :mask="'DD/MM/YYYY'"
+                          color="primary"
+                        />
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
               </div>
             </div>
           </q-expansion-item>
@@ -117,36 +169,39 @@
             class="section-container"
             default-opened
           >
-            <div class="row q-gutter-md q-pa-md">
-              <div class="col-12 col-md-4">
+            <div class="row q-gutter-sm q-pa-md justify-center">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model="formData.matriculeEmployeur"
-                  filled
+                  outlined
+                  dense
                   label="Matricule employeur"
-                  class="full-width"
+                  class="q-mb-md field-input"
                   clearable
                 />
               </div>
-              <div class="col-12 col-md-4">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-select
                   v-model="formData.utilisateur"
-                  filled
+                  outlined
+                  dense
                   :options="utilisateurOptions"
                   label="Utilisateur"
-                  class="full-width"
+                  class="q-mb-md field-input"
                   clearable
                   use-input
                   input-debounce="0"
                   new-value-mode="add-unique"
                 />
               </div>
-              <div class="col-12 col-md-4">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-select
                   v-model="formData.banque"
-                  filled
+                  outlined
+                  dense
                   :options="banqueOptions"
                   label="Banque"
-                  class="full-width"
+                  class="q-mb-md field-input"
                   clearable
                   use-input
                   input-debounce="0"
@@ -162,14 +217,15 @@
               <q-icon name="attach_money" class="q-mr-sm" />
               Montant total
             </div>
-            <div class="row q-gutter-md">
-              <div class="col-12 col-md-6">
+            <div class="row q-gutter-sm justify-center">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model.number="formData.montantTotal"
-                  filled
+                  outlined
+                  dense
                   label="Montant total"
                   type="number"
-                  class="full-width"
+                  class="q-mb-md field-input"
                   prefix="FCFA"
                   readonly
                   :value="calculerMontantTotal"
@@ -186,13 +242,14 @@
             </div>
 
             <!-- Filtres de recherche -->
-            <div class="row q-gutter-md q-mb-md">
-              <div class="col-12 col-md-4">
+            <div class="row q-gutter-sm q-mb-md justify-center">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model="filtres.recherche"
-                  filled
+                  outlined
+                  dense
                   label="Rechercher..."
-                  class="full-width"
+                  class="q-mb-md field-input"
                   clearable
                 >
                   <template v-slot:append>
@@ -200,23 +257,25 @@
                   </template>
                 </q-input>
               </div>
-              <div class="col-12 col-md-4">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-select
                   v-model="filtres.statut"
-                  filled
+                  outlined
+                  dense
                   :options="statutOptions"
                   label="Statut"
-                  class="full-width"
+                  class="q-mb-md field-input"
                   clearable
                 />
               </div>
-              <div class="col-12 col-md-4">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-btn
                   color="primary"
                   icon="refresh"
                   label="Actualiser"
                   @click="actualiserGrille"
-                  class="full-width"
+                  class="q-mb-md field-input"
+                  dense
                 />
               </div>
             </div>
@@ -306,106 +365,136 @@
             class="section-container"
             default-opened
           >
-            <div class="row q-gutter-md q-pa-md">
-              <div class="col-12 col-md-6">
+            <div class="row q-gutter-sm q-pa-md justify-center">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model="formData.nBulletinEmission"
-                  filled
+                  outlined
+                  dense
                   label="N° Bulletin d'émission"
-                  class="full-width"
+                  class="q-mb-md field-input"
                   clearable
                 />
               </div>
-              <div class="col-12 col-md-6">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model="formData.periodeConcernee"
-                  filled
+                  outlined
+                  dense
                   label="Période concernée"
-                  class="full-width"
+                  class="q-mb-md field-input"
                   clearable
                 />
               </div>
-            </div>
-            <div class="row q-gutter-md q-pa-md">
-              <div class="col-12 col-md-6">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model.number="formData.montantPaye"
-                  filled
+                  outlined
+                  dense
                   label="Montant payé"
                   type="number"
-                  class="full-width"
+                  class="q-mb-md field-input"
                   prefix="FCFA"
                 />
               </div>
-              <div class="col-12 col-md-6">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model="formData.referenceTitrePaiement"
-                  filled
+                  outlined
+                  dense
                   label="Référence Titre de paiement/Annulation"
-                  class="full-width"
+                  class="q-mb-md field-input"
                   clearable
                 />
               </div>
             </div>
-            <div class="row q-gutter-md q-pa-md">
-              <div class="col-12 col-md-6">
+            <div class="row q-gutter-sm q-pa-md justify-center">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model="formData.dateEffectivePaiement"
-                  filled
-                  type="date"
-                  label="Date effective de paiement/Annulation"
-                  class="full-width"
-                />
+                  label="Date effective de paiement/Annulation (jj/mm/yyyy)"
+                  outlined
+                  dense
+                  class="q-mb-md field-input"
+                  readonly
+                >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer" color="primary">
+                      <q-popup-proxy transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="formData.dateEffectivePaiement"
+                          :mask="'DD/MM/YYYY'"
+                          color="primary"
+                        />
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
               </div>
-              <div class="col-12 col-md-6">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model="formData.dateComptable"
-                  filled
-                  type="date"
-                  label="Date Comptable (établissement quittance)"
-                  class="full-width"
-                />
+                  label="Date Comptable (établissement quittance) (jj/mm/yyyy)"
+                  outlined
+                  dense
+                  class="q-mb-md field-input"
+                  readonly
+                >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer" color="primary">
+                      <q-popup-proxy transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="formData.dateComptable"
+                          :mask="'DD/MM/YYYY'"
+                          color="primary"
+                        />
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
               </div>
             </div>
-            <div class="row q-gutter-md q-pa-md">
-              <div class="col-12 col-md-6">
+            <div class="row q-gutter-sm q-pa-md justify-center">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model="formData.numeroQuittance"
-                  filled
+                  outlined
+                  dense
                   label="Numéro quittance"
-                  class="full-width"
+                  class="q-mb-md field-input"
                   clearable
                 />
               </div>
-              <div class="col-12 col-md-6">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-select
                   v-model="formData.modePaiement"
-                  filled
+                  outlined
+                  dense
                   :options="modePaiementOptions"
                   label="Mode de paiement"
-                  class="full-width"
+                  class="q-mb-md field-input"
                   clearable
                 />
               </div>
-            </div>
-            <div class="row q-gutter-md q-pa-md">
-              <div class="col-12 col-md-6">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-select
                   v-model="formData.imputationComptable"
-                  filled
+                  outlined
+                  dense
                   :options="imputationOptions"
                   label="Imputation comptable (Banque/Tier collecteur)"
-                  class="full-width"
+                  class="q-mb-md field-input"
                   clearable
                 />
               </div>
-              <div class="col-12 col-md-6">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-btn
                   color="warning"
                   icon="edit"
                   label="Corriger la ligne"
                   @click="corrigerLigne"
-                  class="full-width"
+                  class="q-mb-md field-input"
+                  dense
                 />
               </div>
             </div>
@@ -417,65 +506,67 @@
               <q-icon name="build" class="q-mr-sm" />
               Actions
             </div>
-            <div class="row q-gutter-md">
-              <div class="col-12 col-md-2">
+            <div class="row q-gutter-sm justify-center">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-btn
                   color="secondary"
                   icon="refresh"
                   label="Actualiser la grille"
                   @click="actualiserGrille"
-                  class="full-width"
-                  size="lg"
+                  class="q-mb-md field-input"
+                  dense
                 />
               </div>
-              <div class="col-12 col-md-2">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-btn
                   color="positive"
                   icon="check_circle"
                   label="Valider / Dévalider"
                   @click="validerDevalider"
-                  class="full-width"
-                  size="lg"
+                  class="q-mb-md field-input"
+                  dense
                 />
               </div>
-              <div class="col-12 col-md-2">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-btn
                   color="warning"
                   icon="clear"
                   label="Vider le formulaire"
                   @click="viderFormulaire"
-                  class="full-width"
-                  size="lg"
+                  class="q-mb-md field-input"
+                  dense
                 />
               </div>
-              <div class="col-12 col-md-2">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-btn
                   color="info"
                   icon="receipt"
                   label="Générer les quittances"
                   @click="genererQuittances"
-                  class="full-width"
-                  size="lg"
+                  class="q-mb-md field-input"
+                  dense
                 />
               </div>
-              <div class="col-12 col-md-2">
+            </div>
+            <div class="row q-gutter-sm justify-center">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-btn
                   color="accent"
                   icon="print"
                   label="Éditer les quittances"
                   @click="editerQuittances"
-                  class="full-width"
-                  size="lg"
+                  class="q-mb-md field-input"
+                  dense
                 />
               </div>
-              <div class="col-12 col-md-2">
+              <div class="col-12 col-sm-6 col-md-3">
                 <q-btn
                   color="primary"
                   icon="send"
                   label="Transmettre la quittance"
                   @click="transmettreQuittance"
-                  class="full-width"
-                  size="lg"
+                  class="q-mb-md field-input"
+                  dense
                 />
               </div>
             </div>
@@ -1139,6 +1230,11 @@ onMounted(() => {
   border: 1px solid #e9ecef;
 }
 
+.field-input {
+  max-width: 400px;
+  width: 100%;
+}
+
 .section-title {
   font-size: 1.1rem;
   font-weight: 600;
@@ -1152,11 +1248,112 @@ onMounted(() => {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 100%;
 }
 
+.encaissements-table .q-table {
+  width: 100%;
+  table-layout: fixed;
+}
+
+.encaissements-table .q-table__container {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.encaissements-table .q-table tbody td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+/* Styles généraux pour toutes les tables */
+.q-table {
+  width: 100%;
+  max-width: 100%;
+  table-layout: fixed;
+}
+
+.q-table__container {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.q-table tbody td {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 8px 12px;
+}
+
+.q-table thead th {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 8px 12px;
+}
+
+/* Amélioration du rendu des sections */
+.section-container .row {
+  width: 100%;
+  max-width: 100%;
+}
+
+.section-container .q-gutter-sm > div {
+  margin-bottom: 8px;
+}
+
+/* Amélioration de l'apparence des champs */
+.q-input, .q-select {
+  border-radius: 8px;
+}
+
+.q-btn {
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+/* Centrage des champs dans leurs colonnes */
+.col-12, .col-sm-6, .col-md-3 {
+  display: flex;
+  justify-content: center;
+}
+
+/* Amélioration de l'espacement */
+.q-gutter-sm > div {
+  margin-bottom: 8px;
+}
+
+/* Styles pour les tables avec virtual scroll comme dans les autres composants */
 .encaissements-table .q-table__top {
-  background: #f8f9fa;
-  border-bottom: 1px solid #e9ecef;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 2px solid #dee2e6;
+  padding: 0.5rem;
+}
+
+.encaissements-table .q-table thead th {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  padding: 12px 8px;
+}
+
+.encaissements-table .q-table tbody tr:hover {
+  background-color: #f0f8ff;
+  cursor: pointer;
+}
+
+.encaissements-table .q-table tbody tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.encaissements-table .q-table tbody tr:nth-child(even):hover {
+  background-color: #e3f2fd;
 }
 
 .encaissements-table .q-table__bottom {

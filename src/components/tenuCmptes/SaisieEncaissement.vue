@@ -2,13 +2,12 @@
   <div class="">
     <!-- Header Section -->
     <div class="text-center">
-      <h4 class="text-primary q-mb-sm">
+      <h6 class="text-primary q-mb-sm">
         <q-icon name="account_balance" class="q-mr-sm" />
         Formulaire de saisie des encaissements de cotisation
-      </h4>
+      </h6>
       <q-separator class="q-mb-sm" />
     </div>
-
     <q-form @submit="onSubmit" @reset="onReset" class="q-gutter-sm">
       <!-- Informations sur l'Employeur Section -->
       <q-card class="my-card">
@@ -184,7 +183,7 @@
       </q-card>
 
       <!-- Renseignements optionnels Relatifs à un moratoire Section -->
-      <q-card class="my-card">
+      <q-card class="my-card" v-show="false">
         <q-expansion-item
           v-model="expanded.moratoire"
           icon="schedule"
@@ -204,11 +203,25 @@
               <div class="col-12 col-md-4">
                 <q-input
                   v-model="formData.moratoire.dateMoratoire"
-                  label="Date du moratoire"
+                  label="Date du moratoire (jj/mm/yyyy)"
                   outlined
                   dense
-                  type="date"
-                />
+                  class="q-mb-md field-input"
+                  :rules="[val => !!val || 'La date du moratoire est requise']"
+                  readonly
+                >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer" color="primary">
+                      <q-popup-proxy transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="formData.moratoire.dateMoratoire"
+                          :mask="'DD/MM/YYYY'"
+                          color="primary"
+                        />
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
               </div>
               <div class="col-12 col-md-4">
                 <q-input
@@ -226,7 +239,7 @@
       </q-card>
 
       <!-- Renseignements optionnels Relatifs à une remise gracieuse Section -->
-      <q-card class="my-card">
+      <q-card class="my-card" v-show="false">
         <q-expansion-item
           v-model="expanded.remiseGracieuse"
           icon="favorite"
@@ -246,11 +259,25 @@
               <div class="col-12 col-md-4">
                 <q-input
                   v-model="formData.remiseGracieuse.dateRemise"
-                  label="Date de la remise"
+                  label="Date de la remise (jj/mm/yyyy)"
                   outlined
                   dense
-                  type="date"
-                />
+                  class="q-mb-md field-input"
+                  :rules="[val => !!val || 'La date de la remise est requise']"
+                  readonly
+                >
+                  <template v-slot:append>
+                    <q-icon name="event" class="cursor-pointer" color="primary">
+                      <q-popup-proxy transition-show="scale" transition-hide="scale">
+                        <q-date
+                          v-model="formData.remiseGracieuse.dateRemise"
+                          :mask="'DD/MM/YYYY'"
+                          color="primary"
+                        />
+                      </q-popup-proxy>
+                    </q-icon>
+                  </template>
+                </q-input>
               </div>
               <div class="col-12 col-md-4">
                 <q-input
@@ -359,20 +386,21 @@
             <div class="col-12 col-md-4">
               <q-input
                 v-model="formData.credit.dateEffectivePaiement"
-                label="Date effective de paiement/Annulation"
+                label="Date effective de paiement/Annulation (jj/mm/yyyy)"
                 outlined
                 dense
-                type="date"
+                class="q-mb-md field-input"
                 :rules="[val => !!val || 'Ce champ est obligatoire']"
+                readonly
               >
                 <template v-slot:append>
-                  <q-icon name="event" class="cursor-pointer">
-                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="formData.credit.dateEffectivePaiement">
-                        <div class="row items-center justify-end">
-                          <q-btn v-close-popup label="Close" color="primary" flat />
-                        </div>
-                      </q-date>
+                  <q-icon name="event" class="cursor-pointer" color="primary">
+                    <q-popup-proxy transition-show="scale" transition-hide="scale">
+                      <q-date
+                        v-model="formData.credit.dateEffectivePaiement"
+                        :mask="'DD/MM/YYYY'"
+                        color="primary"
+                      />
                     </q-popup-proxy>
                   </q-icon>
                 </template>
@@ -411,7 +439,7 @@
         <q-btn
           type="submit"
           color="primary"
-          size="lg"
+          size="md"
           icon="save"
           label="Enregistrer"
           :loading="saving"
@@ -420,7 +448,7 @@
         <q-btn
           type="reset"
           color="grey"
-          size="lg"
+          size="md"
           icon="cancel"
           label="Annuler"
           class="q-px-xl"
@@ -521,7 +549,7 @@ const beColumns = [
   {
     name: 'numeroEmployeur',
     required: true,
-    label: 'Numéro Employeur',
+    label: 'N° EMPL.',
     align: 'left',
     field: 'numeroEmployeur',
     sortable: true,
@@ -529,7 +557,7 @@ const beColumns = [
   },
   {
     name: 'raisonSociale',
-    label: 'Raison Sociale',
+    label: 'RAISON SOCIALE',
     align: 'left',
     field: 'raisonSociale',
     sortable: true,
@@ -537,35 +565,35 @@ const beColumns = [
   },
   {
     name: 'typeBE',
-    label: 'Type du BE',
+    label: 'TYPE BE',
     align: 'left',
     field: 'typeBE',
     headerStyle: 'color: #1976d2; font-size: 16px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'origineBE',
-    label: 'Origine du BE',
+    label: 'ORIGINE',
     align: 'left',
     field: 'origineBE',
     headerStyle: 'color: #1976d2; font-size: 16px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'rubriqueCotisation',
-    label: 'Rubrique cotisation',
+    label: 'RUBRIQUE',
     align: 'left',
     field: 'rubriqueCotisation',
     headerStyle: 'color: #1976d2; font-size: 16px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'periode',
-    label: 'Période',
+    label: 'PÉRIODE',
     align: 'left',
     field: 'periode',
     headerStyle: 'color: #1976d2; font-size: 16px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'total',
-    label: 'Total',
+    label: 'TOTAL',
     align: 'right',
     field: 'total',
     format: val => `${val} FCFA`,
@@ -573,14 +601,14 @@ const beColumns = [
   },
   {
     name: 'utilisateur',
-    label: 'Utilisateur',
+    label: 'USER',
     align: 'left',
     field: 'utilisateur',
     headerStyle: 'color: #1976d2; font-size: 16px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'actions',
-    label: 'Actions',
+    label: 'ACTIONS',
     align: 'center',
     field: 'actions',
     headerStyle: 'color: #1976d2; font-size: 16px; font-weight: 700; text-transform: uppercase;'
@@ -591,7 +619,7 @@ const paiementsColumns = [
   {
     name: 'numeroEmployeur',
     required: true,
-    label: 'Numéro Employeur',
+    label: 'N° EMPL.',
     align: 'left',
     field: 'numeroEmployeur',
     sortable: true,
@@ -599,14 +627,14 @@ const paiementsColumns = [
   },
   {
     name: 'referencePaiement',
-    label: 'Référence paiement',
+    label: 'RÉF. PAIEMENT',
     align: 'left',
     field: 'referencePaiement',
     headerStyle: 'color: #1976d2; font-size: 16px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'montant',
-    label: 'Montant',
+    label: 'MONTANT',
     align: 'right',
     field: 'montant',
     format: val => `${val} FCFA`,
@@ -614,42 +642,42 @@ const paiementsColumns = [
   },
   {
     name: 'banque',
-    label: 'Banque',
+    label: 'BANQUE',
     align: 'left',
     field: 'banque',
     headerStyle: 'color: #1976d2; font-size: 16px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'referenceTransaction',
-    label: 'Référence Transaction',
+    label: 'RÉF. TRANSACTION',
     align: 'left',
     field: 'referenceTransaction',
     headerStyle: 'color: #1976d2; font-size: 16px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'datePaiement',
-    label: 'Date paiement',
+    label: 'DATE PAIEMENT',
     align: 'left',
     field: 'datePaiement',
     headerStyle: 'color: #1976d2; font-size: 16px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'origine',
-    label: 'Origine',
+    label: 'ORIGINE',
     align: 'left',
     field: 'origine',
     headerStyle: 'color: #1976d2; font-size: 16px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'contact',
-    label: 'Contact',
+    label: 'CONTACT',
     align: 'left',
     field: 'contact',
     headerStyle: 'color: #1976d2; font-size: 16px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'actions',
-    label: 'Mod...',
+    label: 'MODIFIER',
     align: 'center',
     field: 'actions',
     headerStyle: 'color: #1976d2; font-size: 16px; font-weight: 700; text-transform: uppercase;'

@@ -1,36 +1,35 @@
 <template>
   <q-page class="gestion-tenu-comptes">
-    <div class="q-pa-md">
+    <div class="q-pa-xs">
       <!-- En-tête de la page -->
-      <div class="row items-center q-mb-lg">
+      <div class="row items-center">
         <div class="col">
-          <div class="text-h4 text-primary">
+          <div class="text-h6 text-primary">
             <q-icon name="account_balance" class="q-mr-md" />
             {{ currentComponentName || 'Gestion des encaissements de cotisations' }}
           </div>
-          <div class="text-subtitle1 text-grey-7">
-            {{ currentComponentDescription || 'Système de gestion des encaissements de cotisations' }}
+              <div class="text-subtitle1 text-grey-7">
+                      <div class="col-auto">
+              <q-btn
+                color="primary"
+                icon="arrow_back"
+                label="Retour"
+                @click="retourAccueil"
+                class="q-mr-sm"
+              />
+              <!-- <q-btn
+                color="primary"
+                icon="refresh"
+                label="Actualiser"
+                @click="actualiser"
+              /> -->
+            </div>
           </div>
         </div>
-        <div class="col-auto">
-          <q-btn
-            color="primary"
-            icon="arrow_back"
-            label="Retour"
-            @click="retourAccueil"
-            class="q-mr-sm"
-          />
-          <q-btn
-            color="primary"
-            icon="refresh"
-            label="Actualiser"
-            @click="actualiser"
-          />
-        </div>
-      </div>
 
+      </div>
             <!-- Affichage du composant sélectionné -->
-      <div v-if="currentComponentCode" class="q-mb-lg">
+      <div v-if="currentComponentCode" style="margin-top: ">
         <!-- Enregistrement encaissement -->
         <EnregistrementEncaissement
           v-if="currentComponentCode === 'ENREGISTREMENT_ENCAISSEMENT'"
