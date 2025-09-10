@@ -156,23 +156,46 @@
         <LiquidationPF
           v-if="formDialogMap.LIQPF.value"
           :service="selectedService"
-          @close="(() => { showStepperDialog = false; formDialogMap.LIQPF.value = false })()"
+          @close="
+            (() => {
+              showStepperDialog = false
+              formDialogMap.LIQPF.value = false
+            })()
+          "
         />
         <Encaissement
           v-if="formDialogMap.CPTCO.value"
           :service="selectedService"
-          @close="(() => { showStepperDialog = false; formDialogMap.CPTCO.value = false })()"
+          @close="
+            (() => {
+              showStepperDialog = false
+              formDialogMap.CPTCO.value = false
+            })()
+          "
         />
       </q-dialog>
 
       <!-- Dialogue hiérarchique pour Tenue des comptes -->
       <q-dialog v-model="showTenuComptesDialog" persistent>
-        <q-card class="q-pa-md" :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 90vw; max-width: 1200px;'">
+        <q-card
+          class="q-pa-md"
+          :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 90vw; max-width: 1200px;'"
+        >
           <q-card-section class="row items-center q-pb-none">
-            <q-btn v-if="currentTenuComptesLevel > 0" icon="arrow_back" flat round dense @click="goBackTenuComptes" class="q-mr-sm" />
+            <q-btn
+              v-if="currentTenuComptesLevel > 0"
+              icon="arrow_back"
+              flat
+              round
+              dense
+              @click="goBackTenuComptes"
+              class="q-mr-sm"
+            />
             <div class="text-h6 text-primary">
               <q-icon name="account_balance" class="q-mr-sm" />
-              <span v-if="currentTenuComptesLevel === 0">Gestion des encaissements de cotisations</span>
+              <span v-if="currentTenuComptesLevel === 0"
+                >Gestion des encaissements de cotisations</span
+              >
               <span v-else>{{ currentTenuComptesComponent?.name }}</span>
             </div>
             <q-space />
@@ -188,24 +211,34 @@
                   dense
                   v-model="tenuComptesSearch"
                   placeholder="Rechercher un composant de gestion des encaissements..."
-                  style="max-width: 400px; width: 100%;"
+                  style="max-width: 400px; width: 100%"
                 >
                   <template v-slot:prepend>
                     <q-icon name="search" />
                   </template>
                   <template v-slot:append>
-                    <q-btn v-if="tenuComptesSearch" flat dense round icon="close" @click="tenuComptesSearch = ''" />
+                    <q-btn
+                      v-if="tenuComptesSearch"
+                      flat
+                      dense
+                      round
+                      icon="close"
+                      @click="tenuComptesSearch = ''"
+                    />
                   </template>
                 </q-input>
               </div>
               <div class="text-caption text-grey-7 text-center">
-                  {{ visibleTenuComptesCount }} composant(s) trouvé(s)
+                {{ visibleTenuComptesCount }} composant(s) trouvé(s)
               </div>
             </div>
 
             <!-- Niveau 0: Composants de tenue des comptes -->
             <div v-if="currentTenuComptesLevel === 0" class="q-gutter-md">
-              <div class="row q-col-gutter-md justify-center" :style="{ maxHeight: dialogContentHeight, overflowY: 'auto' }">
+              <div
+                class="row q-col-gutter-md justify-center"
+                :style="{ maxHeight: dialogContentHeight, overflowY: 'auto' }"
+              >
                 <q-card
                   v-for="composant in filteredTenuComptesComponents"
                   :key="composant.id"
@@ -240,21 +273,27 @@
           </q-card-section>
 
           <q-card-actions align="right" v-if="currentTenuComptesLevel > 0">
-            <q-btn
-              label="Retour"
-              color="secondary"
-              @click="goBackTenuComptes"
-              icon="arrow_back"
-            />
+            <q-btn label="Retour" color="secondary" @click="goBackTenuComptes" icon="arrow_back" />
           </q-card-actions>
         </q-card>
       </q-dialog>
 
       <!-- Dialogue hiérarchique pour Liquidation RP -->
       <q-dialog v-model="showLiquidationRPDialog" persistent>
-        <q-card class="q-pa-md" :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 90vw; max-width: 1200px;'">
+        <q-card
+          class="q-pa-md"
+          :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 90vw; max-width: 1200px;'"
+        >
           <q-card-section class="row items-center q-pb-none">
-            <q-btn v-if="currentLiquidationLevel > 0" icon="arrow_back" flat round dense @click="goBackLiquidation" class="q-mr-sm" />
+            <q-btn
+              v-if="currentLiquidationLevel > 0"
+              icon="arrow_back"
+              flat
+              round
+              dense
+              @click="goBackLiquidation"
+              class="q-mr-sm"
+            />
             <div class="text-h6 text-primary">
               <q-icon name="account_balance" class="q-mr-sm" />
               <span v-if="currentLiquidationLevel === 0">Liquidation des dossiers RP</span>
@@ -273,24 +312,34 @@
                   dense
                   v-model="liquidationSearch"
                   placeholder="Rechercher un composant de liquidation..."
-                  style="max-width: 400px; width: 100%;"
+                  style="max-width: 400px; width: 100%"
                 >
                   <template v-slot:prepend>
                     <q-icon name="search" />
                   </template>
                   <template v-slot:append>
-                    <q-btn v-if="liquidationSearch" flat dense round icon="close" @click="liquidationSearch = ''" />
+                    <q-btn
+                      v-if="liquidationSearch"
+                      flat
+                      dense
+                      round
+                      icon="close"
+                      @click="liquidationSearch = ''"
+                    />
                   </template>
                 </q-input>
               </div>
               <div class="text-caption text-grey-7 text-center">
-                  {{ visibleLiquidationCount }} composant(s) trouvé(s)
+                {{ visibleLiquidationCount }} composant(s) trouvé(s)
               </div>
             </div>
 
             <!-- Niveau 0: Composants de liquidation RP -->
             <div v-if="currentLiquidationLevel === 0" class="q-gutter-md">
-              <div class="row q-col-gutter-md justify-center" :style="{ maxHeight: dialogContentHeight, overflowY: 'auto' }">
+              <div
+                class="row q-col-gutter-md justify-center"
+                :style="{ maxHeight: dialogContentHeight, overflowY: 'auto' }"
+              >
                 <q-card
                   v-for="composant in filteredLiquidationComponents"
                   :key="composant.id"
@@ -325,21 +374,27 @@
           </q-card-section>
 
           <q-card-actions align="right" v-if="currentLiquidationLevel > 0">
-            <q-btn
-              label="Retour"
-              color="secondary"
-              @click="goBackLiquidation"
-              icon="arrow_back"
-            />
+            <q-btn label="Retour" color="secondary" @click="goBackLiquidation" icon="arrow_back" />
           </q-card-actions>
         </q-card>
       </q-dialog>
 
       <!-- Dialogue hiérarchique pour Gestion des contrôleurs -->
       <q-dialog v-model="showGestionControleursDialog" persistent>
-        <q-card class="q-pa-md" :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 90vw; max-width: 1200px;'">
+        <q-card
+          class="q-pa-md"
+          :style="$q.screen.lt.sm ? 'width: 95vw;' : 'width: 90vw; max-width: 1200px;'"
+        >
           <q-card-section class="row items-center q-pb-none">
-            <q-btn v-if="currentLevel > 0" icon="arrow_back" flat round dense @click="goBack" class="q-mr-sm" />
+            <q-btn
+              v-if="currentLevel > 0"
+              icon="arrow_back"
+              flat
+              round
+              dense
+              @click="goBack"
+              class="q-mr-sm"
+            />
             <div class="text-h6 text-primary">
               <q-icon name="security" class="q-mr-sm" />
               <span v-if="currentLevel === 0">Gestion des contrôleurs</span>
@@ -351,7 +406,6 @@
           </q-card-section>
 
           <q-card-section>
-
             <!-- Barre outils: compteur + recherche (niveaux 0 et 1 sur une même ligne) -->
             <div v-if="currentLevel === 0 || currentLevel === 1" class="q-mb-md">
               <div class="row items-center q-gutter-md justify-center">
@@ -359,8 +413,10 @@
                   outlined
                   dense
                   v-model="gcSearch"
-                  :placeholder="currentLevel === 0 ? 'Rechercher un groupe…' : 'Rechercher un composant…'"
-                  style="max-width: 400px; width: 100%;"
+                  :placeholder="
+                    currentLevel === 0 ? 'Rechercher un groupe…' : 'Rechercher un composant…'
+                  "
+                  style="max-width: 400px; width: 100%"
                 >
                   <template v-slot:prepend>
                     <q-icon name="search" />
@@ -371,13 +427,16 @@
                 </q-input>
               </div>
               <div class="text-caption text-grey-7 text-center">
-                  {{ visibleCount }} élément(s) trouvé(s)
+                {{ visibleCount }} élément(s) trouvé(s)
               </div>
             </div>
 
             <!-- Niveau 0: Groupes principaux -->
             <div v-if="currentLevel === 0" class="q-gutter-md">
-              <div class="row q-col-gutter-md justify-center" :style="{ maxHeight: dialogContentHeight, overflowY: 'auto' }">
+              <div
+                class="row q-col-gutter-md justify-center"
+                :style="{ maxHeight: dialogContentHeight, overflowY: 'auto' }"
+              >
                 <q-card
                   v-for="groupe in filteredGroupesControleurs"
                   :key="groupe.id"
@@ -397,9 +456,12 @@
             <!-- Niveau 1: Composants du groupe -->
             <div v-if="currentLevel === 1" class="q-gutter-md">
               <div class="text-h6 q-mb-md text-center text-primary">
-                 {{ currentGroup?.name }}
+                {{ currentGroup?.name }}
               </div>
-              <div class="row q-col-gutter-md justify-center" :style="{ maxHeight: dialogContentHeight, overflowY: 'auto' }">
+              <div
+                class="row q-col-gutter-md justify-center"
+                :style="{ maxHeight: dialogContentHeight, overflowY: 'auto' }"
+              >
                 <q-card
                   v-for="composant in filteredComposants"
                   :key="composant.id"
@@ -434,12 +496,7 @@
           </q-card-section>
 
           <q-card-actions align="right" v-if="currentLevel > 0">
-            <q-btn
-              label="Retour"
-              color="secondary"
-              @click="goBack"
-              icon="arrow_back"
-            />
+            <q-btn label="Retour" color="secondary" @click="goBack" icon="arrow_back" />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -509,29 +566,29 @@ const tenuComptesComponents = [
     name: 'Enregistrement encaissement',
     description: 'Enregistrer un nouvel encaissement',
     code: 'ENREGISTREMENT_ENCAISSEMENT',
-    icon: 'add_circle'
+    icon: 'add_circle',
   },
   {
     id: 2,
     name: 'Saisie encaissement',
-    description: 'Saisir les détails d\'un encaissement',
+    description: "Saisir les détails d'un encaissement",
     code: 'SAISIE_ENCAISSEMENT',
-    icon: 'edit'
+    icon: 'edit',
   },
   {
     id: 3,
     name: 'Suppression encaissement',
     description: 'Supprimer un encaissement existant',
     code: 'SUPPRESSION_ENCAISSEMENT',
-    icon: 'delete'
+    icon: 'delete',
   },
   {
     id: 4,
     name: 'Validation encaissement',
     description: 'Valider un encaissement',
     code: 'VALIDATION_ENCAISSEMENT',
-    icon: 'verified'
-  }
+    icon: 'verified',
+  },
 ]
 
 // Structure des composants de liquidation RP
@@ -541,76 +598,47 @@ const liquidationComponents = [
     name: 'Saisie du dossier',
     description: 'Saisir les informations du dossier de retraite',
     code: 'SAISIE_DOSSIER_RP',
-    icon: 'edit'
+    icon: 'edit',
   },
   {
     id: 2,
     name: 'Calcul de pension',
     description: 'Calculer la pension de retraite',
     code: 'CALCUL_PENSION',
-    icon: 'calculate'
+    icon: 'calculate',
   },
   {
     id: 3,
     name: 'Validation du dossier',
     description: 'Valider le dossier de liquidation',
     code: 'VALIDATION_DOSSIER',
-    icon: 'verified'
+    icon: 'verified',
   },
   {
     id: 4,
     name: 'Génération arrêté',
-    description: 'Générer l\'arrêté de liquidation',
+    description: "Générer l'arrêté de liquidation",
     code: 'GENERATION_ARRETE',
-    icon: 'description'
+    icon: 'description',
   },
   {
     id: 5,
     name: 'Notification bénéficiaire',
     description: 'Notifier le bénéficiaire',
     code: 'NOTIFICATION_BENEFICIAIRE',
-    icon: 'notifications'
+    icon: 'notifications',
   },
   {
     id: 6,
     name: 'Archivage du dossier',
     description: 'Archiver le dossier traité',
     code: 'ARCHIVAGE_DOSSIER',
-    icon: 'archive'
-  }
+    icon: 'archive',
+  },
 ]
 
 // Structure des groupes de contrôleurs
 const groupesControleurs = [
-  {
-    id: 1,
-    name: 'Gestion des mises en demeure',
-    description: 'Gérer les mises en demeure des entreprises',
-    icon: 'warning',
-    composants: [
-      {
-        id: 1,
-        name: 'Saisie des mises en demeure',
-        description: 'Créer et saisir de nouvelles mises en demeure',
-        code: 'SAISIE_MISE_DEMEURE',
-        icon: 'edit'
-      },
-      {
-        id: 2,
-        name: 'Validation des mises en demeure',
-        description: 'Valider les mises en demeure saisies',
-        code: 'VALID_MISE_DEMEURE',
-        icon: 'check_circle'
-      },
-      {
-        id: 3,
-        name: 'Annulation des mises en demeure',
-        description: 'Annuler des mises en demeure existantes',
-        code: 'ANNULE_MISE_DEMEURE',
-        icon: 'cancel'
-      }
-    ]
-  },
   {
     id: 2,
     name: 'Gestion des résultats de contrôle',
@@ -622,24 +650,53 @@ const groupesControleurs = [
         name: 'Saisie des résultats',
         description: 'Saisir les résultats des contrôles',
         code: 'SAISIE_RESULTATS',
-        icon: 'edit_note'
+        icon: 'edit_note',
       },
       {
         id: 5,
         name: 'Modification des rapports',
         description: 'Modifier les rapports de contrôle existants',
         code: 'MOD_RAPPORT_CTRLE',
-        icon: 'edit_document'
+        icon: 'edit_document',
       },
       {
         id: 6,
         name: 'Validation des rapports',
         description: 'Valider les rapports de contrôle',
         code: 'VALID_RAPPORT_CTRLE',
-        icon: 'verified'
-      }
-    ]
-  }
+        icon: 'verified',
+      },
+    ],
+  },
+  {
+    id: 1,
+    name: 'Gestion des mises en demeure',
+    description: 'Gérer les mises en demeure des entreprises',
+    icon: 'warning',
+    composants: [
+      {
+        id: 1,
+        name: 'Saisie des mises en demeure',
+        description: 'Créer et saisir de nouvelles mises en demeure',
+        code: 'SAISIE_MISE_DEMEURE',
+        icon: 'edit',
+      },
+      {
+        id: 2,
+        name: 'Validation des mises en demeure',
+        description: 'Valider les mises en demeure saisies',
+        code: 'VALID_MISE_DEMEURE',
+        icon: 'check_circle',
+      },
+      {
+        id: 3,
+        name: 'Annulation des mises en demeure',
+        description: 'Annuler des mises en demeure existantes',
+        code: 'ANNULE_MISE_DEMEURE',
+        icon: 'cancel',
+      },
+    ],
+  },
 ]
 
 // List of CNPS services
@@ -704,19 +761,18 @@ const typesServices = [
         description: 'services.liqpf.description',
         code: 'LIQPF',
       },
-       {
+      {
         id: 4,
         name: 'Tenue des comptes Cotisants',
         description: 'services.cptco.description',
         code: 'CPTCO',
       },
-       {
+      {
         id: 5,
         name: 'Gestion des controleurs',
         description: 'services.cptco.description',
         code: 'GECTR',
       },
-
     ],
   },
   {
@@ -788,7 +844,7 @@ const formDialogMap = {
   FORM3: showReceptionDossierManuel,
   FORM2: showLiquidationRP,
   LIQPF: ref(false),
-  CPTCO: ref(false) // Ajout pour la gestion du nouveau service
+  CPTCO: ref(false), // Ajout pour la gestion du nouveau service
 }
 
 const openForm = (service) => {
@@ -913,8 +969,8 @@ const navigateToComponentPage = () => {
         path: '/gestion-controleurs/mise-demeure',
         query: {
           component: currentComponent.value.code,
-          componentName: currentComponent.value.name
-        }
+          componentName: currentComponent.value.name,
+        },
       })
     } else if (currentGroup.value?.id === 2) {
       // Gestion des résultats de contrôle
@@ -922,8 +978,8 @@ const navigateToComponentPage = () => {
         path: '/gestion-controleurs/resultat-controle',
         query: {
           component: currentComponent.value.code,
-          componentName: currentComponent.value.name
-        }
+          componentName: currentComponent.value.name,
+        },
       })
     }
   }
@@ -939,8 +995,8 @@ const navigateToLiquidationPage = () => {
       path: '/liquidations/liquidationRP/gestionLiquidationRP',
       query: {
         component: currentLiquidationComponent.value.code,
-        componentName: currentLiquidationComponent.value.name
-      }
+        componentName: currentLiquidationComponent.value.name,
+      },
     })
   }
 }
@@ -955,8 +1011,8 @@ const navigateToTenuComptesPage = () => {
       path: '/tenu-comptes/gestionTenuCmpt',
       query: {
         component: currentTenuComptesComponent.value.code,
-        componentName: currentTenuComptesComponent.value.name
-      }
+        componentName: currentTenuComptesComponent.value.name,
+      },
     })
   }
 }
@@ -995,7 +1051,7 @@ const filteredGroupesControleurs = computed(() => {
   const term = (gcSearch.value || '').toLowerCase().trim()
   if (!term) return groupesControleurs
   return groupesControleurs.filter((g) =>
-    [g.name, g.description].some((v) => (v || '').toLowerCase().includes(term))
+    [g.name, g.description].some((v) => (v || '').toLowerCase().includes(term)),
   )
 })
 
@@ -1004,7 +1060,7 @@ const filteredComposants = computed(() => {
   const list = currentGroup.value?.composants || []
   if (!term) return list
   return list.filter((c) =>
-    [c.name, c.description].some((v) => (v || '').toLowerCase().includes(term))
+    [c.name, c.description].some((v) => (v || '').toLowerCase().includes(term)),
   )
 })
 
@@ -1027,7 +1083,7 @@ const filteredLiquidationComponents = computed(() => {
   const term = (liquidationSearch.value || '').toLowerCase().trim()
   if (!term) return liquidationComponents
   return liquidationComponents.filter((c) =>
-    [c.name, c.description].some((v) => (v || '').toLowerCase().includes(term))
+    [c.name, c.description].some((v) => (v || '').toLowerCase().includes(term)),
   )
 })
 
@@ -1040,14 +1096,13 @@ const filteredTenuComptesComponents = computed(() => {
   const term = (tenuComptesSearch.value || '').toLowerCase().trim()
   if (!term) return tenuComptesComponents
   return tenuComptesComponents.filter((c) =>
-    [c.name, c.description].some((v) => (v || '').toLowerCase().includes(term))
+    [c.name, c.description].some((v) => (v || '').toLowerCase().includes(term)),
   )
 })
 
 const visibleTenuComptesCount = computed(() => {
   return filteredTenuComptesComponents.value.length
 })
-
 </script>
 
 <style scoped>
@@ -1056,4 +1111,3 @@ const visibleTenuComptesCount = computed(() => {
   background-color: ghostwhite;
 }
 </style>
-

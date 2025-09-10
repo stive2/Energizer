@@ -81,9 +81,9 @@
               <q-btn label="Afficher" color="primary" unelevated @click="control" />
             </div>
 
-            <!-- Bouton Valider -->
+            <!-- Bouton Annuler -->
             <div class="col-2">
-              <q-btn label="Valider" color="secondary" unelevated type="submit" />
+              <q-btn label="Annuler" color="secondary" unelevated type="submit" />
             </div>
 
             <!-- Champ caché txtnumempl -->

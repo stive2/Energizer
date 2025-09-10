@@ -4,7 +4,8 @@
     <!-- Fil d'ariane informatif (non interactif) -->
     <div class="text-caption text-primary font-weight-bold q-mb-sm">
       <q-icon name="home" class="q-mr-xs" />
-      Accueil > Gestion des contrôleurs > Mises en demeure<span v-if="currentComponent"> > {{ componentName }}</span>
+      {{ $t('breadcrumbs.home') }} > {{ $t('breadcrumbs.controller_management') }} > Mises en
+      demeure<span v-if="currentComponent"> > {{ componentName }}</span>
     </div>
 
     <div class="row items-start">
@@ -16,18 +17,18 @@
         size="sm"
         label="Retour"
       />
-
     </div>
     <div class="text-center">
-        <h6 class="text-h6 text-primary q-mb-none">{{ currentComponent ? componentName : 'Gestion des Mises en Demeure' }}</h6>
-        <p class="text-subtitle2 text-grey-7 q-ma-none">
-          {{ currentComponent ? getComponentDescription() : '' }}
-        </p>
-      </div>
+      <h6 class="text-h6 text-primary q-mb-none">
+        {{ currentComponent ? componentName : 'Gestion des Mises en Demeure' }}
+      </h6>
+      <p class="text-subtitle2 text-grey-7 q-ma-none">
+        {{ currentComponent ? getComponentDescription() : '' }}
+      </p>
+    </div>
 
     <!-- Sélection du composant si aucun n'est sélectionné -->
     <div v-if="!currentComponent">
-
       <!-- Filtre de recherche -->
       <div class="row justify-center q-mb-sm">
         <q-input
@@ -35,14 +36,22 @@
           dense
           v-model="searchFilter"
           placeholder="Recherche"
-          style="max-width: 350px; width: 100%;"
+          style="max-width: 350px; width: 100%"
           class="search-input"
         >
           <template v-slot:prepend>
             <q-icon name="search" />
           </template>
           <template v-slot:append>
-            <q-btn v-if="searchFilter" flat dense round icon="close" @click="searchFilter = ''" size="xs" />
+            <q-btn
+              v-if="searchFilter"
+              flat
+              dense
+              round
+              icon="close"
+              @click="searchFilter = ''"
+              size="xs"
+            />
           </template>
         </q-input>
       </div>
@@ -63,7 +72,9 @@
           >
             <q-card-section class="text-center q-pa-md">
               <q-icon :name="composant.icon" size="48px" color="primary" class="q-mb-sm" />
-              <div class="text-subtitle1 text-primary q-mb-xs font-weight-medium">{{ composant.name }}</div>
+              <div class="text-subtitle1 text-primary q-mb-xs font-weight-medium">
+                {{ composant.name }}
+              </div>
               <div class="text-body2 text-grey-7 description-text">{{ composant.description }}</div>
             </q-card-section>
           </q-card>
@@ -89,6 +100,16 @@
         <div v-else-if="currentComponent === 'ANNULE_MISE_DEMEURE'">
           <AnnuleMiseDemeure />
         </div>
+
+        <!-- Annulation des mises en demeure -->
+        <div v-else-if="currentComponent === 'NOTIFY_MISE_DEMEURE'">
+          <NotifMiseDemeure />
+        </div>
+
+        <!-- Annulation des mises en demeure -->
+        <div v-else-if="currentComponent === 'CONSULT_MISE_DEMEURE'">
+          <ConsultMiseDemeure />
+        </div>
       </div>
     </div>
   </q-page>
@@ -100,6 +121,8 @@ import { useRoute, useRouter } from 'vue-router'
 import SaisieMiseDemeure from 'components/gestionsControleurs/miseDemeure/SaisieMiseDemeure.vue'
 import ValidMiseDemeure from 'components/gestionsControleurs/miseDemeure/ValidMiseDemeure.vue'
 import AnnuleMiseDemeure from 'components/gestionsControleurs/miseDemeure/AnnuleMiseDemeure.vue'
+import NotifMiseDemeure from 'components/gestionsControleurs/miseDemeure/NotifMiseDemeure.vue'
+import ConsultMiseDemeure from 'components/gestionsControleurs/miseDemeure/ConsultMiseDemeure.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -116,27 +139,41 @@ const composantsMiseDemeure = [
     name: 'Saisie des mises en demeure',
     description: 'Créer et saisir de nouvelles mises en demeure',
     code: 'SAISIE_MISE_DEMEURE',
-    icon: 'edit'
+    icon: 'edit',
   },
   {
     id: 2,
     name: 'Validation des mises en demeure',
     description: 'Valider les mises en demeure saisies',
     code: 'VALID_MISE_DEMEURE',
-    icon: 'check_circle'
+    icon: 'check_circle',
   },
   {
     id: 3,
     name: 'Annulation des mises en demeure',
     description: 'Annuler des mises en demeure existantes',
     code: 'ANNULE_MISE_DEMEURE',
-    icon: 'cancel'
-  }
+    icon: 'cancel',
+  },
+  {
+    id: 4,
+    name: 'Notification des mises en demeure',
+    description: 'Notifier les mises en demeure',
+    code: 'NOTIFY_MISE_DEMEURE',
+    icon: 'send',
+  },
+  {
+    id: 5,
+    name: 'Consultation des mises en demeure',
+    description: 'Consulter les mises en demeure',
+    code: 'CONSULT_MISE_DEMEURE',
+    icon: 'folder',
+  },
 ]
 
 // Computed
 const getComponentDescription = () => {
-  const composant = composantsMiseDemeure.find(c => c.code === currentComponent.value)
+  const composant = composantsMiseDemeure.find((c) => c.code === currentComponent.value)
   return composant ? composant.description : ''
 }
 
@@ -144,7 +181,7 @@ const filteredComposants = computed(() => {
   const term = (searchFilter.value || '').toLowerCase().trim()
   if (!term) return composantsMiseDemeure
   return composantsMiseDemeure.filter((c) =>
-    [c.name, c.description].some((v) => (v || '').toLowerCase().includes(term))
+    [c.name, c.description].some((v) => (v || '').toLowerCase().includes(term)),
   )
 })
 
@@ -154,7 +191,7 @@ const selectComposant = (composant) => {
   componentName.value = composant.name
   router.replace({
     path: route.path,
-    query: { ...route.query, component: composant.code, componentName: composant.name }
+    query: { ...route.query, component: composant.code, componentName: composant.name },
   })
 }
 
@@ -195,7 +232,7 @@ watch(
       componentName.value = ''
     }
   },
-  { deep: true }
+  { deep: true },
 )
 </script>
 

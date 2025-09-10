@@ -47,47 +47,81 @@
         </div>
       </q-card>
 
-      <q-form @submit.prevent="onSubmit">
+      <q-form @submit.prevent="onSubmit" ref="form001">
         <q-card flat bordered class="q-pa-md">
-          <div class="row q-col-gutter-md items-center">
-            <!-- Champ caché nbmois -->
-            <q-input v-model="formValid.nbmois" type="hidden" />
-
-            <!-- Controle N° -->
+          <div class="row q-col-gutter-md items-center q-mb-md">
+            <!-- Rapport N° -->
             <div class="col-3">
               <q-input
-                v-model="formValid.numControle"
-                label="Controle N°"
+                v-model="formValid.numRapportCtrl"
+                label="Rapport N°"
                 outlined
                 dense
                 readonly
               />
             </div>
 
-            <!-- Type de rapport -->
+            <!-- MED N° -->
             <div class="col-3">
+              <q-input v-model="formValid.numMed" label="MED N°" outlined dense readonly />
+            </div>
+
+            <!-- Control N° (hidden) -->
+            <q-input v-model="formValid.numEmploye" type="hidden" />
+
+            <!-- Num Rapport -->
+            <div class="col-2">
+              <q-input v-model="formValid.numRapport" label="Control N°" outlined dense readonly />
+            </div>
+
+            <!-- Type de rapport -->
+            <div class="col-2">
               <q-select
                 v-model="formValid.reportType"
                 :options="reportOptions"
                 label="Type de rapport"
                 outlined
                 dense
-                :rules="[required]"
               />
             </div>
 
             <!-- Bouton Afficher -->
-            <div class="col-2">
+            <div class="col-1">
               <q-btn label="Afficher" color="primary" unelevated @click="control" />
             </div>
+          </div>
 
-            <!-- Bouton Valider -->
-            <div class="col-2">
-              <q-btn label="Valider" color="secondary" unelevated type="submit" />
+          <!-- Ligne Date / Decharge / Notifier -->
+          <div class="row q-col-gutter-md items-center">
+            <!-- Date notification -->
+            <div class="col-4">
+              <q-input v-model="formValid.dateNotify" label="Date" outlined dense mask="##/##/####">
+                <template v-slot:append>
+                  <q-icon name="event" class="cursor-pointer">
+                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                      <q-date v-model="formValid.dateNotify" mask="DD/MM/YYYY">
+                        <div class="row items-center justify-end">
+                          <q-btn v-close-popup label="Fermer" color="primary" flat />
+                        </div>
+                      </q-date>
+                    </q-popup-proxy>
+                  </q-icon>
+                </template>
+              </q-input>
             </div>
 
-            <!-- Champ caché txtnumempl -->
-            <q-input v-model="formValid.numEmploye" type="hidden" />
+            <!-- Date du jour (hidden) -->
+            <q-input v-model="formValid.dateJour" type="hidden" />
+
+            <!-- Decharge -->
+            <div class="col-6">
+              <q-input v-model="formValid.userDecharge" label="Decharge" outlined dense />
+            </div>
+
+            <!-- Bouton Notifier -->
+            <div class="col-1">
+              <q-btn label="Notifier" color="secondary" unelevated type="submit" />
+            </div>
           </div>
         </q-card>
       </q-form>
@@ -555,10 +589,14 @@ const afficher = ref(false)
 const { t, locale } = useI18n()
 
 const formValid = ref({
-  nbmois: '',
-  numControle: '',
-  reportType: '', // valeur par défaut
+  numRapportCtrl: '',
+  numMed: '',
   numEmploye: '',
+  numRapport: '',
+  reportType: 'rap', // valeur par défaut
+  dateNotify: '',
+  dateJour: '07/09/2025',
+  userDecharge: '',
 })
 
 // Données du formulaire
@@ -633,6 +671,7 @@ const columns2 = [
   { name: 'centre', label: 'CENTRE', field: 'centre', align: 'center' },
   { name: 'controleur', label: 'CONTROLEUR', field: 'controleur', align: 'left' },
   { name: 'dateControle', label: 'DATE CONTROLE', field: 'dateControle', align: 'left' },
+  { name: 'numMed', label: 'N° MED', field: 'numMed', align: 'left' },
 ]
 
 const rows = ref([])
@@ -737,6 +776,9 @@ watch(selectedRow, (newVal) => {
   const row = newVal[0]
 
   formValid.value.numControle = row.numControle
+  formValid.value.numRapportCtrl = row.numControle
+  formValid.value.numRapport = row.numControle
+  formValid.value.numMed = row.numControle
   formData.value.numDemande = row.numDemande
   formData.value.numControle = row.numControle
   formData.value.dateDemande = row.dateOrdo

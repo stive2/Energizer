@@ -18,18 +18,19 @@
               />
             </div>
 
-            <div class="col-2 flex flex-center">
-              <q-btn :label="t('labels.recherche')" color="primary" type="submit" />
+            <div class="col-4">
+              <q-input
+                v-model="formSearch.exercice"
+                :label="t('labels.exercice')"
+                outlined
+                mask="####"
+                dense
+                :rules="[required]"
+              />
             </div>
 
-            <div class="col-6">
-              <q-input
-                v-model="formData.employeur"
-                :label="t('labels.raisonsociale')"
-                outlined
-                dense
-                readonly=""
-              />
+            <div class="col-2 flex flex-center">
+              <q-btn :label="t('labels.recherche')" color="primary" type="submit" />
             </div>
           </div>
         </q-form>
@@ -83,7 +84,7 @@
 
             <!-- Bouton Valider -->
             <div class="col-2">
-              <q-btn label="Valider" color="secondary" unelevated type="submit" />
+              <q-btn label="Editer" color="secondary" unelevated type="submit" />
             </div>
 
             <!-- Champ caché txtnumempl -->
@@ -694,10 +695,10 @@ const rowsData = [
 
 const searchDemande = async () => {
   // Vérification des champs obligatoires
-  if (!formSearch.value.numEmployeur) {
+  if (!formSearch.value.numEmployeur || !formSearch.value.exercice) {
     $q.notify({
       type: 'warning',
-      message: 'Veuillez renseigner le N° Employeur',
+      message: 'Veuillez renseigner le N° Employeur et l’Exercice avant la recherche.',
     })
     return // on sort de la fonction si les champs sont vides
   }
@@ -784,7 +785,7 @@ const onSubmit = async () => {
 
     $q.notify({
       type: 'positive',
-      message: 'Validation du contrôle enregistré avec succès !',
+      message: 'Fichier en cours de téléchargement !',
     })
     // console.log('Réponse API :', response.data)
     resetForm()

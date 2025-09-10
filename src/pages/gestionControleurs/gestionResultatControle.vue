@@ -4,7 +4,9 @@
     <!-- Fil d'ariane informatif (non interactif) -->
     <div class="text-caption text-primary q-mb-sm font-weight-bold">
       <q-icon name="home" class="q-mr-xs" />
-      Accueil > Gestion des contrôleurs > Résultats de contrôle<span v-if="currentComponent"> > {{ componentName }}</span>
+      {{ $t('breadcrumbs.home') }} > {{ $t('breadcrumbs.controller_management') }} >
+      {{ $t('breadcrumbs.control_results') }}
+      <span v-if="currentComponent"> > {{ componentName }}</span>
     </div>
 
     <div class="row items-start">
@@ -14,40 +16,49 @@
         @click="goBack"
         class="q-mr-sm"
         size="sm"
-        label="Retour"
+        :label="$t('buttons.back')"
       />
     </div>
     <div class="text-center">
-        <h6 class="text-h6 text-primary q-mb-none">{{ currentComponent ? componentName : 'Gestion des Résultats de Contrôle' }}</h6>
-        <p class="text-subtitle2 text-grey-7 q-ma-none">
-          {{ currentComponent ? getComponentDescription() : '' }}
-        </p>
-      </div>
+      <h6 class="text-h6 text-primary q-mb-none">
+        {{ currentComponent ? componentName : $t('titles.control_results_management') }}
+      </h6>
+      <p class="text-subtitle2 text-grey-7 q-ma-none">
+        {{ currentComponent ? getComponentDescription() : '' }}
+      </p>
+    </div>
     <!-- Sélection du composant si aucun n'est sélectionné -->
     <div v-if="!currentComponent">
-
       <!-- Filtre de recherche -->
       <div class="row justify-center q-mb-sm">
         <q-input
           outlined
           dense
           v-model="searchFilter"
-          placeholder="Recherche"
-          style="max-width: 350px; width: 100%;"
+          :placeholder="$t('placeholders.search')"
+          style="max-width: 350px; width: 100%"
           class="search-input"
         >
           <template v-slot:prepend>
             <q-icon name="search" />
           </template>
           <template v-slot:append>
-            <q-btn v-if="searchFilter" flat dense round icon="close" @click="searchFilter = ''" size="xs" />
+            <q-btn
+              v-if="searchFilter"
+              flat
+              dense
+              round
+              icon="close"
+              @click="searchFilter = ''"
+              size="xs"
+            />
           </template>
         </q-input>
       </div>
 
       <!-- Compteur d'éléments -->
       <div class="text-caption text-grey-7 text-center q-mb-sm">
-        {{ filteredComposants.length }} composant(s) trouvé(s)
+        {{ filteredComposants.length }} {{ $t('labels.components_found') }}
       </div>
 
       <!-- Grille des composants - 4 par ligne -->
@@ -61,7 +72,9 @@
           >
             <q-card-section class="text-center q-pa-md">
               <q-icon :name="composant.icon" size="48px" color="primary" class="q-mb-sm" />
-              <div class="text-subtitle1 text-primary q-mb-xs font-weight-medium">{{ composant.name }}</div>
+              <div class="text-subtitle1 text-primary q-mb-xs font-weight-medium">
+                {{ composant.name }}
+              </div>
               <div class="text-body2 text-grey-7 description-text">{{ composant.description }}</div>
             </q-card-section>
           </q-card>
@@ -87,6 +100,21 @@
         <div v-else-if="currentComponent === 'VALID_RAPPORT_CTRLE'">
           <ValidRapportCtrle />
         </div>
+
+        <!-- annulation des rapports -->
+        <div v-else-if="currentComponent === 'CANCEL_RAPPORT_CTRLE'">
+          <AnnulerRapportCtrle />
+        </div>
+
+        <!-- notification des rapports -->
+        <div v-else-if="currentComponent === 'NOTIFY_RAPPORT_CTRLE'">
+          <NotifierRapportCtrle />
+        </div>
+
+        <!-- notification des rapports -->
+        <div v-else-if="currentComponent === 'CONSULT_RAPPORT_CTRLE'">
+          <ConsultRapportCtrle />
+        </div>
       </div>
     </div>
   </q-page>
@@ -98,6 +126,9 @@ import { useRoute, useRouter } from 'vue-router'
 import SaisieResultats from 'components/gestionsControleurs/resultatsControles/SaisieResultats.vue'
 import ModRapportCtrle from 'components/gestionsControleurs/resultatsControles/ModRapportCtrle.vue'
 import ValidRapportCtrle from 'components/gestionsControleurs/resultatsControles/ValidRapportCtrle.vue'
+import AnnulerRapportCtrle from 'components/gestionsControleurs/resultatsControles/AnnulerRapportCtrle.vue'
+import NotifierRapportCtrle from 'components/gestionsControleurs/resultatsControles/NotifierRapportCtrle.vue'
+import ConsultRapportCtrle from 'components/gestionsControleurs/resultatsControles/ConsultRapportCtrle.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -114,27 +145,48 @@ const composantsResultatControle = [
     name: 'Saisie des résultats',
     description: 'Saisir les résultats des contrôles',
     code: 'SAISIE_RESULTATS',
-    icon: 'edit_note'
+    icon: 'edit_note',
   },
   {
     id: 2,
     name: 'Modification des rapports',
     description: 'Modifier les rapports de contrôle existants',
     code: 'MOD_RAPPORT_CTRLE',
-    icon: 'edit_document'
+    icon: 'edit_document',
   },
   {
     id: 3,
     name: 'Validation des rapports',
     description: 'Valider les rapports de contrôle',
     code: 'VALID_RAPPORT_CTRLE',
-    icon: 'verified'
-  }
+    icon: 'verified',
+  },
+  {
+    id: 4,
+    name: 'Annulation des rapports',
+    description: 'Annuler des rapports de contrôle',
+    code: 'CANCEL_RAPPORT_CTRLE',
+    icon: 'cancel',
+  },
+  {
+    id: 5,
+    name: 'Notification des rapports',
+    description: 'Notifier les rapports de contrôle',
+    code: 'NOTIFY_RAPPORT_CTRLE',
+    icon: 'send',
+  },
+  {
+    id: 6,
+    name: 'Consultation des résultats de contrôles employeur',
+    description: 'Consulter les résultats de contrôle',
+    code: 'CONSULT_RAPPORT_CTRLE',
+    icon: 'folder',
+  },
 ]
 
 // Computed
 const getComponentDescription = () => {
-  const composant = composantsResultatControle.find(c => c.code === currentComponent.value)
+  const composant = composantsResultatControle.find((c) => c.code === currentComponent.value)
   return composant ? composant.description : ''
 }
 
@@ -142,7 +194,7 @@ const filteredComposants = computed(() => {
   const term = (searchFilter.value || '').toLowerCase().trim()
   if (!term) return composantsResultatControle
   return composantsResultatControle.filter((c) =>
-    [c.name, c.description].some((v) => (v || '').toLowerCase().includes(term))
+    [c.name, c.description].some((v) => (v || '').toLowerCase().includes(term)),
   )
 })
 
@@ -152,7 +204,7 @@ const selectComposant = (composant) => {
   componentName.value = composant.name
   router.replace({
     path: route.path,
-    query: { ...route.query, component: composant.code, componentName: composant.name }
+    query: { ...route.query, component: composant.code, componentName: composant.name },
   })
 }
 
@@ -193,7 +245,7 @@ watch(
       componentName.value = ''
     }
   },
-  { deep: true }
+  { deep: true },
 )
 </script>
 

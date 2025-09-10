@@ -19,17 +19,6 @@
                 />
               </div>
 
-              <div class="col-4">
-                <q-input
-                  v-model="formSearch.exercice"
-                  :label="t('labels.exercice')"
-                  outlined
-                  mask="####"
-                  dense
-                  :rules="[required]"
-                />
-              </div>
-
               <div class="col-4 flex flex-center">
                 <q-btn :label="t('labels.recherche')" color="primary" type="submit" />
               </div>
@@ -57,7 +46,7 @@
           <div class="row q-col-gutter-md">
             <div class="col-3">
               <q-input
-                v-model="formData.numEmployeur"
+                v-model="formData.txtnumemployeur"
                 :label="t('labels.numEmployeur')"
                 outlined
                 dense
@@ -66,7 +55,7 @@
             </div>
             <div class="col-9">
               <q-input
-                v-model="formData.raisonSociale"
+                v-model="formData.raisonsociale"
                 :label="t('labels.raisonsociale')"
                 outlined
                 dense
@@ -75,100 +64,37 @@
             </div>
           </div>
 
-          <!-- Ligne 2 -->
-          <div class="row q-col-gutter-md q-mt-md">
-            <div class="col-3">
-              <q-input
-                v-model="formData.dateDebut"
-                :label="t('labels.dateDebut')"
-                outlined
-                dense
-                :rules="[required]"
-                :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
-              >
-                <template v-slot:append>
-                  <q-icon name="event" class="cursor-pointer">
-                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="formData.dateDebut" mask="DD/MM/YYYY">
-                        <div class="row items-center justify-end">
-                          <q-btn v-close-popup :label="t('labels.fermer')" color="primary" flat />
-                        </div>
-                      </q-date>
-                    </q-popup-proxy>
-                  </q-icon>
-                </template>
-              </q-input>
-            </div>
-
-            <div class="col-3">
-              <q-input
-                v-model="formData.dateFin"
-                :label="t('labels.dateFin')"
-                outlined
-                dense
-                :rules="[required]"
-                :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
-              >
-                <template v-slot:append>
-                  <q-icon name="event" class="cursor-pointer">
-                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="formData.dateFin" mask="DD/MM/YYYY">
-                        <div class="row items-center justify-end">
-                          <q-btn v-close-popup :label="t('labels.fermer')" color="primary" flat />
-                        </div>
-                      </q-date>
-                    </q-popup-proxy>
-                  </q-icon>
-                </template>
-              </q-input>
-            </div>
-
-            <div class="col-6 flex flex-center text-grey">
-              NB: {{ t('labels.infoControleDate') }}
-            </div>
-          </div>
-
           <!-- Ligne 3 -->
           <div class="row q-col-gutter-md q-mt-md">
-            <div class="col-4">
-              <q-select
-                v-model="formData.codeMotif"
-                :options="motifs"
+            <div class="col-6">
+              <q-input
+                v-model="formData.txtmotif"
                 :label="t('labels.motif')"
                 outlined
-                :rules="[required]"
                 dense
+                readonly
               />
             </div>
-            <div class="col-8">
+            <div class="col-6">
               <q-input
-                v-model="formData.observations"
-                :label="t('labels.observations')"
+                v-model="formData.txtreference"
+                :label="t('labels.reference')"
                 outlined
                 dense
-                :rules="[required]"
+                readonly
               />
             </div>
           </div>
 
-          <!-- Ligne 4 -->
+          <!-- Ligne 5 -->
           <div class="row q-col-gutter-md q-mt-md">
-            <div class="col-8">
-              <q-input
-                v-model="formData.destinataire"
-                :label="t('labels.destinataire')"
-                outlined
-                dense
-                :rules="[required]"
-              />
-            </div>
             <div class="col-4">
               <q-input
-                v-model="formData.dateMED"
+                v-model="formData.date_saisie"
                 :label="t('labels.dateMED')"
                 outlined
                 dense
-                :rules="[required]"
+                readonly
                 :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
               >
                 <template v-slot:append>
@@ -184,23 +110,54 @@
                 </template>
               </q-input>
             </div>
-          </div>
-
-          <!-- Ligne 5 -->
-          <div class="row q-col-gutter-md q-mt-md">
-            <div class="col-6">
+            <div class="col-4">
               <q-input
-                v-model="formData.numMED"
+                v-model="formData.txtnumMED"
                 :label="t('labels.numMED')"
                 outlined
                 dense
-                :rules="[required]"
+                readonly
               />
+            </div>
+            <div class="col-4">
+              <q-input
+                v-model="formData.txtmontant"
+                :label="t('labels.montantTotal')"
+                outlined
+                dense
+                readonly
+              />
+            </div>
+          </div>
+
+          <!-- Ligne 3 -->
+          <div class="row q-col-gutter-md q-mt-md">
+            <div class="col-6">
+              <q-input
+                v-model="formData.datenotify"
+                :label="t('labels.dateNotif')"
+                outlined
+                dense
+                :rules="[required]"
+                :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
+              >
+                <template v-slot:append>
+                  <q-icon name="event" class="cursor-pointer">
+                    <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                      <q-date v-model="formData.datenotify" mask="DD/MM/YYYY">
+                        <div class="row items-center justify-end">
+                          <q-btn v-close-popup :label="t('labels.fermer')" color="primary" flat />
+                        </div>
+                      </q-date>
+                    </q-popup-proxy>
+                  </q-icon>
+                </template>
+              </q-input>
             </div>
             <div class="col-6">
               <q-input
-                v-model="formData.montantTotal"
-                :label="t('labels.montantTotal')"
+                v-model="formData.txtuserdecharge"
+                :label="t('labels.decharge')"
                 outlined
                 dense
                 :rules="[required]"
@@ -220,29 +177,14 @@
             bordered
             dense
           >
-            <template v-slot:top-right>
-              <q-btn
-                color="primary"
-                icon="add"
-                :label="t('labels.ajouterLigne')"
-                @click="ajouterLigneDetail"
-                dense
-              />
-              <q-btn
-                :label="$t('monthly_summary.remove_last')"
-                color="negative"
-                class="q-ml-md"
-                @click="removeRow"
-              />
-            </template>
             <template v-slot:body-cell-libelle="props">
               <q-td :props="props">
-                <q-input v-model="props.row.libelle" dense outlined />
+                <q-input v-model="props.row.libelle" dense outlined readonly />
               </q-td>
             </template>
             <template v-slot:body-cell-montant="props">
               <q-td :props="props">
-                <q-input v-model="props.row.montant" dense outlined />
+                <q-input v-model="props.row.montant" dense outlined readonly />
               </q-td>
             </template>
           </q-table>
@@ -250,12 +192,7 @@
 
         <!-- Boutons -->
         <div class="row justify-center q-mt-lg">
-          <q-btn
-            :label="t('labels.enregistrer')"
-            color="primary"
-            type="submit"
-            :loading="loading"
-          />
+          <q-btn label="Notifier" color="primary" type="submit" :loading="loading" />
           <q-btn
             :label="t('labels.reinitialiser')"
             color="warning"
@@ -295,16 +232,18 @@ const { t, locale } = useI18n()
 
 // Données du formulaire
 const formData = ref({
-  numEmployeur: '',
-  raisonSociale: '',
+  txtnumemployeur: '',
+  raisonsociale: '',
   dateDebut: '',
   dateFin: '',
-  codeMotif: '',
-  observations: '',
+  txtmotif: '',
+  txtreference: '',
   destinataire: '',
-  dateMED: '',
-  numMED: '',
-  montantTotal: 0,
+  date_saisie: '',
+  txtnumMED: '',
+  txtmontant: 0,
+  datenotify: '',
+  txtuserdecharge: '',
   lignes: [],
 })
 
@@ -314,37 +253,11 @@ const formSearch = ref({
 })
 
 // Options
-const motifs = [
-  { label: 'Insuffisance de versement', value: 'MD01' },
-  { label: 'Suite à contrôle', value: 'MD02' },
-  { label: 'Remise gracieuse', value: 'MD03' },
-  { label: 'Autres', value: 'MD04' },
-  { label: 'Non paiement cotisations', value: 'MD05' },
-]
 
 const columnsDetailMD = [
   { name: 'libelle', label: 'Libellé', field: 'libelle', align: 'left' },
   { name: 'montant', label: 'Montant', field: 'montant', align: 'right' },
 ]
-
-function ajouterLigneDetail() {
-  formData.value.lignes.push({
-    id: formData.value.lignes.length + 1,
-    libelle: '',
-    montant: 0,
-  })
-}
-
-const removeRow = () => {
-  if (formData.value.lignes.length > 1) {
-    formData.value.lignes.pop()
-  } else {
-    $q.notify({
-      type: 'warning',
-      message: 'Impossible de supprimer la dernière ligne',
-    })
-  }
-}
 
 // Colonnes de la table
 const columns = [
@@ -408,12 +321,24 @@ const rowsData = [
     numContrib: 'M016500000481R',
     sigle: 'CNPS',
     link: 'SaisieMisEnDemeure.jsp?matemployer=010-1291201-F&raisonsocial=CAISSE NATIONALE DE PREVOYANCE SOCIALE&numcontrib=M016500000481R&sigle=CNPS',
+    reference: 'REF-2025-002',
+    date: '05/09/2025',
+    montant: '250 000',
+    num: 1,
+    motif: 'Erreur sur cotisation',
+    observations: 'Correction effectuée',
   },
   {
     matricule: '020-4578912-G',
     raison: 'BANQUE CENTRALE DU CAMEROUN',
     numContrib: 'M018900000251K',
     sigle: 'BCC',
+    reference: 'REF-2025-012',
+    date: '05/09/2025',
+    montant: '250 000',
+    num: 2,
+    motif: 'Erreur sur cotisation',
+    observations: 'Correction effectuée',
     link: 'SaisieMisEnDemeure.jsp?matemployer=020-4578912-G&raisonsocial=BANQUE CENTRALE DU CAMEROUN&numcontrib=M018900000251K&sigle=BCC',
   },
   {
@@ -421,6 +346,12 @@ const rowsData = [
     raison: 'ORANGE CAMEROUN SA',
     numContrib: 'M016700000981Q',
     sigle: 'ORANGE',
+    reference: 'REF-2025-412',
+    date: '05/09/2025',
+    montant: '250 000',
+    num: 3,
+    motif: 'Retard de déclaration',
+    observations: 'Dossier en traitement',
     link: 'SaisieMisEnDemeure.jsp?matemployer=030-7845621-H&raisonsocial=ORANGE CAMEROUN SA&numcontrib=M016700000981Q&sigle=ORANGE',
   },
   {
@@ -428,44 +359,35 @@ const rowsData = [
     raison: 'MTN CAMEROUN SA',
     numContrib: 'M017800000551T',
     sigle: 'MTN',
+    reference: 'REF-2025-172',
+    date: '05/09/2025',
+    montant: '250 000',
+    num: 4,
+    motif: 'Erreur sur cotisation',
+    observations: 'Correction effectuée',
     link: 'SaisieMisEnDemeure.jsp?matemployer=040-9854712-K&raisonsocial=MTN CAMEROUN SA&numcontrib=M017800000551T&sigle=MTN',
-  },
-  {
-    matricule: '050-6547891-L',
-    raison: 'SOCIETE GENERALE CAMEROUN',
-    numContrib: 'M018000000721Z',
-    sigle: 'SGC',
-    link: 'SaisieMisEnDemeure.jsp?matemployer=050-6547891-L&raisonsocial=SOCIETE GENERALE CAMEROUN&numcontrib=M018000000721Z&sigle=SGC',
   },
   {
     matricule: '060-3214789-M',
     raison: 'GUINNESS CAMEROUN SA',
     numContrib: 'M019200000111B',
     sigle: 'GUINNESS',
+    reference: 'REF-2025-002',
+    date: '07/09/2025',
+    montant: '150 000',
+    num: 5,
+    motif: 'Retard de déclaration',
+    observations: 'Dossier en traitement',
     link: 'SaisieMisEnDemeure.jsp?matemployer=060-3214789-M&raisonsocial=GUINNESS CAMEROUN SA&numcontrib=M019200000111B&sigle=GUINNESS',
-  },
-  {
-    matricule: '070-8521479-N',
-    raison: 'CAMRAIL',
-    numContrib: 'M015800000991C',
-    sigle: 'CAMRAIL',
-    link: 'SaisieMisEnDemeure.jsp?matemployer=070-8521479-N&raisonsocial=CAMRAIL&numcontrib=M015800000991C&sigle=CAMRAIL',
-  },
-  {
-    matricule: '080-9632147-P',
-    raison: 'CIMENCAM',
-    numContrib: 'M017100000411D',
-    sigle: 'CIMENCAM',
-    link: 'SaisieMisEnDemeure.jsp?matemployer=080-9632147-P&raisonsocial=CIMENCAM&numcontrib=M017100000411D&sigle=CIMENCAM',
   },
 ]
 
 const searchDemande = async () => {
   // Vérification des champs obligatoires
-  if (!formSearch.value.numEmployeur || !formSearch.value.exercice) {
+  if (!formSearch.value.numEmployeur) {
     $q.notify({
       type: 'warning',
-      message: 'Veuillez renseigner le N° Employeur et l’Exercice avant la recherche.',
+      message: 'Veuillez renseigner le N° Employeur.',
     })
     return // on sort de la fonction si les champs sont vides
   }
@@ -507,8 +429,13 @@ watch(selectedRow, (newVal) => {
   if (newVal.length === 0) return
   const row = newVal[0]
 
-  formData.value.numEmployeur = row.matricule
-  formData.value.raisonSociale = row.raison
+  formData.value.txtnumemployeur = row.matricule
+  formData.value.raisonsociale = row.raison
+  formData.value.txtmotif = row.motif
+  formData.value.txtreference = row.reference
+  formData.value.date_saisie = row.date
+  formData.value.txtnumMED = row.num
+  formData.value.txtmontant = row.montant
 })
 
 // Méthodes
@@ -523,6 +450,13 @@ watch(selectedRow, (newVal) => {
 
 // Méthodes
 const onSubmit = async () => {
+  if (!formData.value.txtnumemployeur) {
+    $q.notify({
+      type: 'warning',
+      message: 'Sélectionner une ligne',
+    })
+    return
+  }
   loading.value = true
   try {
     /* const payload = { ...formData.value }
@@ -531,7 +465,7 @@ const onSubmit = async () => {
 
     $q.notify({
       type: 'positive',
-      message: 'Mise en demeure enregistré avec succès !',
+      message: 'Mise en demeure validé avec succès !',
     })
     /* console.log('Réponse API :', response.data) */
     resetForm()
@@ -548,16 +482,15 @@ const onSubmit = async () => {
 
 const resetForm = () => {
   formData.value = {
-    numEmployeur: '',
-    raisonSociale: '',
-    dateDebut: '',
-    dateFin: '',
-    codeMotif: '',
-    observations: '',
-    destinataire: '',
-    dateMED: '',
-    numMED: '',
-    montantTotal: 0,
+    txtnumemployeur: '',
+    raisonsociale: '',
+    txtmotif: '',
+    txtreference: '',
+    date_saisie: '',
+    txtnumMED: '',
+    txtmontant: '',
+    datenotify: '',
+    txtuserdecharge: '',
     lignes: [],
   }
 }
