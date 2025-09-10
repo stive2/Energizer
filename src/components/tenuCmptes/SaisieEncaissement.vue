@@ -4,7 +4,7 @@
     <div class="text-center">
       <h6 class="text-primary q-mb-sm">
         <q-icon name="account_balance" class="q-mr-sm" />
-        Formulaire de saisie des encaissements de cotisation
+        {{ $t('labels.formulaireSaisieEncaissementEmployeur') }}
       </h6>
       <q-separator class="q-mb-sm" />
     </div>
@@ -14,20 +14,20 @@
         <q-card-section>
           <div class="text-h6 text-primary">
             <q-icon name="business" class="q-mr-sm" />
-            Informations sur l'Employeur
+            {{ $t('labels.informationsEmployeur') }}
           </div>
           <div class="row q-gutter-sm justify-center">
             <div class="col-12 col-md-4">
               <q-input
                 v-model="formData.employeur.matriculeCNPS"
-                label="Matricule CNPS Employeur"
+                :label="$t('labels.matriculeCNPSEmployeur')"
                 outlined
                 dense
                 :rules="[
-                  val => !!val || 'Ce champ est obligatoire',
-                  val => validateMatriculeCNPS(val) || 'Format invalide. Utilisez: 123-1234567-123-A ou 123-1234567-A'
+                  val => !!val || $t('labels.champObligatoire'),
+                  val => validateMatriculeCNPS(val) || $t('labels.formatMatriculeInvalide')
                 ]"
-                hint="Format: 123-1234567-123-A ou 123-1234567-A"
+                :hint="$t('labels.formatMatriculeCNPS')"
                 @blur="loadEmployeurInfo"
                 @input="resetEmployeurState"
                 :loading="loadingEmployeurInfo"
@@ -54,17 +54,17 @@
             <div class="col-12 col-md-4">
               <q-input
                 v-model="formData.employeur.raisonSociale"
-                label="Raison sociale"
+                :label="$t('labels.raisonSociale')"
                 outlined
                 readonly
                 dense
-                :rules="[val => !!val || 'Ce champ est obligatoire']"
+                :rules="[val => !!val || $t('labels.champObligatoire')]"
               />
             </div>
             <div class="col-12 col-md-4">
               <q-input
                 v-model="formData.employeur.groupeRisque"
-                label="Groupe de risque"
+                :label="$t('labels.groupeRisque')"
                 outlined
                 readonly
                 dense
@@ -73,7 +73,7 @@
             <div class="col-12 col-md-4">
               <q-input
                 v-model="formData.employeur.codeRegime"
-                label="Code régime"
+                :label="$t('labels.codeRegime')"
                 outlined
                 readonly
                 dense
@@ -82,7 +82,7 @@
             <div class="col-12 col-md-4">
               <q-input
                 v-model="formData.employeur.codeCentreGestion"
-                label="Code Centre de Gestion"
+                :label="$t('labels.codeCentreGestion')"
                 outlined
                 readonly
                 dense
@@ -91,7 +91,7 @@
             <div class="col-12 col-md-4">
               <q-input
                 v-model="formData.employeur.adresse"
-                label="Adresse"
+                :label="$t('labels.adresse')"
                 outlined
                 dense
                 readonly
@@ -108,7 +108,7 @@
         <q-card-section>
           <div class="text-h6 text-primary q-mb-md">
             <q-icon name="list_alt" class="q-mr-sm" />
-            Listing des BEs non Exécutés
+            {{ $t('labels.listingBENonExecutes') }}
           </div>
           <q-table
             :rows="beNonExecutes"
@@ -130,7 +130,7 @@
                   icon="visibility"
                   @click="showPreview(props.row)"
                 >
-                  <q-tooltip>Voir le détail</q-tooltip>
+                  <q-tooltip>{{ $t('labels.voirDetail') }}</q-tooltip>
                 </q-btn>
               </q-td>
             </template>
@@ -143,7 +143,7 @@
         <q-card-section>
           <div class="text-h6 text-primary q-mb-md">
             <q-icon name="info" class="q-mr-sm" />
-            Informations générales sur le mouvement
+            {{ $t('labels.informationsGeneralesMouvement') }}
           </div>
           <div class="row q-gutter-sm justify-center">
             <div class="col-12 col-md-4">
@@ -483,8 +483,10 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 
 const $q = useQuasar()
+const { t: $t } = useI18n()
 
 // Reactive form data
 const formData = reactive({

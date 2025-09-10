@@ -5,7 +5,7 @@
       <q-card-section class="q-pa-md">
         <!-- Titre du formulaire -->
         <div class="text-h6 text-center text-primary q-mb-xl">
-          Formulaire d'annulation des saisies des encaissements de cotisation
+          {{ $t('labels.formulaireAnnulationEncaissement') }}
         </div>
 
         <q-form ref="formRef" @submit="onSubmit" class="q-gutter-y-md">
@@ -14,15 +14,15 @@
             <q-card-section>
               <div class="text-h6 text-primary q-mb-md">
                 <q-icon name="calendar_month" class="q-mr-sm" />
-                Mois de cotisation
+                {{ $t('labels.moisCotisation') }}
               </div>
               <q-input
                 v-model="formData.moisCotisation"
-                label="Concerné (jj/mm/yyyy)"
+                :label="$t('labels.periodeConcernee')"
                 outlined
                 dense
                 class="q-mb-md field-input"
-                :rules="[val => !!val || 'Le mois de cotisation est requis']"
+                :rules="[val => !!val || $t('labels.champObligatoire')]"
                 readonly
               >
                 <template v-slot:append>
@@ -43,7 +43,7 @@
           <!-- Section Informations sur l'Employeur -->
           <q-expansion-item
             icon="business"
-            label="Informations sur l'Employeur"
+            :label="$t('labels.informationsEmployeur')"
             class="section-card"
             header-class="text-primary"
           >
@@ -348,8 +348,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 
 const $q = useQuasar();
+const { t: $t } = useI18n();
 
 // Références du formulaire
 const formRef = ref(null);

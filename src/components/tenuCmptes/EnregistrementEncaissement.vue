@@ -9,14 +9,14 @@
         <!-- Titre du formulaire -->
         <div class="text-h6 text-center text-primary q-mb-lg">
           <q-icon name="account_balance_wallet" class="q-mr-sm" />
-          Formulaire de saisie des encaissements de cotisation assuré volontaire
+          {{ $t('labels.formulaireSaisieEncaissement') }}
         </div>
 
         <q-form ref="formRef" @submit="onSubmit" class="q-gutter-y-md form-centered">
           <!-- Section Zone de recherche -->
           <q-expansion-item
             icon="search"
-            label="Zone de recherche"
+            :label="$t('labels.zoneRecherche')"
             class="section-card"
             header-class="text-primary"
             default-opened
@@ -27,15 +27,15 @@
                   <div class="">
                     <q-input
                       v-model="formData.numAssure"
-                      label="Saisir le numéro Assuré"
+                      :label="$t('labels.saisirNumeroAssure')"
                       outlined
                       dense
                       class="field-input"
                       :rules="[
-                        val => !!val || 'Ce champ est obligatoire',
-                        val => validateNumAssure(val) || 'Format invalide. Utilisez: 321-11006497-9'
+                        val => !!val || $t('labels.champObligatoire'),
+                        val => validateNumAssure(val) || $t('labels.formatInvalide')
                       ]"
-                      hint="Format: 000-0000000-0"
+                      :hint="$t('labels.formatNumAssure')"
                       @blur="searchAssure"
                       :loading="loadingAssure"
                     >
@@ -66,7 +66,7 @@
           <!-- Section Informations sur le contrat financier -->
           <q-expansion-item
             icon="description"
-            label="Informations sur le contrat financier courant"
+            :label="$t('labels.informationsContratFinancier')"
             class="section-card"
             header-class="text-primary"
             :default-opened="!!formData.contrat.numContrat"
@@ -77,7 +77,7 @@
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.contrat.mois60Ans"
-                      label="Mois 60ème anniversaire"
+                      :label="$t('labels.mois60Ans')"
                       outlined
                       dense
                       readonly
@@ -87,7 +87,7 @@
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.contrat.numContrat"
-                      label="Contrat Num"
+                      :label="$t('labels.contratNum')"
                       outlined
                       dense
                       readonly
@@ -97,7 +97,7 @@
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.contrat.dateEffetAffi"
-                      label="Date d'effet Affi"
+                      :label="$t('labels.dateEffetAffi')"
                       outlined
                       dense
                       readonly
@@ -107,7 +107,7 @@
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.contrat.dateCloture"
-                      label="Date de clôture"
+                      :label="$t('labels.dateCloture')"
                       outlined
                       dense
                       readonly
@@ -117,7 +117,7 @@
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.contrat.revenuAnnuel"
-                      label="Revenu Annuel"
+                      :label="$t('labels.revenuAnnuel')"
                       outlined
                       dense
                       readonly
@@ -127,7 +127,7 @@
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.contrat.origineRevenu"
-                      label="Origine des revenus"
+                      :label="$t('labels.origineRevenu')"
                       outlined
                       dense
                       readonly
@@ -137,7 +137,7 @@
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.contrat.assietteMens"
-                      label="Assiette mensuelle"
+                      :label="$t('labels.assietteMensuelle')"
                       outlined
                       dense
                       readonly
@@ -147,7 +147,7 @@
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.contrat.montantMens"
-                      label="Montant Mensuel à payer"
+                      :label="$t('labels.montantMensuelPayer')"
                       outlined
                       dense
                       readonly
@@ -157,7 +157,7 @@
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.contrat.dateEffet"
-                      label="Date d'effet CF"
+                      :label="$t('labels.dateEffetCF')"
                       outlined
                       dense
                       readonly
@@ -172,7 +172,7 @@
           <!-- Section Liste des encaissements -->
           <q-expansion-item
             icon="list_alt"
-            label="Liste des encaissements AV effectués auprès des collecteurs"
+            :label="$t('labels.listeEncaissementsAV')"
             class="section-card"
             header-class="text-primary"
           >
@@ -202,7 +202,7 @@
           <!-- Section Détails du paiement -->
           <q-expansion-item
             icon="payment"
-            label="Détails Informations liées au paiement"
+            :label="$t('labels.detailsPaiement')"
             class="section-card"
             header-class="text-primary"
             :default-opened="!!formData.paiement.montant"
@@ -213,19 +213,19 @@
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.paiement.montant"
-                      label="Montant versé *"
+                      :label="$t('labels.montantVerse') + ' *'"
                       outlined
                       dense
                       type="number"
                       step="0.01"
                       class="field-input"
-                      :rules="[val => !!val || 'Ce champ est obligatoire']"
+                      :rules="[val => !!val || $t('labels.champObligatoire')]"
                     />
                   </div>
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.paiement.refPaiement"
-                      label="Référence du Titre de paiement *"
+                      :label="$t('labels.referenceTitrePaiement') + ' *'"
                       outlined
                       dense
                       class="field-input"
@@ -235,22 +235,22 @@
                     <q-select
                       v-model="formData.paiement.modePaiement"
                       :options="modesPaiement"
-                      label="Mode de paiement *"
+                      :label="$t('labels.modePaiement') + ' *'"
                       outlined
                       dense
                       class="field-input"
-                      :rules="[val => !!val || 'Ce champ est obligatoire']"
+                      :rules="[val => !!val || $t('labels.champObligatoire')]"
                     />
                   </div>
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.paiement.datePaiement"
-                      label="Date de paiement *"
+                      :label="$t('labels.datePaiement') + ' *'"
                       outlined
                       dense
                       readonly
                       class="field-input"
-                      :rules="[val => !!val || 'Ce champ est obligatoire']"
+                      :rules="[val => !!val || $t('labels.champObligatoire')]"
                     >
                       <template v-slot:append>
                         <q-icon name="event" class="cursor-pointer" color="primary">
@@ -273,7 +273,7 @@
           <!-- Section Informations complémentaires -->
           <q-expansion-item
             icon="info"
-            label="Informations complémentaires sur le paiement"
+            :label="$t('labels.informationsComplementaires')"
             class="section-card"
             header-class="text-primary"
           >
@@ -283,7 +283,7 @@
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.complementaire.reserve"
-                      label="Montant en réserve"
+                      :label="$t('labels.montantReserve')"
                       outlined
                       dense
                       readonly
@@ -294,7 +294,7 @@
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.complementaire.detteMajoration"
-                      label="Dette en majoration"
+                      :label="$t('labels.detteMajoration')"
                       outlined
                       dense
                       readonly
@@ -306,7 +306,7 @@
                     <q-select
                       v-model="formData.complementaire.natureCotisation"
                       :options="naturesCotisation"
-                      label="Nature de cotisation"
+                      :label="$t('labels.natureCotisation')"
                       outlined
                       dense
                       class="field-input"
@@ -316,18 +316,18 @@
                     <q-select
                       v-model="formData.complementaire.etablissementFinancier"
                       :options="etablissementsFinanciers"
-                      label="Établissement financier *"
+                      :label="$t('labels.etablissementFinancier') + ' *'"
                       outlined
                       dense
                       class="field-input"
-                      :rules="[val => !!val || 'Ce champ est obligatoire']"
+                      :rules="[val => !!val || $t('labels.champObligatoire')]"
                     />
                   </div>
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-select
                       v-model="formData.complementaire.typeQuittance"
                       :options="typesQuittance"
-                      label="Type de Quittance"
+                      :label="$t('labels.typeQuittance')"
                       outlined
                       dense
                       class="field-input"
@@ -336,7 +336,7 @@
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.complementaire.numQuittance"
-                      label="Num quittance"
+                      :label="$t('labels.numQuittance')"
                       outlined
                       dense
                       type="number"
@@ -348,7 +348,7 @@
                     <q-select
                       v-model="formData.complementaire.quittanceAEditer"
                       :options="quittancesDisponibles"
-                      label="Quittance à générer"
+                      :label="$t('labels.quittanceAEditer')"
                       outlined
                       dense
                       class="field-input"
@@ -358,7 +358,7 @@
                   <div class="col-12 col-sm-6 col-md-3">
                     <q-input
                       v-model="formData.complementaire.listeQuittanceEdit"
-                      label="Liste Quittance à Générer"
+                      :label="$t('labels.listeQuittanceEdit')"
                       outlined
                       dense
                       readonly
@@ -371,7 +371,7 @@
                     <template v-slot:avatar>
                       <q-icon name="info" />
                     </template>
-                    NB: Le montant en réserve servira uniquement dans les encaissements de cotisations principales
+                    {{ $t('labels.nbReserve') }}
                   </q-banner>
                 </div>
               </q-card-section>
@@ -381,7 +381,7 @@
           <!-- Section Liste des quittances générées -->
           <q-expansion-item
             icon="receipt"
-            label="Liste des quittances AV générées"
+            :label="$t('labels.listeQuittancesAV')"
             class="section-card"
             header-class="text-primary"
           >
@@ -423,7 +423,7 @@
             <q-card-section class="q-gutter-sm">
               <div class="row q-gutter-sm justify-center">
                 <q-btn
-                  label="Enregistrer"
+                  :label="$t('labels.enregistrer')"
                   color="primary"
                   size="md"
                   icon="save"
@@ -432,7 +432,7 @@
                   class="action-btn"
                 />
                 <q-btn
-                  label="Charger les encaissements"
+                  :label="$t('labels.chargerEncaissements')"
                   color="info"
                   size="md"
                   icon="refresh"
@@ -440,7 +440,7 @@
                   class="action-btn"
                 />
                 <q-btn
-                  label="Générer Quittance"
+                  :label="$t('labels.genererQuittance')"
                   color="secondary"
                   size="md"
                   icon="receipt"
@@ -448,7 +448,7 @@
                   class="action-btn"
                 />
                 <q-btn
-                  label="Charger Quittances à imprimer"
+                  :label="$t('labels.chargerQuittances')"
                   color="accent"
                   size="md"
                   icon="print"
@@ -456,7 +456,7 @@
                   class="action-btn"
                 />
                 <q-btn
-                  label="Vider Formulaire"
+                  :label="$t('labels.viderFormulaire')"
                   color="grey-7"
                   size="md"
                   icon="clear_all"
@@ -477,8 +477,10 @@
 <script setup>
 import { ref, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
+import { useI18n } from 'vue-i18n';
 
 const $q = useQuasar();
+const { t: $t } = useI18n();
 
 // Références du formulaire
 const formRef = ref(null);
@@ -693,7 +695,7 @@ const searchAssure = async () => {
   if (!formData.value.numAssure || !validateNumAssure(formData.value.numAssure)) {
     $q.notify({
       type: 'negative',
-      message: 'Veuillez saisir un numéro d\'assuré valide',
+      message: $t('labels.formatInvalide'),
       position: 'top'
     });
     return;
@@ -746,7 +748,7 @@ const searchAssure = async () => {
 
       $q.notify({
         type: 'positive',
-        message: 'Informations assuré chargées avec succès',
+        message: $t('labels.informationsAssureChargees'),
         position: 'top',
         timeout: 2000
       });
@@ -754,7 +756,7 @@ const searchAssure = async () => {
       assureFound.value = false;
       $q.notify({
         type: 'negative',
-        message: `Assuré avec le numéro ${formData.value.numAssure} non trouvé`,
+        message: $t('labels.assureNonTrouve', { numAssure: formData.value.numAssure }),
         position: 'top',
         timeout: 3000
       });
@@ -763,7 +765,7 @@ const searchAssure = async () => {
     assureFound.value = false;
     $q.notify({
       type: 'negative',
-      message: 'Erreur lors du chargement des informations assuré',
+      message: $t('labels.erreurChargementAssure'),
       position: 'top'
     });
   } finally {
@@ -805,7 +807,7 @@ const loadQuittances = async () => {
   } catch {
     $q.notify({
       type: 'negative',
-      message: 'Erreur lors du chargement des quittances',
+      message: $t('labels.erreurChargementQuittances'),
       position: 'top'
     });
   }
@@ -817,7 +819,7 @@ const enregistrer = async () => {
   if (!isValid) {
     $q.notify({
       type: 'negative',
-      message: 'Veuillez remplir tous les champs obligatoires',
+      message: $t('labels.remplirChampsObligatoires'),
       position: 'top'
     });
     return;
@@ -831,7 +833,7 @@ const enregistrer = async () => {
 
     $q.notify({
       type: 'positive',
-      message: 'Encaissement enregistré avec succès',
+      message: $t('labels.encaissementEnregistre'),
       position: 'top',
       icon: 'check_circle'
     });
@@ -842,7 +844,7 @@ const enregistrer = async () => {
   } catch {
     $q.notify({
       type: 'negative',
-      message: 'Erreur lors de l\'enregistrement',
+      message: $t('labels.erreurEnregistrement'),
       position: 'top',
       icon: 'error'
     });
@@ -856,7 +858,7 @@ const chargerEncaissements = async () => {
   if (!formData.value.numAssure) {
     $q.notify({
       type: 'warning',
-      message: 'Veuillez d\'abord rechercher un assuré',
+      message: $t('labels.rechercherAssure'),
       position: 'top'
     });
     return;
@@ -893,13 +895,13 @@ const chargerEncaissements = async () => {
 
     $q.notify({
       type: 'positive',
-      message: 'Encaissements chargés avec succès',
+      message: $t('labels.encaissementsCharges'),
       position: 'top'
     });
   } catch {
     $q.notify({
       type: 'negative',
-      message: 'Erreur lors du chargement des encaissements',
+      message: $t('labels.erreurChargementEncaissements'),
       position: 'top'
     });
   }
@@ -910,7 +912,7 @@ const genererQuittance = async () => {
   if (!formData.value.complementaire.listeQuittanceEdit) {
     $q.notify({
       type: 'warning',
-      message: 'Veuillez sélectionner une quittance à générer',
+      message: $t('labels.selectionnerQuittance'),
       position: 'top'
     });
     return;
@@ -922,13 +924,13 @@ const genererQuittance = async () => {
 
     $q.notify({
       type: 'positive',
-      message: 'Génération terminée. Vous pouvez charger les quittances à imprimer.',
+      message: $t('labels.generationTerminee'),
       position: 'top'
     });
   } catch {
     $q.notify({
       type: 'negative',
-      message: 'Erreur lors de la génération de quittance',
+      message: $t('labels.erreurGenerationQuittance'),
       position: 'top'
     });
   }
@@ -939,7 +941,7 @@ const chargerQuittances = async () => {
   if (!formData.value.numAssure) {
     $q.notify({
       type: 'warning',
-      message: 'Veuillez d\'abord rechercher un assuré',
+      message: $t('labels.rechercherAssure'),
       position: 'top'
     });
     return;
@@ -972,7 +974,7 @@ const chargerQuittances = async () => {
 
     $q.notify({
       type: 'positive',
-      message: 'Quittances chargées avec succès',
+      message: $t('labels.quittancesChargees'),
       position: 'top'
     });
   } catch {
@@ -1029,7 +1031,7 @@ const viderFormulaire = () => {
 
   $q.notify({
     type: 'info',
-    message: 'Formulaire vidé',
+    message: $t('labels.formulaireVide'),
     position: 'top',
     icon: 'refresh'
   });

@@ -4,7 +4,7 @@
       <!-- Header du formulaire -->
       <q-card-section class="bg-primary text-white">
         <div class="text-h5 font-weight-bold">
-          Formulaire de Modification, Validation et Dévalidation des saisies d'encaissements de cotisation
+          {{ $t('labels.formulaireModificationValidation') }}
         </div>
       </q-card-section>
 
@@ -17,33 +17,33 @@
           <div class="section-container">
             <div class="section-title q-mb-md">
               <q-icon name="settings" class="q-mr-sm" />
-              Choix de l'action
+              {{ $t('labels.choixAction') }}
             </div>
             <div class="row q-gutter-md">
               <div class="col-12 col-md-4">
-                <q-radio v-model="formData.action" val="correction" label="Correction des saisies" color="primary" />
+                <q-radio v-model="formData.action" val="correction" :label="$t('labels.correctionSaisies')" color="primary" />
               </div>
               <div class="col-12 col-md-4">
-                <q-radio v-model="formData.action" val="validation" label="Validation des saisies" color="positive" />
+                <q-radio v-model="formData.action" val="validation" :label="$t('labels.validationSaisies')" color="positive" />
               </div>
               <div class="col-12 col-md-4">
-                <q-radio v-model="formData.action" val="devalidation" label="Dévalidation des saisies" color="warning" />
-              </div>
-            </div>
-            <div class="row q-gutter-md q-mt-sm">
-              <div class="col-12 col-md-4">
-                <q-radio v-model="formData.action" val="validationDefinitive" label="Validation définitive" color="positive" />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-radio v-model="formData.action" val="generation" label="Génération des quittances" color="info" />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-radio v-model="formData.action" val="edition" label="Édition des quittances" color="accent" />
+                <q-radio v-model="formData.action" val="devalidation" :label="$t('labels.devalidationSaisies')" color="warning" />
               </div>
             </div>
             <div class="row q-gutter-md q-mt-sm">
               <div class="col-12 col-md-4">
-                <q-radio v-model="formData.action" val="export" label="Export et Transmission des quittances" color="secondary" />
+                <q-radio v-model="formData.action" val="validationDefinitive" :label="$t('labels.validationDefinitive')" color="positive" />
+              </div>
+              <div class="col-12 col-md-4">
+                <q-radio v-model="formData.action" val="generation" :label="$t('labels.generation')" color="info" />
+              </div>
+              <div class="col-12 col-md-4">
+                <q-radio v-model="formData.action" val="edition" :label="$t('labels.edition')" color="accent" />
+              </div>
+            </div>
+            <div class="row q-gutter-md q-mt-sm">
+              <div class="col-12 col-md-4">
+                <q-radio v-model="formData.action" val="export" :label="$t('labels.exportTransmission')" color="secondary" />
               </div>
             </div>
           </div>
@@ -627,9 +627,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 
 // Instance Quasar
 const $q = useQuasar()
+const { t: $t } = useI18n()
 
 // État du composant
 const loading = ref(false)
