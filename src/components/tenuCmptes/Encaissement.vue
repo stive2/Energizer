@@ -168,7 +168,8 @@ function getSidebarKey(key) {
 <style scoped>
 /* Carte principale */
 .main-card {
-  max-width: 600px;
+  max-width: 80%;
+  width: 80%;
   margin: 0 auto;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -205,6 +206,9 @@ function getSidebarKey(key) {
   flex-direction: column;
   background: #fafafa;
   font-family: 'Roboto', 'Segoe UI', sans-serif;
+  max-width: 80%;
+  width: 80%;
+  margin: 0 auto;
 }
 
 /* Header */

@@ -8,7 +8,7 @@
           {{ $t('labels.formulaireAnnulationEncaissement') }}
         </div>
 
-        <q-form ref="formRef" @submit="onSubmit" class="q-gutter-y-md">
+        <q-form ref="formRef" @submit="onSubmit" class="q-gutter-y-sm form-centered">
           <!-- Section Mois de cotisation -->
           <q-card flat bordered class="section-card">
             <q-card-section>
@@ -16,15 +16,18 @@
                 <q-icon name="calendar_month" class="q-mr-sm" />
                 {{ $t('labels.moisCotisation') }}
               </div>
-              <q-input
-                v-model="formData.moisCotisation"
-                :label="$t('labels.periodeConcernee')"
-                outlined
-                dense
-                class="q-mb-md field-input"
-                :rules="[val => !!val || $t('labels.champObligatoire')]"
-                readonly
-              >
+              <div class="row justify-center">
+                <div class="col-12 col-md-6">
+                  <q-input
+                    v-model="formData.moisCotisation"
+                    :label="$t('labels.periodeConcernee')"
+                    outlined
+                    dense
+                    size="sm"
+                    class="q-mb-sm field-input"
+                    :rules="[val => !!val || $t('labels.champObligatoire')]"
+                    readonly
+                  >
                 <template v-slot:append>
                   <q-icon name="event" class="cursor-pointer" color="primary">
                     <q-popup-proxy transition-show="scale" transition-hide="scale">
@@ -36,7 +39,9 @@
                     </q-popup-proxy>
                   </q-icon>
                 </template>
-              </q-input>
+                  </q-input>
+                </div>
+              </div>
             </q-card-section>
           </q-card>
 
@@ -48,20 +53,21 @@
             header-class="text-primary"
           >
             <q-card flat>
-              <q-card-section class="q-gutter-sm">
-                <div class="row q-gutter-sm">
-                  <div class="col-md-4">
+              <q-card-section class="q-gutter-xs">
+                <div class="row q-gutter-xs justify-center">
+                  <div class="col-12 col-md-3">
                     <q-input
                       v-model="formData.matriculeCNPS"
-                      label="Matricule CNPS Employeur"
+                      :label="$t('labels.matriculeCNPSEmployeurLabel')"
                       outlined
                       dense
+                      size="sm"
                       class="field-input"
                       :rules="[
-                        val => !!val || 'Ce champ est obligatoire',
-                        val => validateMatriculeCNPS(val) || 'Format invalide. Utilisez: 123-1234567-123-A ou 123-1234567-A'
+                        val => !!val || $t('labels.champObligatoireMessage'),
+                        val => validateMatriculeCNPS(val) || $t('labels.formatMatriculeInvalide')
                       ]"
-                      hint="Format: 123-1234567-123-A ou 123-1234567-A"
+                      :hint="$t('labels.formatMatriculeHint')"
                       @blur="loadEmployeurInfo"
                       @input="resetEmployeurState"
                       :loading="loadingEmployeurInfo"
@@ -85,23 +91,25 @@
                       </template>
                     </q-input>
                   </div>
-                  <div class="col-md-4">
+                  <div class="col-12 col-md-3">
                     <q-input
                       v-model="formData.raisonSociale"
-                      label="Raison sociale"
+                      :label="$t('labels.raisonSocialeLabel')"
                       outlined
                       dense
+                      size="sm"
                       readonly
                       class="field-input"
-                      :rules="[val => !!val || 'Ce champ est obligatoire']"
+                      :rules="[val => !!val || $t('labels.champObligatoireMessage')]"
                     />
                   </div>
-                  <div class="col-md-4">
+                  <div class="col-12 col-md-3">
                     <q-input
                       v-model="formData.centreGestion"
-                      label="Centre de Gestion"
+                      :label="$t('labels.centreGestionLabel')"
                       outlined
                       dense
+                      size="sm"
                       readonly
                       class="field-input"
                     />
@@ -114,7 +122,7 @@
           <!-- Section Listing des BEs Exécutés -->
           <q-expansion-item
             icon="list_alt"
-            label="Listing des BEs Exécutés pour le mois concerné"
+            :label="$t('labels.listingBEsExecutesLabel')"
             class="section-card"
             header-class="text-primary"
           >
@@ -143,7 +151,7 @@
           <!-- Section Encaissement concerné -->
           <q-expansion-item
             icon="account_balance_wallet"
-            label="Encaissement concerné"
+            :label="$t('labels.encaissementConcerneLabel')"
             class="section-card"
             header-class="text-primary"
           >
@@ -172,7 +180,7 @@
           <!-- Section Informations sur l'encaissement à annuler -->
           <q-expansion-item
             icon="cancel"
-            label="Informations sur l'encaissement à annuler"
+            :label="$t('labels.informationsEncaissementAnnulerLabel')"
             class="section-card"
             header-class="text-primary"
             default-opened
@@ -183,17 +191,17 @@
                   <div class="col-md-3">
                     <q-input
                       v-model="formData.numQuittance"
-                      label="N° Quittance"
+                      :label="$t('labels.numeroQuittanceLabel')"
                       outlined
                       dense
                       class="field-input"
-                      :rules="[val => !!val || 'Le numéro de quittance est requis']"
+                      :rules="[val => !!val || $t('labels.numeroQuittanceRequis')]"
                     />
                   </div>
                   <div class="col-md-3">
                     <q-input
                       v-model="formData.cleBE"
-                      label="Clé du BE"
+                      :label="$t('labels.cleBELabel')"
                       outlined
                       dense
                       class="field-input"
@@ -202,7 +210,7 @@
                   <div class="col-md-3">
                     <q-input
                       v-model="formData.periodeConcernee"
-                      label="Période Concernée"
+                      :label="$t('labels.periodeConcerneeLabel')"
                       outlined
                       dense
                       class="field-input"
@@ -211,7 +219,7 @@
                   <div class="col-md-3">
                     <q-input
                       v-model="formData.datePaiement"
-                      label="Date de paiement"
+                      :label="$t('labels.datePaiementLabel')"
                       outlined
                       dense
                       class="field-input"
@@ -230,28 +238,38 @@
                       </template>
                     </q-input>
                   </div>
-                </div>
-
-                <div class="row q-gutter-sm">
                   <div class="col-md-4">
                     <q-input
                       v-model="formData.montantEncaisse"
-                      label="Montant Encaissé"
+                      :label="$t('labels.montantEncaisseLabel')"
                       outlined
                       dense
                       type="number"
                       step="0.01"
                       class="field-input"
-                      :rules="[val => !!val || 'Le montant est requis']"
+                      :rules="[val => !!val || $t('labels.montantRequis')]"
                     />
-                    <div class="text-caption text-grey-6 q-mt-xs">
-                      Période clôturée : correction par réduction du montant
-                    </div>
                   </div>
+                </div>
+
+              </q-card-section>
+            </q-card>
+          </q-expansion-item>
+
+          <!-- Section Période clôturée : correction par réduction du montant -->
+          <q-expansion-item
+            icon="warning"
+            :label="$t('labels.periodeClotureeLabel')"
+            class="section-card"
+            header-class="text-warning"
+          >
+            <q-card flat>
+              <q-card-section class="q-gutter-sm">
+                <div class="row q-gutter-sm justify-center">
                   <div class="col-md-4">
                     <q-input
                       v-model="formData.dateSaisie"
-                      label="Date de Saisie"
+                      :label="$t('labels.dateSaisieLabel')"
                       outlined
                       dense
                       class="field-input"
@@ -273,7 +291,7 @@
                   <div class="col-md-4">
                     <q-input
                       v-model="formData.codeRubrique"
-                      label="Code Rubrique"
+                      :label="$t('labels.codeRubriqueLabel')"
                       outlined
                       dense
                       class="field-input"
@@ -287,15 +305,16 @@
           <!-- Section Actions -->
           <q-card flat bordered class="action-section">
             <q-card-section class="q-gutter-sm">
-              <div class="row items-center justify-between">
-                <div class="col-auto">
+              <div class="row justify-start">
+                <div class="col-12 align-left">
                   <q-input
                     v-model="formData.dateEnregistrement"
-                    label="Date d'enregistrement"
+                    :label="$t('labels.dateEnregistrementLabel')"
                     outlined
                     dense
+                    size="sm"
                     readonly
-                    class="q-mr-md field-input"
+                    class="field-input"
                   >
                     <template v-slot:append>
                       <q-icon name="event" class="cursor-pointer" color="primary">
@@ -318,7 +337,7 @@
               </div>
               <div class="row q-gutter-sm justify-center q-mt-md">
                 <q-btn
-                  label="Annuler Encaissement"
+                  :label="$t('labels.annulerEncaissement')"
                   color="negative"
                   size="md"
                   icon="cancel"
@@ -327,7 +346,7 @@
                   class="action-btn"
                 />
                 <q-btn
-                  label="Vider le formulaire"
+                  :label="$t('labels.viderFormulaire')"
                   color="grey-7"
                   size="md"
                   icon="clear_all"
@@ -346,7 +365,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 
@@ -377,111 +396,139 @@ const formData = ref({
 
 // Données des BEs exécutés
 const besExecutes = ref([]);
-const besColumns = ref([
+const besColumns = computed(() => [
   {
     name: 'numEmployeur',
-    label: 'Numéro Employeur',
+    label: $t('labels.numeroEmployeurCol'),
     field: 'numEmployeur',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold',
+    headerStyle: 'color: #1976d2; font-size: 12px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'raisonSociale',
-    label: 'Raison Sociale',
+    label: $t('labels.raisonSocialeCol'),
     field: 'raisonSociale',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold',
+    headerStyle: 'color: #1976d2; font-size: 12px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'cleBE',
-    label: 'Clé du BE',
+    label: $t('labels.cleBECol'),
     field: 'cleBE',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold',
+    headerStyle: 'color: #1976d2; font-size: 12px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'typeBE',
-    label: 'Type du BE',
+    label: $t('labels.typeBECol'),
     field: 'typeBE',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold',
+    headerStyle: 'color: #1976d2; font-size: 12px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'rubriqueCotisation',
-    label: 'Rubrique cotisation',
+    label: $t('labels.rubriqueCotisationCol'),
     field: 'rubriqueCotisation',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold',
+    headerStyle: 'color: #1976d2; font-size: 12px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'total',
-    label: 'Total',
+    label: $t('labels.totalCol'),
     field: 'total',
     align: 'right',
     sortable: true,
-    format: (val) => formatCurrency(val)
+    format: (val) => formatCurrency(val),
+    headerClasses: 'text-primary text-weight-bold',
+    headerStyle: 'color: #1976d2; font-size: 12px; font-weight: 700; text-transform: uppercase;'
   }
 ]);
 
 // Données des encaissements concernés
 const encaissementsConcernes = ref([]);
-const encaissementColumns = ref([
+const encaissementColumns = computed(() => [
   {
     name: 'numEmployeur',
-    label: 'N°Employeur',
+    label: $t('labels.numeroEmployeurShortCol'),
     field: 'numEmployeur',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold',
+    headerStyle: 'color: #1976d2; font-size: 12px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'rubrique',
-    label: 'RUBRIQUE DE COTISATION',
+    label: $t('labels.rubriqueCotisationShortCol'),
     field: 'rubrique',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold',
+    headerStyle: 'color: #1976d2; font-size: 12px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'numPiece',
-    label: 'N°PIECE',
+    label: $t('labels.numeroPieceCol'),
     field: 'numPiece',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold',
+    headerStyle: 'color: #1976d2; font-size: 12px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'mode',
-    label: 'MODE DE PAIEMENT',
+    label: $t('labels.modePaiementCol'),
     field: 'mode',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold',
+    headerStyle: 'color: #1976d2; font-size: 12px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'montant',
-    label: 'MONTANT',
+    label: $t('labels.montantCol'),
     field: 'montant',
     align: 'right',
     sortable: true,
-    format: (val) => formatCurrency(val)
+    format: (val) => formatCurrency(val),
+    headerClasses: 'text-primary text-weight-bold',
+    headerStyle: 'color: #1976d2; font-size: 12px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'banque',
-    label: 'BANQUE',
+    label: $t('labels.banqueCol'),
     field: 'banque',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold',
+    headerStyle: 'color: #1976d2; font-size: 12px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'utilisateur',
-    label: 'UTILISATEUR',
+    label: $t('labels.utilisateurCol'),
     field: 'utilisateur',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold',
+    headerStyle: 'color: #1976d2; font-size: 12px; font-weight: 700; text-transform: uppercase;'
   },
   {
     name: 'ind',
-    label: 'IND',
+    label: $t('labels.indCol'),
     field: 'ind',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold',
+    headerStyle: 'color: #1976d2; font-size: 12px; font-weight: 700; text-transform: uppercase;'
   }
 ]);
 
@@ -551,7 +598,7 @@ const loadEmployeurInfo = async () => {
 
       $q.notify({
         type: 'positive',
-        message: 'Informations employeur chargées avec succès',
+        message: $t('labels.informationsEmployeurChargees'),
         position: 'top',
         timeout: 2000
       });
@@ -565,7 +612,7 @@ const loadEmployeurInfo = async () => {
 
       $q.notify({
         type: 'negative',
-        message: `Employeur avec le matricule ${formData.value.matriculeCNPS} non trouvé`,
+        message: `${$t('labels.employeurNonTrouve')} ${formData.value.matriculeCNPS}`,
         position: 'top',
         timeout: 3000,
         icon: 'sentiment_dissatisfied'
@@ -576,7 +623,7 @@ const loadEmployeurInfo = async () => {
     employeurFound.value = false;
     $q.notify({
       type: 'negative',
-      message: 'Erreur lors du chargement des informations employeur',
+      message: $t('labels.erreurChargementEmployeur'),
       position: 'top'
     });
   } finally {
@@ -651,7 +698,7 @@ const annulerEncaissement = async () => {
   if (!isValid) {
     $q.notify({
       type: 'negative',
-      message: 'Veuillez remplir tous les champs obligatoires',
+      message: $t('labels.remplirChampsObligatoires'),
       position: 'top'
     });
     return;
@@ -659,15 +706,15 @@ const annulerEncaissement = async () => {
 
   // Confirmation
   $q.dialog({
-    title: 'Confirmation d\'annulation',
-    message: 'Êtes-vous sûr de vouloir annuler cet encaissement ? Cette action est irréversible.',
+    title: $t('labels.confirmationAnnulation'),
+    message: $t('labels.confirmerAnnulation'),
     persistent: true,
     ok: {
-      label: 'Confirmer',
+      label: $t('labels.confirmer'),
       color: 'negative'
     },
     cancel: {
-      label: 'Annuler',
+      label: $t('labels.annuler'),
       color: 'grey'
     }
   }).onOk(async () => {
@@ -679,7 +726,7 @@ const annulerEncaissement = async () => {
 
       $q.notify({
         type: 'positive',
-        message: 'Encaissement annulé avec succès',
+        message: $t('labels.encaissementAnnuleSucces'),
         position: 'top',
         icon: 'check_circle'
       });
@@ -690,7 +737,7 @@ const annulerEncaissement = async () => {
     } catch {
       $q.notify({
         type: 'negative',
-        message: 'Erreur lors de l\'annulation de l\'encaissement',
+        message: $t('labels.erreurAnnulationEncaissement'),
         position: 'top',
         icon: 'error'
       });
@@ -720,7 +767,7 @@ const resetForm = () => {
 
   $q.notify({
     type: 'info',
-    message: 'Formulaire vidé',
+    message: $t('labels.formulaireVide'),
     position: 'top',
     icon: 'refresh'
   });
@@ -746,6 +793,9 @@ const onSubmit = () => {
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   border: 1px solid #e0e0e0;
+  max-width: 80%;
+  width: 80%;
+  margin: 0 auto;
 }
 
 .form-title {
@@ -948,6 +998,100 @@ const onSubmit = () => {
   font-size: 1.1em;
 }
 
+/* Centrage des éléments du formulaire */
+.form-centered {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.form-centered .row {
+  justify-content: center;
+}
+
+.form-centered .col-12,
+.form-centered .col-md-3,
+.form-centered .col-md-6 {
+  display: flex;
+  justify-content: center;
+}
+
+/* Alignement à gauche pour certains éléments */
+.align-left {
+  display: flex !important;
+  justify-content: flex-start !important;
+}
+
+.form-centered .field-input {
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Réduction des tailles des éléments */
+.q-field--outlined .q-field__control {
+  min-height: 40px;
+}
+
+.q-field--dense .q-field__control {
+  min-height: 36px;
+}
+
+.q-field--dense .q-field__native {
+  font-size: 0.9rem;
+}
+
+.q-field--dense .q-field__label {
+  font-size: 0.85rem;
+}
+
+/* Réduction des tailles des cartes */
+.section-card {
+  margin-bottom: 8px;
+}
+
+.section-card .q-card-section {
+  padding: 8px;
+}
+
+.section-card .text-h6 {
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+  margin-top: 0;
+}
+
+/* Réduction des tailles des boutons */
+.q-btn {
+  font-size: 0.85rem;
+  padding: 6px 12px;
+}
+
+/* Réduction des espacements */
+.q-gutter-xs > * {
+  margin: 2px;
+}
+
+.q-gutter-sm > * {
+  margin: 4px;
+}
+
+.q-mb-sm {
+  margin-bottom: 4px !important;
+}
+
+.q-mb-md {
+  margin-bottom: 8px !important;
+}
+
+/* Réduction des tailles des tableaux */
+.q-table thead th {
+  font-size: 0.75rem;
+  padding: 4px 6px;
+}
+
+.q-table tbody td {
+  font-size: 0.75rem;
+  padding: 4px 6px;
+}
+
 /* Styles pour les champs obligatoires */
 .q-field--error .q-field__control {
   border-color: #f44336;
@@ -977,5 +1121,11 @@ const onSubmit = () => {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Style pour l'en-tête d'expansion avec couleur d'avertissement */
+.text-warning {
+  color: #ff9800 !important;
+  font-weight: 600;
 }
 </style>

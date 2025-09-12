@@ -1,238 +1,258 @@
 <template>
-  <q-page class="q-pa-md">
+  <q-page class="q-pa-sm">
     <q-card class="main-card">
       <!-- Header du formulaire -->
-      <q-card-section class="bg-primary text-white">
-        <div class="text-h5 font-weight-bold">
+      <q-card-section class="bg-primary text-white q-pa-sm">
+        <div class="text-h6 font-weight-bold text-center">
           {{ $t('labels.formulaireModificationValidation') }}
         </div>
       </q-card-section>
 
       <q-separator />
 
-      <q-card-section>
-        <q-form @submit="onSubmit" class="q-gutter-md">
+      <q-card-section class="q-pa-sm">
+        <q-form @submit="onSubmit" class="q-gutter-sm ve-form">
 
           <!-- Section 1: Choix de l'action -->
-          <div class="section-container">
-            <div class="section-title q-mb-md">
-              <q-icon name="settings" class="q-mr-sm" />
-              {{ $t('labels.choixAction') }}
-            </div>
-            <div class="row q-gutter-md">
-              <div class="col-12 col-md-4">
-                <q-radio v-model="formData.action" val="correction" :label="$t('labels.correctionSaisies')" color="primary" />
+          <q-card flat bordered class="section-card">
+            <q-card-section class="q-pa-sm">
+              <div class="text-h6 text-primary q-mb-sm">
+                <q-icon name="settings" class="q-mr-sm" />
+                {{ $t('labels.choixAction') }}
               </div>
-              <div class="col-12 col-md-4">
-                <q-radio v-model="formData.action" val="validation" :label="$t('labels.validationSaisies')" color="positive" />
+              <div class="row q-gutter-xs justify-start items-center">
+                <div class="col-auto">
+                  <q-radio v-model="formData.action" val="correction" :label="$t('labels.correctionSaisies')" color="primary" dense />
+                </div>
+                <div class="col-auto">
+                  <q-radio v-model="formData.action" val="validation" :label="$t('labels.validationSaisies')" color="positive" dense />
+                </div>
+                <div class="col-auto">
+                  <q-radio v-model="formData.action" val="devalidation" :label="$t('labels.devalidationSaisies')" color="warning" dense />
+                </div>
+                <div class="col-auto">
+                  <q-radio v-model="formData.action" val="validationDefinitive" :label="$t('labels.validationDefinitive')" color="positive" dense />
+                </div>
+                <div class="col-auto">
+                  <q-radio v-model="formData.action" val="generation" :label="$t('labels.generation')" color="info" dense />
+                </div>
+                <div class="col-auto">
+                  <q-radio v-model="formData.action" val="edition" :label="$t('labels.edition')" color="accent" dense />
+                </div>
+                <div class="col-auto">
+                  <q-radio v-model="formData.action" val="export" :label="$t('labels.exportTransmission')" color="secondary" dense />
+                </div>
               </div>
-              <div class="col-12 col-md-4">
-                <q-radio v-model="formData.action" val="devalidation" :label="$t('labels.devalidationSaisies')" color="warning" />
-              </div>
-            </div>
-            <div class="row q-gutter-md q-mt-sm">
-              <div class="col-12 col-md-4">
-                <q-radio v-model="formData.action" val="validationDefinitive" :label="$t('labels.validationDefinitive')" color="positive" />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-radio v-model="formData.action" val="generation" :label="$t('labels.generation')" color="info" />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-radio v-model="formData.action" val="edition" :label="$t('labels.edition')" color="accent" />
-              </div>
-            </div>
-            <div class="row q-gutter-md q-mt-sm">
-              <div class="col-12 col-md-4">
-                <q-radio v-model="formData.action" val="export" :label="$t('labels.exportTransmission')" color="secondary" />
-              </div>
-            </div>
-          </div>
+            </q-card-section>
+          </q-card>
 
           <!-- Section 2: Critères de sélection par période de saisie -->
           <q-expansion-item
             icon="schedule"
-            label="Zone de critère de sélection par période de saisie"
+            :label="$t('labels.criteresSelectionPeriodeSaisie')"
             header-class="text-primary"
-            class="section-container"
+            class="section-card"
             default-opened
           >
-            <div class="row q-gutter-sm q-pa-md justify-center">
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-input
-                  v-model="formData.debutPeriodeSaisie"
-                  label="Début période (jj/mm/yyyy)"
-                  outlined
-                  dense
-                  class="q-mb-md field-input"
-                  :rules="[val => !!val || 'Date de début requise']"
-                  readonly
-                >
-                  <template v-slot:append>
-                    <q-icon name="event" class="cursor-pointer" color="primary">
-                      <q-popup-proxy transition-show="scale" transition-hide="scale">
-                        <q-date
-                          v-model="formData.debutPeriodeSaisie"
-                          :mask="'DD/MM/YYYY'"
-                          color="primary"
-                        />
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-input
-                  v-model="formData.finPeriodeSaisie"
-                  label="Fin période (jj/mm/yyyy)"
-                  outlined
-                  dense
-                  class="q-mb-md field-input"
-                  :rules="[val => !!val || 'Date de fin requise']"
-                  readonly
-                >
-                  <template v-slot:append>
-                    <q-icon name="event" class="cursor-pointer" color="primary">
-                      <q-popup-proxy transition-show="scale" transition-hide="scale">
-                        <q-date
-                          v-model="formData.finPeriodeSaisie"
-                          :mask="'DD/MM/YYYY'"
-                          color="primary"
-                        />
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-            </div>
+            <q-card flat>
+              <q-card-section class="q-pa-sm">
+                <div class="row q-gutter-xs justify-center">
+                  <div class="col-auto ve-field">
+                    <q-input
+                      v-model="formData.debutPeriodeSaisie"
+                      :label="$t('labels.debutPeriodeSaisie')"
+                      outlined
+                      dense
+                      size="sm"
+                      class="field-input ve-input"
+                      :rules="[val => !!val || 'Date de début requise']"
+                      readonly
+                    >
+                      <template v-slot:append>
+                        <q-icon name="event" class="cursor-pointer" color="primary">
+                          <q-popup-proxy transition-show="scale" transition-hide="scale">
+                            <q-date
+                              v-model="formData.debutPeriodeSaisie"
+                              :mask="'DD/MM/YYYY'"
+                              color="primary"
+                            />
+                          </q-popup-proxy>
+                        </q-icon>
+                      </template>
+                    </q-input>
+                  </div>
+                  <div class="col-auto ve-field">
+                    <q-input
+                      v-model="formData.finPeriodeSaisie"
+                      :label="$t('labels.finPeriodeSaisie')"
+                      outlined
+                      dense
+                      size="sm"
+                      class="field-input ve-input"
+                      :rules="[val => !!val || 'Date de fin requise']"
+                      readonly
+                    >
+                      <template v-slot:append>
+                        <q-icon name="event" class="cursor-pointer" color="primary">
+                          <q-popup-proxy transition-show="scale" transition-hide="scale">
+                            <q-date
+                              v-model="formData.finPeriodeSaisie"
+                              :mask="'DD/MM/YYYY'"
+                              color="primary"
+                            />
+                          </q-popup-proxy>
+                        </q-icon>
+                      </template>
+                    </q-input>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
           </q-expansion-item>
 
           <!-- Section 3: Critères de sélection par période de paiement -->
           <q-expansion-item
             icon="payment"
-            label="Zone de critère de sélection par période de paiement"
+            :label="$t('labels.criteresSelectionPeriodePaiement')"
             header-class="text-primary"
-            class="section-container"
+            class="section-card"
           >
-            <div class="row q-gutter-sm q-pa-md justify-center">
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-input
-                  v-model="formData.debutPeriodePaiement"
-                  label="Début période de paiement (jj/mm/yyyy)"
-                  outlined
-                  dense
-                  class="q-mb-md field-input"
-                  readonly
-                >
-                  <template v-slot:append>
-                    <q-icon name="event" class="cursor-pointer" color="primary">
-                      <q-popup-proxy transition-show="scale" transition-hide="scale">
-                        <q-date
-                          v-model="formData.debutPeriodePaiement"
-                          :mask="'DD/MM/YYYY'"
-                          color="primary"
-                        />
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-input
-                  v-model="formData.finPeriodePaiement"
-                  label="Fin période de paiement (jj/mm/yyyy)"
-                  outlined
-                  dense
-                  class="q-mb-md field-input"
-                  readonly
-                >
-                  <template v-slot:append>
-                    <q-icon name="event" class="cursor-pointer" color="primary">
-                      <q-popup-proxy transition-show="scale" transition-hide="scale">
-                        <q-date
-                          v-model="formData.finPeriodePaiement"
-                          :mask="'DD/MM/YYYY'"
-                          color="primary"
-                        />
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-            </div>
+            <q-card flat>
+              <q-card-section class="q-pa-sm">
+                <div class="row q-gutter-xs justify-center">
+                  <div class="col-auto ve-field">
+                    <q-input
+                      v-model="formData.debutPeriodePaiement"
+                      :label="$t('labels.debutPeriodePaiement')"
+                      outlined
+                      dense
+                      size="sm"
+                      class="field-input ve-input"
+                      readonly
+                    >
+                      <template v-slot:append>
+                        <q-icon name="event" class="cursor-pointer" color="primary">
+                          <q-popup-proxy transition-show="scale" transition-hide="scale">
+                            <q-date
+                              v-model="formData.debutPeriodePaiement"
+                              :mask="'DD/MM/YYYY'"
+                              color="primary"
+                            />
+                          </q-popup-proxy>
+                        </q-icon>
+                      </template>
+                    </q-input>
+                  </div>
+                  <div class="col-auto ve-field">
+                    <q-input
+                      v-model="formData.finPeriodePaiement"
+                      :label="$t('labels.finPeriodePaiement')"
+                      outlined
+                      dense
+                      size="sm"
+                      class="field-input ve-input"
+                      readonly
+                    >
+                      <template v-slot:append>
+                        <q-icon name="event" class="cursor-pointer" color="primary">
+                          <q-popup-proxy transition-show="scale" transition-hide="scale">
+                            <q-date
+                              v-model="formData.finPeriodePaiement"
+                              :mask="'DD/MM/YYYY'"
+                              color="primary"
+                            />
+                          </q-popup-proxy>
+                        </q-icon>
+                      </template>
+                    </q-input>
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
           </q-expansion-item>
 
           <!-- Section 4: Critères de sélection employeur, utilisateur et/ou par banque -->
           <q-expansion-item
             icon="business"
-            label="Zone de critère de sélection employeur, utilisateur et/ou par banque"
+            :label="$t('labels.criteresSelectionEmployeur')"
             header-class="text-primary"
-            class="section-container"
+            class="section-card"
             default-opened
           >
-            <div class="row q-gutter-sm q-pa-md justify-center">
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-input
-                  v-model="formData.matriculeEmployeur"
-                  outlined
-                  dense
-                  label="Matricule employeur"
-                  class="q-mb-md field-input"
-                  clearable
-                />
-              </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-select
-                  v-model="formData.utilisateur"
-                  outlined
-                  dense
-                  :options="utilisateurOptions"
-                  label="Utilisateur"
-                  class="q-mb-md field-input"
-                  clearable
-                  use-input
-                  input-debounce="0"
-                  new-value-mode="add-unique"
-                />
-              </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-select
-                  v-model="formData.banque"
-                  outlined
-                  dense
-                  :options="banqueOptions"
-                  label="Banque"
-                  class="q-mb-md field-input"
-                  clearable
-                  use-input
-                  input-debounce="0"
-                  new-value-mode="add-unique"
-                />
-              </div>
-            </div>
+            <q-card flat>
+              <q-card-section class="q-pa-sm">
+                <div class="row q-gutter-xs justify-center">
+                  <div class="col-auto ve-field">
+                    <q-input
+                      v-model="formData.matriculeEmployeur"
+                      outlined
+                      dense
+                      size="sm"
+                      :label="$t('labels.matriculeEmployeur')"
+                      class="field-input ve-input"
+                      clearable
+                    />
+                  </div>
+                  <div class="col-auto ve-field">
+                    <q-select
+                      v-model="formData.utilisateur"
+                      outlined
+                      dense
+                      size="sm"
+                      :options="utilisateurOptions"
+                      :label="$t('labels.utilisateur')"
+                      class="field-input ve-input"
+                      clearable
+                      use-input
+                      input-debounce="0"
+                      new-value-mode="add-unique"
+                    />
+                  </div>
+                  <div class="col-auto ve-field">
+                    <q-select
+                      v-model="formData.banque"
+                      outlined
+                      dense
+                      size="sm"
+                      :options="banqueOptions"
+                      :label="$t('labels.banque')"
+                      class="field-input ve-input"
+                      clearable
+                      use-input
+                      input-debounce="0"
+                      new-value-mode="add-unique"
+                    />
+                  </div>
+                </div>
+              </q-card-section>
+            </q-card>
           </q-expansion-item>
 
           <!-- Section 5: Montant total -->
-          <div class="section-container">
-            <div class="section-title q-mb-md">
-              <q-icon name="attach_money" class="q-mr-sm" />
-              Montant total
-            </div>
-            <div class="row q-gutter-sm justify-center">
-              <div class="col-12 col-sm-6 col-md-3">
-                <q-input
-                  v-model.number="formData.montantTotal"
-                  outlined
-                  dense
-                  label="Montant total"
-                  type="number"
-                  class="q-mb-md field-input"
-                  prefix="FCFA"
-                  readonly
-                  :value="calculerMontantTotal"
-                />
+          <q-card flat bordered class="section-card">
+            <q-card-section class="q-pa-sm">
+              <div class="text-h6 text-primary q-mb-sm">
+                <q-icon name="attach_money" class="q-mr-sm" />
+                {{ $t('labels.montantTotal') }}
               </div>
-            </div>
-          </div>
+              <div class="row q-gutter-xs justify-start">
+                <div class="col-auto ve-field">
+                  <q-input
+                    v-model.number="formData.montantTotal"
+                    outlined
+                    dense
+                    size="sm"
+                    :label="$t('labels.montantTotal')"
+                    type="number"
+                    class="field-input ve-input"
+                    prefix="FCFA"
+                    readonly
+                    :value="calculerMontantTotal"
+                  />
+                </div>
+              </div>
+            </q-card-section>
+          </q-card>
 
           <!-- Section 6: Encaissements concernés -->
           <div class="section-container">
@@ -241,7 +261,8 @@
               Encaissements concernés
             </div>
 
-            <!-- Filtres de recherche -->
+            <!-- Filtres de recherche
+
             <div class="row q-gutter-sm q-mb-md justify-center">
               <div class="col-12 col-sm-6 col-md-3">
                 <q-input
@@ -279,7 +300,7 @@
                 />
               </div>
             </div>
-
+          -->
             <!-- Tableau des encaissements -->
             <q-table
               :rows="encaissementsFiltres"
@@ -289,8 +310,8 @@
               :filter="filtres.recherche"
               class="encaissements-table"
               :loading="loading"
-              loading-label="Chargement des données..."
-              no-data-label="Aucun encaissement trouvé"
+              :loading-label="$t('labels.chargementDonnees')"
+              :no-data-label="$t('labels.aucunEncaissement')"
             >
               <!-- Colonne avec checkboxes -->
               <template v-slot:header-selection="scope">
@@ -350,9 +371,9 @@
               <q-btn
                 color="secondary"
                 icon="preview"
-                label="Show Preview"
+                :label="$t('labels.showPreview')"
                 @click="showPreview"
-                size="lg"
+                size="md"
               />
             </div>
           </div>
@@ -360,7 +381,7 @@
           <!-- Section 7: Renseignements pour mise à jour en crédit -->
           <q-expansion-item
             icon="credit_card"
-            label="Renseignements pour mise à jour en crédit"
+            :label="$t('labels.renseignementsMiseCredit')"
             header-class="text-primary"
             class="section-container"
             default-opened
@@ -371,7 +392,7 @@
                   v-model="formData.nBulletinEmission"
                   outlined
                   dense
-                  label="N° Bulletin d'émission"
+                  :label="$t('labels.numeroBulletinEmission')"
                   class="q-mb-md field-input"
                   clearable
                 />
@@ -381,7 +402,7 @@
                   v-model="formData.periodeConcernee"
                   outlined
                   dense
-                  label="Période concernée"
+                  :label="$t('labels.periodeConcernee')"
                   class="q-mb-md field-input"
                   clearable
                 />
@@ -391,7 +412,7 @@
                   v-model.number="formData.montantPaye"
                   outlined
                   dense
-                  label="Montant payé"
+                  :label="$t('labels.montantPaye')"
                   type="number"
                   class="q-mb-md field-input"
                   prefix="FCFA"
@@ -402,7 +423,7 @@
                   v-model="formData.referenceTitrePaiement"
                   outlined
                   dense
-                  label="Référence Titre de paiement/Annulation"
+                  :label="$t('labels.referenceTitrePaiementLabel')"
                   class="q-mb-md field-input"
                   clearable
                 />
@@ -412,7 +433,7 @@
               <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model="formData.dateEffectivePaiement"
-                  label="Date effective de paiement/Annulation (jj/mm/yyyy)"
+                  :label="$t('labels.dateEffectivePaiementLabel')"
                   outlined
                   dense
                   class="q-mb-md field-input"
@@ -434,7 +455,7 @@
               <div class="col-12 col-sm-6 col-md-3">
                 <q-input
                   v-model="formData.dateComptable"
-                  label="Date Comptable (établissement quittance) (jj/mm/yyyy)"
+                  :label="$t('labels.dateComptable')"
                   outlined
                   dense
                   class="q-mb-md field-input"
@@ -460,7 +481,7 @@
                   v-model="formData.numeroQuittance"
                   outlined
                   dense
-                  label="Numéro quittance"
+                  :label="$t('labels.numeroQuittanceLabel')"
                   class="q-mb-md field-input"
                   clearable
                 />
@@ -471,7 +492,7 @@
                   outlined
                   dense
                   :options="modePaiementOptions"
-                  label="Mode de paiement"
+                  :label="$t('labels.modePaiementLabel')"
                   class="q-mb-md field-input"
                   clearable
                 />
@@ -482,7 +503,7 @@
                   outlined
                   dense
                   :options="imputationOptions"
-                  label="Imputation comptable (Banque/Tier collecteur)"
+                  :label="$t('labels.imputationComptableLabel')"
                   class="q-mb-md field-input"
                   clearable
                 />
@@ -491,7 +512,7 @@
                 <q-btn
                   color="warning"
                   icon="edit"
-                  label="Corriger la ligne"
+                  :label="$t('labels.corrigerLigne')"
                   @click="corrigerLigne"
                   class="q-mb-md field-input"
                   dense
@@ -506,66 +527,64 @@
               <q-icon name="build" class="q-mr-sm" />
               Actions
             </div>
-            <div class="row q-gutter-sm justify-center">
-              <div class="col-12 col-sm-6 col-md-3">
+            <div class="row q-gutter-xs justify-center actions-row">
+              <div class="col-auto">
                 <q-btn
                   color="secondary"
                   icon="refresh"
-                  label="Actualiser la grille"
+                  :label="$t('labels.actualiserGrille')"
                   @click="actualiserGrille"
-                  class="q-mb-md field-input"
+                  class="q-mx-xs"
                   dense
                 />
               </div>
-              <div class="col-12 col-sm-6 col-md-3">
+              <div class="col-auto">
                 <q-btn
                   color="positive"
                   icon="check_circle"
-                  label="Valider / Dévalider"
+                  :label="$t('labels.validerDevalider')"
                   @click="validerDevalider"
-                  class="q-mb-md field-input"
+                  class="q-mx-xs"
                   dense
                 />
               </div>
-              <div class="col-12 col-sm-6 col-md-3">
+              <div class="col-auto">
                 <q-btn
                   color="warning"
                   icon="clear"
-                  label="Vider le formulaire"
+                  :label="$t('labels.viderFormulaire')"
                   @click="viderFormulaire"
-                  class="q-mb-md field-input"
+                  class="q-mx-xs"
                   dense
                 />
               </div>
-              <div class="col-12 col-sm-6 col-md-3">
+              <div class="col-auto">
                 <q-btn
                   color="info"
                   icon="receipt"
-                  label="Générer les quittances"
+                  :label="$t('labels.genererQuittances')"
                   @click="genererQuittances"
-                  class="q-mb-md field-input"
+                  class="q-mx-xs"
                   dense
                 />
               </div>
-            </div>
-            <div class="row q-gutter-sm justify-center">
-              <div class="col-12 col-sm-6 col-md-3">
+              <div class="col-auto">
                 <q-btn
                   color="accent"
                   icon="print"
-                  label="Éditer les quittances"
+                  :label="$t('labels.editerQuittances')"
                   @click="editerQuittances"
-                  class="q-mb-md field-input"
+                  class="q-mx-xs"
                   dense
                 />
               </div>
-              <div class="col-12 col-sm-6 col-md-3">
+              <div class="col-auto">
                 <q-btn
                   color="primary"
                   icon="send"
-                  label="Transmettre la quittance"
+                  :label="$t('labels.transmettreQuittance')"
                   @click="transmettreQuittance"
-                  class="q-mb-md field-input"
+                  class="q-mx-xs"
                   dense
                 />
               </div>
@@ -598,8 +617,8 @@
           <span class="q-ml-sm">{{ confirmMessage }}</span>
         </q-card-section>
         <q-card-actions align="right">
-          <q-btn flat label="Annuler" color="primary" v-close-popup />
-          <q-btn flat label="Confirmer" color="negative" @click="confirmAction" v-close-popup />
+          <q-btn flat :label="$t('labels.annuler')" color="primary" v-close-popup />
+          <q-btn flat :label="$t('labels.confirmer')" color="negative" @click="confirmAction" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -702,171 +721,193 @@ const imputationOptions = ref([
   'Agence Régionale'
 ])
 
-const statutOptions = ref([
+/* const statutOptions = ref([
   'En attente',
   'Validé',
   'Dévalidé',
   'En cours de traitement',
   'Terminé'
-])
+]) */
 
-// Colonnes du tableau
-const columns = ref([
+// Colonnes du tableau (réactives à i18n)
+const columns = computed(() => ([
   {
     name: 'selection',
     label: '',
     field: 'selection',
     align: 'left',
-    sortable: false
+    sortable: false,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'nEmployeur',
-    label: 'N° Employeur',
+    label: $t('labels.numeroEmployeurShortCol'),
     field: 'nEmployeur',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'raisonSociale',
-    label: 'Raison Sociale',
+    label: $t('labels.raisonSocialeCol'),
     field: 'raisonSociale',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'periode',
-    label: 'Période',
+    label: $t('labels.periode'),
     field: 'periode',
     align: 'center',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'rubrique',
-    label: 'Rubrique',
+    label: $t('labels.rubrique'),
     field: 'rubrique',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'quittance',
-    label: 'Quittance',
+    label: $t('labels.quittance'),
     field: 'quittance',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'nPiece',
-    label: 'N° Pièce',
+    label: $t('labels.nPiece'),
     field: 'nPiece',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'dateDeclaration',
-    label: 'Date Déclaration',
+    label: $t('labels.dateDeclaration'),
     field: 'dateDeclaration',
     align: 'center',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'mode',
-    label: 'Mode',
+    label: $t('labels.mode'),
     field: 'mode',
     align: 'center',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'nature',
-    label: 'Nature',
+    label: $t('labels.nature'),
     field: 'nature',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'montant',
-    label: 'Montant',
+    label: $t('labels.montant'),
     field: 'montant',
     align: 'right',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'banque',
-    label: 'Banque',
+    label: $t('labels.banque'),
     field: 'banque',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'utilisateur',
-    label: 'Utilisateur',
+    label: $t('labels.utilisateur'),
     field: 'utilisateur',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'dateSaisie',
-    label: 'Date Saisie',
+    label: $t('labels.dateSaisie'),
     field: 'dateSaisie',
     align: 'center',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'val1',
-    label: 'VAL1',
+    label: $t('labels.val1'),
     field: 'val1',
     align: 'center',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'val2',
-    label: 'VAL2',
+    label: $t('labels.val2'),
     field: 'val2',
     align: 'center',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'dateQuittance',
-    label: 'Date Quittance',
+    label: $t('labels.dateQuittance'),
     field: 'dateQuittance',
     align: 'center',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'origine',
-    label: 'Origine',
+    label: $t('labels.origine'),
     field: 'origine',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'email',
-    label: 'E-mail',
+    label: $t('labels.email'),
     field: 'email',
     align: 'left',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'quittanceStatus',
-    label: 'Status Quittance',
+    label: $t('labels.quittanceStatus'),
     field: 'quittanceStatus',
     align: 'center',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'statut',
-    label: 'Statut',
+    label: $t('labels.statut'),
     field: 'statut',
     align: 'center',
-    sortable: true
+    sortable: true,
+    headerClasses: 'text-primary text-weight-bold'
   },
   {
     name: 'actions',
-    label: 'Actions',
+    label: $t('labels.actions'),
     field: 'actions',
     align: 'center',
-    sortable: false
+    sortable: false,
+    headerClasses: 'text-primary text-weight-bold'
   }
-])
+]))
 
 // Données fictives des encaissements
 const encaissements = ref([
@@ -1220,7 +1261,8 @@ onMounted(() => {
 
 <style scoped>
 .main-card {
-  max-width: 1400px;
+  max-width: 80%;
+  width: 80%;
   margin: 0 auto;
 }
 
@@ -1386,6 +1428,21 @@ onMounted(() => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+/* Réduction globale de la taille de tous les boutons du composant */
+.q-btn {
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  min-height: 28px;
+  min-width: 72px;
+  max-width: 140px;
+  white-space: nowrap;
+}
+
+.q-btn--round {
+  width: 28px;
+  height: 28px;
+}
+
 /* Amélioration des inputs */
 .q-input {
   border-radius: 6px;
@@ -1425,6 +1482,105 @@ onMounted(() => {
 /* Animation pour les sections */
 .section-container {
   transition: all 0.3s ease;
+}
+
+/* Centrage des éléments du formulaire */
+.form-centered {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.form-centered .row {
+  justify-content: center;
+}
+
+.form-centered .col-12,
+.form-centered .col-sm-6,
+.form-centered .col-md-3 {
+  display: flex;
+  justify-content: center;
+}
+
+.form-centered .field-input {
+  width: 100%;
+  max-width: 300px;
+}
+
+/* Réduction des tailles des éléments */
+.q-field--outlined .q-field__control {
+  min-height: 40px;
+}
+
+.q-field--dense .q-field__control {
+  min-height: 36px;
+}
+
+.q-field--dense .q-field__native {
+  font-size: 0.9rem;
+}
+
+.q-field--dense .q-field__label {
+  font-size: 0.85rem;
+}
+
+/* Réduction des tailles des cartes */
+.section-card {
+  margin-bottom: 8px;
+}
+
+.section-card .q-card-section {
+  padding: 8px;
+}
+
+.section-card .text-h6 {
+  font-size: 1.1rem;
+  margin-bottom: 6px;
+  margin-top: 0;
+}
+
+/* Réduction des tailles des boutons */
+.q-btn {
+  font-size: 0.85rem;
+  padding: 6px 12px;
+}
+
+/* Champs étroits pour correspondre à la maquette legacy */
+.ve-form .ve-input .q-field__control {
+  min-width: 180px;
+  max-width: 180px;
+}
+
+.ve-field {
+  display: flex;
+  align-items: center;
+}
+
+/* Réduction des espacements */
+.q-gutter-xs > * {
+  margin: 2px;
+}
+
+.q-gutter-sm > * {
+  margin: 4px;
+}
+
+.q-mb-sm {
+  margin-bottom: 4px !important;
+}
+
+.q-mb-md {
+  margin-bottom: 8px !important;
+}
+
+/* Réduction des tailles des tableaux */
+.q-table thead th {
+  font-size: 0.75rem;
+  padding: 4px 6px;
+}
+
+.q-table tbody td {
+  font-size: 0.75rem;
+  padding: 4px 6px;
 }
 
 .section-container:hover {
@@ -1485,4 +1641,28 @@ onMounted(() => {
 .q-btn[color="secondary"] {
   background: linear-gradient(135deg, #757575, #616161);
 }
+
+/* Espacement réduit entre les boutons d'action */
+.actions-row .q-btn {
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+/* Overrides compacts: reduce overall component heights */
+/* Buttons */
+.q-btn {
+  min-height: 24px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+}
+.q-btn--round {
+  width: 24px;
+  height: 24px;
+}
+
+/* Inputs */
+.q-field--outlined .q-field__control { min-height: 32px; }
+.q-field--dense .q-field__control { min-height: 28px; }
+.q-field__native { line-height: 1.1; }
+.q-field__label { font-size: 0.8rem; }
 </style>

@@ -564,6 +564,12 @@ export default {
       description:
         'The submission of benefit applications involves providing the required documents to access specific aid or services.',
     },
+    cptco: {
+      name: 'CONTRIBUTORS ACCOUNTING',
+    },
+    gectr: {
+      name: 'CONTROLLERS MANAGEMENT',
+    },
   },
   footer: {
     rights: 'All Rights Reserved. Powered by CNPS /DSI/SSI',

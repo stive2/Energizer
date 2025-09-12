@@ -106,11 +106,11 @@
       <q-dialog v-model="detailsDialog">
         <q-card class="q-pa-md" style="max-width: 500px">
           <q-card-section>
-            <div class="text-h6">Oops</div>
+            <div class="text-h6">{{ $t('pages.index.oops') }}</div>
             <div class="text-body1 q-mt-sm">{{ $t('home.sorry') }}</div>
           </q-card-section>
           <q-card-actions align="right">
-            <q-btn flat label="Fermer" color="primary" v-close-popup />
+            <q-btn flat :label="$t('pages.index.close')" color="primary" v-close-popup />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -210,7 +210,7 @@
                   outlined
                   dense
                   v-model="tenuComptesSearch"
-                  placeholder="Rechercher un composant de gestion des encaissements..."
+                  :placeholder="$t('pages.index.searchEnc')"
                   style="max-width: 400px; width: 100%"
                 >
                   <template v-slot:prepend>
@@ -229,7 +229,7 @@
                 </q-input>
               </div>
               <div class="text-caption text-grey-7 text-center">
-                {{ visibleTenuComptesCount }} composant(s) trouvé(s)
+                {{ visibleTenuComptesCount }} {{ $t('pages.index.foundCount') }}
               </div>
             </div>
 
@@ -311,7 +311,7 @@
                   outlined
                   dense
                   v-model="liquidationSearch"
-                  placeholder="Rechercher un composant de liquidation..."
+                  :placeholder="$t('pages.index.searchComponent')"
                   style="max-width: 400px; width: 100%"
                 >
                   <template v-slot:prepend>
@@ -364,7 +364,7 @@
                 </div>
                 <q-btn
                   color="primary"
-                  label="Continuer"
+                  :label="$t('pages.index.continue')"
                   @click="navigateToLiquidationPage"
                   icon="arrow_forward"
                   size="lg"
@@ -374,7 +374,7 @@
           </q-card-section>
 
           <q-card-actions align="right" v-if="currentLiquidationLevel > 0">
-            <q-btn label="Retour" color="secondary" @click="goBackLiquidation" icon="arrow_back" />
+            <q-btn :label="$t('pages.index.back')" color="secondary" @click="goBackLiquidation" icon="arrow_back" />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -397,7 +397,7 @@
             />
             <div class="text-h6 text-primary">
               <q-icon name="security" class="q-mr-sm" />
-              <span v-if="currentLevel === 0">Gestion des contrôleurs</span>
+              <span v-if="currentLevel === 0">{{ $t('pages.index.controllersTitle') }}</span>
               <span v-else-if="currentLevel === 1">{{ currentGroup?.name }}</span>
               <span v-else>{{ currentComponent?.name }}</span>
             </div>
@@ -486,7 +486,7 @@
                 </div>
                 <q-btn
                   color="primary"
-                  label="Continuer"
+                  :label="$t('pages.index.continue')"
                   @click="navigateToComponentPage"
                   icon="arrow_forward"
                   size="lg"
@@ -496,7 +496,7 @@
           </q-card-section>
 
           <q-card-actions align="right" v-if="currentLevel > 0">
-            <q-btn label="Retour" color="secondary" @click="goBack" icon="arrow_back" />
+            <q-btn :label="$t('pages.index.back')" color="secondary" @click="goBack" icon="arrow_back" />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -763,14 +763,14 @@ const typesServices = [
       },
       {
         id: 4,
-        name: 'Tenue des comptes Cotisants',
+        name: 'services.cptco.name',
         description: 'services.cptco.description',
         code: 'CPTCO',
       },
       {
         id: 5,
-        name: 'Gestion des controleurs',
-        description: 'services.cptco.description',
+        name: 'services.gectr.name',
+        description: 'services.gectr.description',
         code: 'GECTR',
       },
     ],

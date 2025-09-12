@@ -9,7 +9,12 @@
         <!-- Titre du formulaire -->
         <div class="text-h6 text-center text-primary q-mb-lg">
           <q-icon name="account_balance_wallet" class="q-mr-sm" />
-          {{ $t('labels.formulaireSaisieEncaissement') }}
+          {{ !formData.typeAssure
+            ? $t('labels.formulaireSaisieEncaissementAssure')
+            : formData.typeAssure === 'VOLONTAIRE'
+              ? $t('labels.formulaireSaisieEncaissement')
+              : $t('labels.formulaireSaisieEncaissementANV')
+          }}
         </div>
 
         <q-form ref="formRef" @submit="onSubmit" class="q-gutter-y-md form-centered">
@@ -24,6 +29,19 @@
             <q-card flat>
               <q-card-section class="q-gutter-sm">
                 <div class="row q-gutter-sm justify-center">
+                  <div class="col-12 col-sm-6 col-md-3">
+                    <q-select
+                      v-model="formData.typeAssure"
+                      :options="typeAssureOptions"
+                      :label="$t('labels.typeEncaissement') + ' *'"
+                      outlined
+                      dense
+                      emit-value
+                      map-options
+                      class="field-input"
+                      :rules="[val => !!val || $t('labels.champObligatoire')]"
+                    />
+                  </div>
                   <div class="">
                     <q-input
                       v-model="formData.numAssure"
@@ -172,29 +190,31 @@
           <!-- Section Liste des encaissements -->
           <q-expansion-item
             icon="list_alt"
-            :label="$t('labels.listeEncaissementsAV')"
+            :label="formData.typeAssure === 'VOLONTAIRE' ? $t('labels.listeEncaissementsAV') : $t('labels.listeEncaissementsANV')"
             class="section-card"
             header-class="text-primary"
           >
             <q-card flat>
               <q-card-section>
-                <q-table
-                  :rows="encaissements"
-                  :columns="encaissementColumns"
-                  row-key="id"
-                  flat
-                  bordered
-                  :rows-per-page-options="[5, 10, 20]"
-                  :pagination="{ rowsPerPage: 10 }"
-                  class="q-mt-md"
-                  @row-click="selectEncaissement"
-                >
+                <div class="table-container">
+                  <q-table
+                    :rows="encaissements"
+                    :columns="visibleEncaissementColumns"
+                    row-key="id"
+                    flat
+                    bordered
+                    :rows-per-page-options="[5, 10, 20]"
+                    :pagination="{ rowsPerPage: 10 }"
+                    class="q-mt-md centered-table"
+                    @row-click="selectEncaissement"
+                  >
                   <template v-slot:body-cell-montant="props">
                     <q-td :props="props">
                       <span class="text-weight-bold text-positive">{{ formatCurrency(props.value) }}</span>
                     </q-td>
                   </template>
-                </q-table>
+                  </q-table>
+                </div>
               </q-card-section>
             </q-card>
           </q-expansion-item>
@@ -323,7 +343,7 @@
                       :rules="[val => !!val || $t('labels.champObligatoire')]"
                     />
                   </div>
-                  <div class="col-12 col-sm-6 col-md-3">
+                  <div class="col-12 col-sm-6 col-md-3" v-if="formData.typeAssure === 'VOLONTAIRE'">
                     <q-select
                       v-model="formData.complementaire.typeQuittance"
                       :options="typesQuittance"
@@ -333,7 +353,7 @@
                       class="field-input"
                     />
                   </div>
-                  <div class="col-12 col-sm-6 col-md-3">
+                  <div class="col-12 col-sm-6 col-md-3" v-if="formData.typeAssure === 'VOLONTAIRE'">
                     <q-input
                       v-model="formData.complementaire.numQuittance"
                       :label="$t('labels.numQuittance')"
@@ -344,7 +364,7 @@
                       :disable="formData.complementaire.typeQuittance === 'AUTOMATIQUE'"
                     />
                   </div>
-                  <div class="col-12 col-sm-6 col-md-3">
+                  <div class="col-12 col-sm-6 col-md-3" v-if="formData.typeAssure === 'VOLONTAIRE'">
                     <q-select
                       v-model="formData.complementaire.quittanceAEditer"
                       :options="quittancesDisponibles"
@@ -355,7 +375,7 @@
                       @focus="loadQuittances"
                     />
                   </div>
-                  <div class="col-12 col-sm-6 col-md-3">
+                  <div class="col-12 col-sm-6 col-md-3" v-if="formData.typeAssure === 'VOLONTAIRE'">
                     <q-input
                       v-model="formData.complementaire.listeQuittanceEdit"
                       :label="$t('labels.listeQuittanceEdit')"
@@ -366,7 +386,7 @@
                     />
                   </div>
                 </div>
-                <div class="q-mt-md">
+                <div class="q-mt-md" v-if="formData.typeAssure === 'VOLONTAIRE'">
                   <q-banner class="bg-red-1 text-red-8">
                     <template v-slot:avatar>
                       <q-icon name="info" />
@@ -381,22 +401,23 @@
           <!-- Section Liste des quittances générées -->
           <q-expansion-item
             icon="receipt"
-            :label="$t('labels.listeQuittancesAV')"
+            :label="formData.typeAssure === 'VOLONTAIRE' ? $t('labels.listeQuittancesAV') : $t('labels.listeQuittancesANV')"
             class="section-card"
             header-class="text-primary"
           >
             <q-card flat>
               <q-card-section>
-                <q-table
-                  :rows="quittancesGenerees"
-                  :columns="quittanceColumns"
-                  row-key="id"
-                  flat
-                  bordered
-                  :rows-per-page-options="[5, 10, 20]"
-                  :pagination="{ rowsPerPage: 10 }"
-                  class="q-mt-md"
-                >
+                <div class="table-container">
+                  <q-table
+                    :rows="quittancesGenerees"
+                    :columns="quittanceColumns"
+                    row-key="id"
+                    flat
+                    bordered
+                    :rows-per-page-options="[5, 10, 20]"
+                    :pagination="{ rowsPerPage: 10 }"
+                    class="q-mt-md centered-table"
+                  >
                   <template v-slot:body-cell-montant="props">
                     <q-td :props="props">
                       <span class="text-weight-bold text-positive">{{ formatCurrency(props.value) }}</span>
@@ -413,7 +434,8 @@
                       />
                     </q-td>
                   </template>
-                </q-table>
+                  </q-table>
+                </div>
               </q-card-section>
             </q-card>
           </q-expansion-item>
@@ -475,7 +497,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 
@@ -493,6 +515,7 @@ const assureFound = ref(false);
 // Données du formulaire
 const formData = ref({
   numAssure: '',
+  typeAssure: '',
   contrat: {
     mois60Ans: '',
     numContrat: '',
@@ -524,10 +547,12 @@ const formData = ref({
 
 // Données des encaissements
 const encaissements = ref([]);
-const encaissementColumns = ref([
+
+// Colonnes des encaissements avec traduction réactive
+const encaissementColumns = computed(() => [
   {
     name: 'numAssure',
-    label: 'NUMÉRO ASSURÉ',
+    label: $t('labels.numeroAssure'),
     field: 'numAssure',
     align: 'left',
     sortable: true,
@@ -535,7 +560,7 @@ const encaissementColumns = ref([
   },
   {
     name: 'nomAssure',
-    label: 'NOM ASSURÉ',
+    label: $t('labels.nomAssure'),
     field: 'nomAssure',
     align: 'left',
     sortable: true,
@@ -543,7 +568,7 @@ const encaissementColumns = ref([
   },
   {
     name: 'refPaiement',
-    label: 'RÉFÉRENCE PAIEMENT',
+    label: $t('labels.referencePaiement'),
     field: 'refPaiement',
     align: 'left',
     sortable: true,
@@ -551,7 +576,7 @@ const encaissementColumns = ref([
   },
   {
     name: 'montant',
-    label: 'MONTANT',
+    label: $t('labels.montant'),
     field: 'montant',
     align: 'right',
     sortable: true,
@@ -559,7 +584,7 @@ const encaissementColumns = ref([
   },
   {
     name: 'datePaiement',
-    label: 'DATE PAIEMENT',
+    label: $t('labels.datePaiement'),
     field: 'datePaiement',
     align: 'left',
     sortable: true,
@@ -567,7 +592,7 @@ const encaissementColumns = ref([
   },
   {
     name: 'origine',
-    label: 'ORIGINE',
+    label: $t('labels.origine'),
     field: 'origine',
     align: 'right',
     sortable: true,
@@ -575,7 +600,7 @@ const encaissementColumns = ref([
   },
   {
     name: 'modePaiement',
-    label: 'MODE PAIEMENT',
+    label: $t('labels.modePaiement'),
     field: 'modePaiement',
     align: 'left',
     sortable: true,
@@ -583,7 +608,7 @@ const encaissementColumns = ref([
   },
   {
     name: 'codeCentre',
-    label: 'CODE CENTRE DE GESTION',
+    label: $t('labels.codeCentreGestion'),
     field: 'codeCentre',
     align: 'left',
     sortable: true,
@@ -591,12 +616,19 @@ const encaissementColumns = ref([
   }
 ]);
 
+// Colonnes visibles - afficher toutes les colonnes
+const visibleEncaissementColumns = computed(() => {
+  return encaissementColumns.value;
+});
+
 // Données des quittances générées
 const quittancesGenerees = ref([]);
-const quittanceColumns = ref([
+
+// Colonnes des quittances avec traduction réactive
+const quittanceColumns = computed(() => [
   {
     name: 'numQuit',
-    label: 'NUMÉRO',
+    label: $t('labels.numero'),
     field: 'numQuit',
     align: 'left',
     sortable: true,
@@ -604,7 +636,7 @@ const quittanceColumns = ref([
   },
   {
     name: 'montant',
-    label: 'MONTANT',
+    label: $t('labels.montant'),
     field: 'montant',
     align: 'right',
     sortable: true,
@@ -612,7 +644,7 @@ const quittanceColumns = ref([
   },
   {
     name: 'dateCrea',
-    label: 'DATE PAIEMENT',
+    label: $t('labels.datePaiement'),
     field: 'dateCrea',
     align: 'left',
     sortable: true,
@@ -620,7 +652,7 @@ const quittanceColumns = ref([
   },
   {
     name: 'codeContrat',
-    label: 'NUMÉRO CONTRAT',
+    label: $t('labels.numeroContrat'),
     field: 'codeContrat',
     align: 'left',
     sortable: true,
@@ -628,7 +660,7 @@ const quittanceColumns = ref([
   },
   {
     name: 'dateGeneration',
-    label: 'DATE GÉNÉRATION',
+    label: $t('labels.dateGeneration'),
     field: 'dateGeneration',
     align: 'left',
     sortable: true,
@@ -636,7 +668,7 @@ const quittanceColumns = ref([
   },
   {
     name: 'fichierQuittance',
-    label: 'QUITTANCE',
+    label: $t('labels.quittance'),
     field: 'fichierQuittance',
     align: 'left',
     sortable: true,
@@ -651,6 +683,11 @@ const modesPaiement = ref([
   'Virement',
   'Carte bancaire',
   'Prélèvement'
+]);
+
+const typeAssureOptions = ref([
+  { label: 'Assuré volontaire', value: 'VOLONTAIRE' },
+  { label: 'Assuré non volontaire', value: 'NON_VOLONTAIRE' }
 ]);
 
 const naturesCotisation = ref([
@@ -868,30 +905,57 @@ const chargerEncaissements = async () => {
     // Simulation d'un appel API
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    encaissements.value = [
-      {
-        id: 1,
-        numAssure: '321-11006497-9',
-        nomAssure: 'NDJENG NDJENG',
-        refPaiement: 'REF2024001',
-        montant: 7500,
-        datePaiement: '20/01/2025',
-        origine: 'EXPRESS EXCHANGE',
-        modePaiement: 'Virement',
-        codeCentre: '001'
-      },
-      {
-        id: 2,
-        numAssure: '123-1234567-123',
-        nomAssure: 'JEAN DUPONT',
-        refPaiement: 'REF001',
-        montant: 5000,
-        datePaiement: '15/01/2025',
-        origine: 'EXPRESS EXCHANGE',
-        modePaiement: 'Virement',
-        codeCentre: '001'
-      }
-    ];
+    if (formData.value.typeAssure === 'VOLONTAIRE') {
+      encaissements.value = [
+        {
+          id: 1,
+          numAssure: '321-11006497-9',
+          nomAssure: 'NKOLO MBA CELESTE',
+          refPaiement: 'REF2024001',
+          montant: 7500,
+          datePaiement: '20/01/2025',
+          origine: 'COLLECTEUR AV',
+          modePaiement: 'Virement',
+          codeCentre: '001'
+        },
+        {
+          id: 2,
+          numAssure: '123-1234567-123',
+          nomAssure: 'NKOLO CELESTE ARSENE NUMFOR',
+          refPaiement: 'REF001',
+          montant: 5000,
+          datePaiement: '15/01/2025',
+          origine: 'COLLECTEUR AV',
+          modePaiement: 'Virement',
+          codeCentre: '001'
+        }
+      ];
+    } else {
+      encaissements.value = [
+        {
+          id: 11,
+          numAssure: '654-98765432-1',
+          nomAssure: 'MARIE MBIDA',
+          refPaiement: 'ANV-REF0001',
+          montant: 8200,
+          datePaiement: '10/02/2025',
+          origine: 'VERSEMENT SPONTANÉ',
+          modePaiement: 'Espèces',
+          codeCentre: '003'
+        },
+        {
+          id: 12,
+          numAssure: '789-12345678-2',
+          nomAssure: 'PAUL EBOA',
+          refPaiement: 'ANV-REF0002',
+          montant: 9100,
+          datePaiement: '12/02/2025',
+          origine: 'VERSEMENT BUREAU',
+          modePaiement: 'Chèque',
+          codeCentre: '002'
+        }
+      ];
+    }
 
     $q.notify({
       type: 'positive',
@@ -951,26 +1015,49 @@ const chargerQuittances = async () => {
     // Simulation d'un appel API
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    quittancesGenerees.value = [
-      {
-        id: 1,
-        numQuit: 'Q2024001',
-        montant: 7500,
-        dateCrea: '20/01/2025',
-        codeContrat: 'CF2024001',
-        dateGeneration: '20/01/2025',
-        fichierQuittance: '/quittances/Q2024001.pdf'
-      },
-      {
-        id: 2,
-        numQuit: 'Q2025001',
-        montant: 5000,
-        dateCrea: '15/01/2025',
-        codeContrat: 'CF2025001',
-        dateGeneration: '15/01/2025',
-        fichierQuittance: '/quittances/Q2025001.pdf'
-      }
-    ];
+    if (formData.value.typeAssure === 'VOLONTAIRE') {
+      quittancesGenerees.value = [
+        {
+          id: 1,
+          numQuit: 'QAV-2024001',
+          montant: 7500,
+          dateCrea: '20/01/2025',
+          codeContrat: 'CF2024001',
+          dateGeneration: '20/01/2025',
+          fichierQuittance: '/quittances/QAV-2024001.pdf'
+        },
+        {
+          id: 2,
+          numQuit: 'QAV-2025001',
+          montant: 5000,
+          dateCrea: '15/01/2025',
+          codeContrat: 'CF2025001',
+          dateGeneration: '15/01/2025',
+          fichierQuittance: '/quittances/QAV-2025001.pdf'
+        }
+      ];
+    } else {
+      quittancesGenerees.value = [
+        {
+          id: 11,
+          numQuit: 'QANV-2025001',
+          montant: 8200,
+          dateCrea: '10/02/2025',
+          codeContrat: 'ANV-CT-0001',
+          dateGeneration: '10/02/2025',
+          fichierQuittance: '/quittances/QANV-2025001.pdf'
+        },
+        {
+          id: 12,
+          numQuit: 'QANV-2025002',
+          montant: 9100,
+          dateCrea: '12/02/2025',
+          codeContrat: 'ANV-CT-0002',
+          dateGeneration: '12/02/2025',
+          fichierQuittance: '/quittances/QANV-2025002.pdf'
+        }
+      ];
+    }
 
     $q.notify({
       type: 'positive',
@@ -996,6 +1083,7 @@ const viderFormulaire = () => {
   formRef.value?.reset();
   formData.value = {
     numAssure: '',
+    typeAssure: '',
     contrat: {
       mois60Ans: '',
       numContrat: '',
@@ -1061,6 +1149,9 @@ onMounted(() => {
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   border: 1px solid #e0e0e0;
+  max-width: 80%;
+  width: 80%;
+  margin: 0 auto;
 }
 
 /* Styles pour les sections */
@@ -1123,11 +1214,26 @@ onMounted(() => {
   overflow: hidden;
 }
 
+/* Conteneur pour centrer les tables */
+.table-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Table centrée */
+.centered-table {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
 .q-table thead th {
   background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
   color: white;
   font-weight: 600;
-  text-transform: uppercase;
+  text-transform: uppercase !important;
   font-size: 0.85rem;
   letter-spacing: 0.5px;
 }
@@ -1144,6 +1250,24 @@ onMounted(() => {
 .q-table tbody tr:hover {
   background-color: #f8f9fa;
   cursor: pointer;
+}
+
+/* Styles pour les tableaux avec défilement horizontal */
+.centered-table {
+  min-width: 100%;
+  overflow-x: auto;
+}
+
+.centered-table .q-table__container {
+  overflow-x: auto;
+}
+
+.centered-table .q-table__top {
+  overflow-x: auto;
+}
+
+.centered-table .q-table__bottom {
+  overflow-x: auto;
 }
 
 /* Styles pour les champs avec max-width */

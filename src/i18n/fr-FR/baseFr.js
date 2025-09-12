@@ -577,6 +577,12 @@ export default {
       description:
         "Le dépôt des dossiers de prestations consiste à soumettre les documents requis pour bénéficier d'aides ou de services spécifiques.",
     },
+    cptco: {
+      name: 'TENUE DES COMPTES COTISANTS',
+    },
+    gectr: {
+      name: 'GESTION DES CONTRÔLEURS',
+    },
   },
   footer: {
     rights: 'Tous droits réservés. Propulsé par la CNPS /DSI/SSI',

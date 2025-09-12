@@ -6,14 +6,14 @@
         <div class="col">
           <div class="text-h6 text-primary">
             <q-icon name="account_balance" class="q-mr-md" />
-            {{ currentComponentName || 'Gestion des encaissements de cotisations' }}
+            {{ currentComponentName || $t('pages.gestionTenuComptes.title') }}
           </div>
               <div class="text-subtitle1 text-grey-7">
                       <div class="col-auto">
               <q-btn
                 color="primary"
                 icon="arrow_back"
-                label="Retour"
+                :label="$t('pages.gestionTenuComptes.back')"
                 @click="retourAccueil"
                 class="q-mr-sm"
               />
@@ -58,9 +58,9 @@
       <!-- Message si aucun composant sélectionné -->
       <div v-else class="text-center q-pa-xl">
         <q-icon name="info" size="64px" color="grey-5" class="q-mb-md" />
-        <div class="text-h6 text-grey-7">Aucun composant sélectionné</div>
+        <div class="text-h6 text-grey-7">{{ $t('pages.gestionTenuComptes.emptyTitle') }}</div>
         <div class="text-body2 text-grey-6 q-mt-sm">
-          Veuillez sélectionner un composant depuis la page d'accueil
+          {{ $t('pages.gestionTenuComptes.emptySubtitle') }}
         </div>
       </div>
 
@@ -69,7 +69,7 @@
         <q-card-section>
           <div class="text-h6 q-mb-md">
             <q-icon name="check_circle" class="q-mr-sm text-positive" />
-            Processus de gestion des encaissements terminé
+            {{ $t('pages.gestionTenuComptes.processDone') }}
           </div>
 
           <div class="row q-gutter-md">
@@ -77,13 +77,13 @@
               <q-list bordered separator>
                 <q-item>
                   <q-item-section>
-                    <q-item-label>Composant utilisé</q-item-label>
+                    <q-item-label>{{ $t('pages.gestionTenuComptes.componentUsed') }}</q-item-label>
                     <q-item-label caption>{{ currentComponentName }}</q-item-label>
                   </q-item-section>
                 </q-item>
                 <q-item>
                   <q-item-section>
-                    <q-item-label>Date de traitement</q-item-label>
+                    <q-item-label>{{ $t('pages.gestionTenuComptes.processedDate') }}</q-item-label>
                     <q-item-label caption>{{ new Date().toLocaleDateString('fr-FR') }}</q-item-label>
                   </q-item-section>
                 </q-item>
@@ -93,10 +93,10 @@
               <q-list bordered separator>
                 <q-item>
                   <q-item-section>
-                    <q-item-label>Statut</q-item-label>
+                    <q-item-label>{{ $t('pages.gestionTenuComptes.status') }}</q-item-label>
                     <q-item-label caption>
                       <q-chip color="positive" text-color="white" icon="check">
-                        Traité
+                        {{ $t('pages.gestionTenuComptes.processed') }}
                       </q-chip>
                     </q-item-label>
                   </q-item-section>
@@ -108,14 +108,14 @@
           <div class="q-mt-md">
             <q-btn
               color="primary"
-              label="Nouveau traitement"
+              :label="$t('pages.gestionTenuComptes.newProcess')"
               @click="nouveauTraitement"
               icon="add"
             />
             <q-btn
               flat
               color="grey"
-              label="Exporter le rapport"
+              :label="$t('pages.gestionTenuComptes.exportReport')"
               class="q-ml-sm"
               icon="download"
             />
@@ -130,6 +130,7 @@
 import { ref, reactive, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 // Import des composants
 import EnregistrementEncaissement from 'src/components/tenuCmptes/EnregistrementEncaissement.vue'
@@ -149,6 +150,7 @@ export default {
     const $q = useQuasar()
     const route = useRoute()
     const router = useRouter()
+    const { t: $t } = useI18n()
     const processusTermine = ref(false)
 
     // Récupération des paramètres de route
@@ -179,7 +181,7 @@ export default {
       Object.assign(encaissementEnCours, encaissement)
       $q.notify({
         type: 'positive',
-        message: 'Encaissement enregistré avec succès'
+        message: $t('pages.gestionTenuComptes.notifySaved')
       })
       processusTermine.value = true
     }
@@ -188,7 +190,7 @@ export default {
       Object.assign(encaissementEnCours, encaissement)
       $q.notify({
         type: 'positive',
-        message: 'Encaissement saisi avec succès'
+        message: $t('pages.gestionTenuComptes.notifyEntered')
       })
       processusTermine.value = true
     }
@@ -196,7 +198,7 @@ export default {
     const onEncaissementSupprime = () => {
       $q.notify({
         type: 'positive',
-        message: 'Encaissement supprimé avec succès'
+        message: $t('pages.gestionTenuComptes.notifyDeleted')
       })
       processusTermine.value = true
     }
@@ -205,7 +207,7 @@ export default {
       Object.assign(encaissementEnCours, encaissement)
       $q.notify({
         type: 'positive',
-        message: 'Encaissement validé avec succès'
+        message: $t('pages.gestionTenuComptes.notifyValidated')
       })
       processusTermine.value = true
     }
@@ -224,14 +226,14 @@ export default {
 
       $q.notify({
         type: 'info',
-        message: 'Nouveau traitement créé'
+        message: $t('pages.gestionTenuComptes.notifyNewProcess')
       })
     }
 
     const actualiser = () => {
       $q.notify({
         type: 'info',
-        message: 'Page actualisée'
+        message: $t('pages.gestionTenuComptes.pageRefreshed')
       })
     }
 
