@@ -577,6 +577,10 @@ export default {
       description:
         "Le dépôt des dossiers de prestations consiste à soumettre les documents requis pour bénéficier d'aides ou de services spécifiques.",
     },
+    rp: {
+      name: 'Risques Professionnels',
+      description: 'Gestion des dossiers de maladies professionnels et accidents de travail',
+    },
     cptco: {
       name: 'TENUE DES COMPTES COTISANTS',
     },

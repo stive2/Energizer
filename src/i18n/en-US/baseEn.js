@@ -564,6 +564,10 @@ export default {
       description:
         'The submission of benefit applications involves providing the required documents to access specific aid or services.',
     },
+    rp: {
+      name: 'Risques Professionnels',
+      description: 'Gestion des dossiers de maladies professionnels et accidents de travail',
+    },
     cptco: {
       name: 'CONTRIBUTORS ACCOUNTING',
     },

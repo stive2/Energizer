@@ -374,7 +374,12 @@
           </q-card-section>
 
           <q-card-actions align="right" v-if="currentLiquidationLevel > 0">
-            <q-btn :label="$t('pages.index.back')" color="secondary" @click="goBackLiquidation" icon="arrow_back" />
+            <q-btn
+              :label="$t('pages.index.back')"
+              color="secondary"
+              @click="goBackLiquidation"
+              icon="arrow_back"
+            />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -496,7 +501,12 @@
           </q-card-section>
 
           <q-card-actions align="right" v-if="currentLevel > 0">
-            <q-btn :label="$t('pages.index.back')" color="secondary" @click="goBack" icon="arrow_back" />
+            <q-btn
+              :label="$t('pages.index.back')"
+              color="secondary"
+              @click="goBack"
+              icon="arrow_back"
+            />
           </q-card-actions>
         </q-card>
       </q-dialog>
@@ -756,19 +766,19 @@ const typesServices = [
         code: 'FORM2',
       },
       {
-        id: 3,
+        id: 4,
         name: 'services.liqpf.name',
         description: 'services.liqpf.description',
         code: 'LIQPF',
       },
       {
-        id: 4,
+        id: 5,
         name: 'services.cptco.name',
         description: 'services.cptco.description',
         code: 'CPTCO',
       },
       {
-        id: 5,
+        id: 6,
         name: 'services.gectr.name',
         description: 'services.gectr.description',
         code: 'GECTR',
@@ -785,6 +795,12 @@ const typesServices = [
         name: 'services.prestassu.name',
         description: 'services.prestassu.description',
         code: 'PRESTASSU',
+      },
+      {
+        id: 2,
+        name: 'services.rp.name',
+        description: 'services.rp.description',
+        code: 'RP',
       },
     ],
   },
@@ -850,7 +866,9 @@ const formDialogMap = {
 const openForm = (service) => {
   selectedService.value = service
 
-  if (selectedService.value.code === 'PRESTASSU') {
+  if (selectedService.value.code === 'RP') {
+    router.push('/rp/saisie-dossier')
+  } else if (selectedService.value.code === 'PRESTASSU') {
     router.push('/user/depot-dossier')
   } else if (selectedService.value.code === 'LIQPF') {
     formDialogMap.LIQPF.value = true

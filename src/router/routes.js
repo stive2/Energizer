@@ -73,6 +73,24 @@ const routes = [
     ],
   },
 
+  // Configuration de routing corrigée
+  {
+    path: '/rp',
+    component: () => import('layouts/RPLayout.vue'),
+    children: [
+      {
+        path: 'saisie-dossier', // Au lieu de '/saisie-dossier'
+        name: 'saisie-dossier',
+        component: () => import('pages/rp/saisieDossier.vue'),
+      },
+      // Route par défaut pour rediriger vers dashboard
+      {
+        path: '',
+        redirect: 'dashboard',
+      },
+    ],
+  },
+
   // Always leave this as last one,
   // but you can also remove it
   {
