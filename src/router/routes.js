@@ -33,6 +33,41 @@ const routes = [
         name: 'gestion-liquidation-rp',
         component: () => import('pages/liquidations/liquidationRP/gestionLiquidationRP.vue'),
       },
+      {
+        path: 'liquidationPF/liquidationPF',
+        name: 'liquidation-pf-home',
+        component: () => import('pages/liquidations/liquidationPF/liquidationPF.vue'),
+      },
+      {
+        path: 'liquidationPF/allocationsFamiliales',
+        name: 'liquidation-pf-alloc-fam',
+        component: () => import('pages/liquidations/liquidationPF/allocationsFamiliales.vue'),
+      },
+      {
+        path: 'liquidationPF/aperiodique',
+        name: 'liquidation-pf-aperiodique',
+        component: () => import('pages/liquidations/liquidationPF/aperiodique.vue'),
+      },
+      {
+        path: 'liquidationPF/saisieReprises',
+        name: 'liquidation-pf-saisie-reprises',
+        component: () => import('pages/liquidations/liquidationPF/saisieReprises.vue'),
+      },
+      {
+        path: 'liquidationPF/periodeActive',
+        name: 'liquidation-pf-periode-active',
+        component: () => import('pages/liquidations/liquidationPF/periodeActive.vue'),
+      },
+      {
+        path: 'liquidationPF/pieceMaintienDroit',
+        name: 'liquidation-pf-piece-maintien-droit',
+        component: () => import('pages/liquidations/liquidationPF/pieceMaintienDroit.vue'),
+      },
+      {
+        path: 'liquidationPF/statistiques',
+        name: 'liquidation-pf-statistiques',
+        component: () => import('pages/liquidations/liquidationPF/statistiques.vue'),
+      },
     ],
   },
 

@@ -153,16 +153,6 @@
           :service="selectedService"
           @close="((showStepperDialog = false), (showLiquidationRP = false))"
         />
-        <LiquidationPF
-          v-if="formDialogMap.LIQPF.value"
-          :service="selectedService"
-          @close="
-            (() => {
-              showStepperDialog = false
-              formDialogMap.LIQPF.value = false
-            })()
-          "
-        />
         <Encaissement
           v-if="formDialogMap.CPTCO.value"
           :service="selectedService"
@@ -524,7 +514,7 @@ import ImmatAssuVol from 'components/ImmatAssuVol.vue'
 import ReceptionDossier from 'components/ReceptionDossier.vue'
 import ReceptionDossierManuel from 'components/ReceptionDossierManuel.vue'
 import LiquidationRP from 'components/LiquidationRP.vue'
-import LiquidationPF from 'components/liquidationPF/LiquidationPF.vue'
+// LiquidationPF dialog component removed in favor of dedicated page routing
 import Encaissement from 'components/tenuCmptes/Encaissement.vue'
 import { useNotify } from 'components/useNotify.js'
 import LoginAssu from 'components/logins/LoginAssu.vue'
@@ -871,8 +861,7 @@ const openForm = (service) => {
   } else if (selectedService.value.code === 'PRESTASSU') {
     router.push('/user/depot-dossier')
   } else if (selectedService.value.code === 'LIQPF') {
-    formDialogMap.LIQPF.value = true
-    showStepperDialog.value = true
+    router.push('/liquidations/liquidationPF/liquidationPF')
   } else if (selectedService.value.code === 'GECTR') {
     // Ouvrir le dialogue hiérarchique pour la gestion des contrôleurs
     showGestionControleursDialog.value = true

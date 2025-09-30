@@ -583,9 +583,13 @@ export default {
     },
     cptco: {
       name: 'TENUE DES COMPTES COTISANTS',
+      description:
+        'Gestion de la tenue des comptes cotisants : saisies, validations et opérations de compte',
     },
     gectr: {
       name: 'GESTION DES CONTRÔLEURS',
+      description:
+        'Gestion des contrôleurs : groupes, saisie des résultats, validation et reporting',
     },
   },
   footer: {
@@ -606,6 +610,24 @@ export default {
     headerTitle: 'Éléments de liquidation',
     placeholderSelect: 'Sélectionnez un élément',
     placeholderChoose: 'Choisissez un élément dans le menu de gauche pour commencer',
+    select: 'Sélection',
+    details: 'Détails',
+    categoryInputName: 'Saisie des éléments de liquidation',
+    categoryInputDesc: 'Accédez aux différents éléments de saisie',
+    categoryStatsName: 'Consultation et statistiques',
+    categoryStatsDesc: 'Consultez les indicateurs et rapports',
+    allocFamName: 'Allocations familiales',
+    allocFamDesc: 'Gestion des allocations familiales',
+    aperiodiqueName: 'Apériodique',
+    aperiodiqueDesc: 'Saisie des éléments apériodiques',
+    saisieReprisesName: 'Saisie des reprises',
+    saisieReprisesDesc: 'Saisir les reprises et corrections',
+    periodeActiveName: 'Période active',
+    periodeActiveDesc: 'Gestion des périodes actives',
+    pieceMaintienName: 'Pièce maintien de droit',
+    pieceMaintienDesc: 'Gestion des pièces de maintien du droit',
+    statsName: 'Statistiques',
+    statsDesc: 'Tableau de bord des statistiques PF',
     sidebar: {
       aperiodique: 'Apériodiques',
       reprises: 'Saisie des reprises',

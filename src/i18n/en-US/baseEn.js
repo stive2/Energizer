@@ -570,9 +570,12 @@ export default {
     },
     cptco: {
       name: 'CONTRIBUTORS ACCOUNTING',
+      description:
+        'Management of contributors accounting: entries, validations and account operations',
     },
     gectr: {
       name: 'CONTROLLERS MANAGEMENT',
+      description: 'Management of controllers: groups, results recording, validation and reporting',
     },
   },
   footer: {
@@ -593,6 +596,24 @@ export default {
     headerTitle: 'Liquidation items',
     placeholderSelect: 'Select an item',
     placeholderChoose: 'Choose an item from the left menu to start',
+    select: 'Select',
+    details: 'Details',
+    categoryInputName: 'Entry of liquidation items',
+    categoryInputDesc: 'Access the different entry items',
+    categoryStatsName: 'Consultation and statistics',
+    categoryStatsDesc: 'View indicators and reports',
+    allocFamName: 'Family Allowances',
+    allocFamDesc: 'Management of family allowances',
+    aperiodiqueName: 'Aperiodic',
+    aperiodiqueDesc: 'Entry of aperiodic items',
+    saisieReprisesName: 'Entry of recoveries',
+    saisieReprisesDesc: 'Enter recoveries and corrections',
+    periodeActiveName: 'Active period',
+    periodeActiveDesc: 'Management of active periods',
+    pieceMaintienName: 'Rights maintenance document',
+    pieceMaintienDesc: 'Management of rights maintenance documents',
+    statsName: 'Statistics',
+    statsDesc: 'PF statistics dashboard',
     sidebar: {
       aperiodique: 'Aperiodic',
       reprises: 'Entry of recoveries',
