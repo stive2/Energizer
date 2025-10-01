@@ -97,6 +97,34 @@
           <q-item
             clickable
             v-ripple
+            :to="{ name: 'saisie-dossier' }"
+            exact-active-class="sidebar-item-active"
+            class="sidebar-item q-mb-sm"
+          >
+            <q-item-section avatar>
+              <q-icon name="upload_file" color="primary" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-weight-medium"> Saisie Dossier </q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item
+            clickable
+            v-ripple
+            :to="{ name: 'depot-dossier' }"
+            exact-active-class="sidebar-item-active"
+            class="sidebar-item q-mb-sm"
+          >
+            <q-item-section avatar>
+              <q-icon name="upload_file" color="primary" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-weight-medium"> Demande Enquête </q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item
+            clickable
+            v-ripple
             :to="{ name: 'depot-dossier' }"
             exact-active-class="sidebar-item-active"
             class="sidebar-item q-mb-sm"
@@ -106,8 +134,54 @@
             </q-item-section>
             <q-item-section>
               <q-item-label class="text-weight-medium">
-                {{ $t('Dépot dossiers prestations') }}
+                Saisie Des éléments de Liquidation
               </q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item
+            clickable
+            v-ripple
+            :to="{ name: 'depot-dossier' }"
+            exact-active-class="sidebar-item-active"
+            class="sidebar-item q-mb-sm"
+          >
+            <q-item-section avatar>
+              <q-icon name="upload_file" color="primary" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-weight-medium">
+                Modification Des éléments de Liquidation
+              </q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item
+            clickable
+            v-ripple
+            :to="{ name: 'depot-dossier' }"
+            exact-active-class="sidebar-item-active"
+            class="sidebar-item q-mb-sm"
+          >
+            <q-item-section avatar>
+              <q-icon name="upload_file" color="primary" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-weight-medium">
+                Suppression Des éléments de Liquidation
+              </q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item
+            clickable
+            v-ripple
+            :to="{ name: 'depot-dossier' }"
+            exact-active-class="sidebar-item-active"
+            class="sidebar-item q-mb-sm"
+          >
+            <q-item-section avatar>
+              <q-icon name="upload_file" color="primary" />
+            </q-item-section>
+            <q-item-section>
+              <q-item-label class="text-weight-medium"> Liquidation </q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
