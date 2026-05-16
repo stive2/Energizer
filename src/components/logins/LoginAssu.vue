@@ -210,7 +210,7 @@ const logout = () => {
     })
 
     // Redirection vers la page de connexion
-    router.push({ name: 'login' })
+    router.push({ name: 'module-portal' })
   })
 }
 

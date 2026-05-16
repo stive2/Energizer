@@ -74,6 +74,22 @@
           :calculs="calculsEnCours"
           @dossier-archived="onDossierArchived"
         />
+
+        <!-- Étapes métier RP (certificats, décès, notes de frais) — espace réservé pour intégration des formulaires -->
+        <q-card v-else-if="isLiquidationPlaceholder" flat bordered class="bg-blue-1">
+          <q-card-section>
+            <div class="text-h6 text-primary">{{ currentComponentName }}</div>
+            <p class="text-body2 text-grey-8 q-mt-sm">{{ currentComponentDescription }}</p>
+            <p class="text-caption text-grey-7 q-mt-md">
+              Parcours visé dans EnergiZer : Prestations / RP / Saisie des éléments de liquidation. Pour les dossiers
+              AT, le certificat médical initial et final sont uniques.
+            </p>
+          </q-card-section>
+        </q-card>
+
+        <q-banner v-else rounded class="bg-orange-2 text-grey-9 q-mt-sm">
+          Le code « {{ currentComponentCode }} » ne correspond à aucun écran de liquidation chargé.
+        </q-banner>
       </div>
 
       <!-- Message si aucun composant sélectionné -->
@@ -160,7 +176,7 @@
 </template>
 
 <script>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRoute, useRouter } from 'vue-router'
 
@@ -195,13 +211,32 @@ export default {
 
     // Descriptions des composants
     const componentDescriptions = {
-      'SAISIE_DOSSIER_RP': 'Saisir les informations du dossier de retraite',
-      'CALCUL_PENSION': 'Calculer la pension de retraite',
-      'VALIDATION_DOSSIER': 'Valider le dossier de liquidation',
-      'GENERATION_ARRETE': 'Générer l\'arrêté de liquidation',
-      'NOTIFICATION_BENEFICIAIRE': 'Notifier le bénéficiaire',
-      'ARCHIVAGE_DOSSIER': 'Archiver le dossier traité'
+      SAISIE_DOSSIER_RP: 'Saisir les informations du dossier de retraite',
+      CALCUL_PENSION: 'Calculer la pension de retraite',
+      VALIDATION_DOSSIER: 'Valider le dossier de liquidation',
+      GENERATION_ARRETE: "Générer l'arrêté de liquidation",
+      NOTIFICATION_BENEFICIAIRE: 'Notifier le bénéficiaire',
+      ARCHIVAGE_DOSSIER: 'Archiver le dossier traité',
+      CERTIFICAT_MEDICAL:
+        'Certificats médicaux : saisie initiale, prolongation ou final (dossiers AT : initial et final uniques).',
+      CERTIFICAT_DECES: 'Certificat médical de décès et genre de mort.',
+      NOTES_FRAIS: 'Saisie des notes de frais liées à la liquidation RP.',
     }
+
+    const PLACEHOLDER_CODES = ['CERTIFICAT_MEDICAL', 'CERTIFICAT_DECES', 'NOTES_FRAIS']
+
+    const isLiquidationPlaceholder = computed(() =>
+      PLACEHOLDER_CODES.includes(currentComponentCode.value),
+    )
+
+    watch(
+      () => route.query,
+      () => {
+        currentComponentCode.value = route.query.component || ''
+        currentComponentName.value = route.query.componentName || ''
+      },
+      { deep: true },
+    )
 
     const currentComponentDescription = computed(() => {
       return componentDescriptions[currentComponentCode.value] || ''
@@ -317,7 +352,7 @@ export default {
     }
 
     const retourAccueil = () => {
-      router.push('/')
+      router.push({ name: 'energizer-home' })
     }
 
     const formatCurrency = (amount) => {
@@ -342,7 +377,8 @@ export default {
       nouveauDossier,
       actualiser,
       retourAccueil,
-      formatCurrency
+      formatCurrency,
+      isLiquidationPlaceholder,
     }
   }
 }

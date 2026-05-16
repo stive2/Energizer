@@ -47,7 +47,11 @@ export default defineConfig((ctx) => {
 
       // publicPath: '/',
       // analyze: true,
-      // env: {},
+      env: {
+        VITE_CNPS_API_BASE_URL: process.env.VITE_CNPS_API_BASE_URL || 'http://172.17.15.121:8020',
+        VITE_CNPS_API_TIMEOUT: process.env.VITE_CNPS_API_TIMEOUT || '30000',
+        VITE_CNPS_API_USE_PROXY: process.env.VITE_CNPS_API_USE_PROXY || '',
+      },
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,
@@ -92,6 +96,14 @@ export default defineConfig((ctx) => {
     devServer: {
       // https: true,
       open: true, // opens browser window automatically
+      proxy: {
+        '/api-cnps': {
+          target: process.env.VITE_CNPS_API_BASE_URL || 'http://172.17.15.121:8020',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api-cnps/, ''),
+        },
+      },
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
