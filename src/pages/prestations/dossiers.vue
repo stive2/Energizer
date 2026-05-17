@@ -36,8 +36,24 @@
 
         <q-card-section>
           <q-form ref="prestationForm" @submit="submitForm" class="q-gutter-md">
-            <!-- Champs communs -->
-            <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
+            <template v-if="isDepotPfPrestation">
+              <div class="depot-pf-form-body">
+                <div class="depot-pf-form-stack">
+                  <DepotPrestationPF_ChampsCommuns />
+                  <DepotPrestationPF_ExamensPrenataux v-if="selectedPrestation.id === 11" />
+                  <DepotPrestationPF_Accouchement v-if="selectedPrestation.id === 12" />
+                  <DepotPrestationPF_CongesMaternite v-if="selectedPrestation.id === 13" />
+                  <DepotPrestationPF_AllocationsFamiliales v-if="selectedPrestation.id === 14" />
+                </div>
+              </div>
+            </template>
+
+            <!-- Champs communs (autres prestations) -->
+            <div
+              v-else
+              class="justify-center row"
+              :class="{ column: !$q.screen.gt.sm }"
+            >
               <q-input
                 v-model="formData.mat_employeur"
                 :label="$t('inputassu.employer_cnps_registration_number')"
@@ -49,7 +65,7 @@
                 :hint="$t('inputassu.employer_cnps_registration_number')"
                 @keyup.enter="fetchEmployerExamen()"
                 @keydown.enter.prevent
-                @click="fetchEmployerExamen()"
+                @click="onMatriculeEmployeurLegacyActivate"
                 @update:model-value="(val) => (formData.mat_employeur = val.toUpperCase())"
               >
                 <template v-slot:append>
@@ -78,6 +94,7 @@
                 :style="$q.screen.gt.sm ? 'width: 500px' : 'width: 100%'"
                 class="q-mr-sm q-mb-sm"
                 readonly
+                bg-color="blue-grey-1"
                 :rules="[required]"
               >
                 <template v-slot:label>
@@ -141,6 +158,7 @@
                 :style="$q.screen.gt.sm ? 'width: 500px' : 'width: 100%'"
                 type="tel"
                 mask="+237 ### ### ###"
+                unmasked-value
                 class="q-mr-sm q-mb-sm"
                 :rules="[required]"
               >
@@ -166,43 +184,10 @@
             </div>
 
             <!-- Partie variable spécifique à la prestation -->
-            <div v-if="selectedPrestation.fields" class="dynamic-fields q-mt-md">
-              <Prestation11
-                v-if="selectedPrestation.id === 11"
-                :formData="formData"
-                :locale="locale"
-                :required="required"
-                :validateFirstExamCheckboxes="validateFirstExamCheckboxes"
-                :validateSecondExamCheckboxes="validateSecondExamCheckboxes"
-                :optionsDn="optionsDn"
-              />
-              <Prestation12
-                v-if="selectedPrestation.id === 12"
-                :accouchementForm="accouchementForm"
-                :locale="locale"
-                :required="required"
-                :optionsDn="optionsDn"
-              />
-              <Prestation13
-                v-if="selectedPrestation.id === 13"
-                :formData="formData"
-                :locale="locale"
-                :required="required"
-                :nombreActesNaissance="nombreActesNaissance"
-                :updateNaissanceFields="updateNaissanceFields"
-                :dateValidationRules="dateValidationRules"
-                :optionsDn="optionsDn"
-              />
-              <Prestation14
-                v-if="selectedPrestation.id === 14"
-                :allocationsForm="allocationsForm"
-                :locale="locale"
-                :required="required"
-                :numberOptions="numberOptions"
-                :validateEnfantsSelection="validateEnfantsSelection"
-                :actesNaissanceSupplementairesRows="actesNaissanceSupplementairesRows"
-                :optionsDn="optionsDn"
-              />
+            <div
+              v-if="selectedPrestation.fields && !isDepotPfPrestation"
+              class="dynamic-fields q-mt-md"
+            >
               <Prestation21
                 v-if="selectedPrestation.id === 21"
                 :revenus="revenus"
@@ -229,8 +214,8 @@
               />
             </div>
 
-            <!-- Centre CNPS -->  <!-- Champs communs -->
-            <div class="q-ma-md row justify-end">
+            <!-- Centre CNPS (hors dépôt PF : déjà dans ChampsCommuns) -->
+            <div v-if="!isDepotPfPrestation" class="q-ma-md row justify-end">
               <q-select
                 v-model="formData.CODE_CENTRECNPSC"
                 :label="$t('inputassu.centreCNPS')"
@@ -412,15 +397,23 @@
 </template>
 ```
 <script setup>
-import { ref, computed, reactive, watch } from 'vue';
+import { ref, computed, reactive, watch, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import { centres as rawCentres } from '../../data/Centres.js';
 import { useNotify } from '../../components/useNotify.js';
-import Prestation11 from 'src/components/Prestations/Prestation11.vue';
-import Prestation12 from 'src/components/Prestations/Prestation12.vue';
-import Prestation13 from 'src/components/Prestations/Prestation13.vue';
-import Prestation14 from 'src/components/Prestations/Prestation14.vue';
+import DepotPrestationPF_ChampsCommuns from 'src/components/assure/depotPrestationPF/DepotPrestationPF_ChampsCommuns.vue';
+import DepotPrestationPF_ExamensPrenataux from 'src/components/assure/depotPrestationPF/DepotPrestationPF_ExamensPrenataux.vue';
+import DepotPrestationPF_Accouchement from 'src/components/assure/depotPrestationPF/DepotPrestationPF_Accouchement.vue';
+import DepotPrestationPF_CongesMaternite from 'src/components/assure/depotPrestationPF/DepotPrestationPF_CongesMaternite.vue';
+import DepotPrestationPF_AllocationsFamiliales from 'src/components/assure/depotPrestationPF/DepotPrestationPF_AllocationsFamiliales.vue';
+import {
+  useDepotPrestationPfStore,
+} from 'src/stores/assure/depotPrestationPfStore.js';
+import { LEGACY_PRESTATION_ID_TO_CODE } from 'src/constants/assure/depotPrestationPfTypes.js';
+import { fetchEmployeurDepotPf } from 'src/api/assure/depotPrestationPfApi.js';
+import { normalizeMatriculeEmployeur } from 'src/api/assure/depotPrestationPfUtils.js';
+import { regexPatterns } from 'src/js/regex.js';
 import Prestation21 from 'src/components/Prestations/Prestation21.vue';
 import Prestation31 from 'src/components/Prestations/Prestation31.vue';
 
@@ -428,11 +421,16 @@ import Prestation31 from 'src/components/Prestations/Prestation31.vue';
 const $q = useQuasar();
 const { t, locale } = useI18n();
 const { notifyError, notifySuccess } = useNotify();
+const depotPfStore = useDepotPrestationPfStore();
 
 // Reactive states
 const searchQuery = ref('');
 const selectedType = ref(null);
 const selectedPrestation = ref(null);
+
+const isDepotPfPrestation = computed(() =>
+  [11, 12, 13, 14].includes(selectedPrestation.value?.id),
+);
 const isSubmitting = ref(false);
 const loading = ref(false);
 const prestationForm = ref(null);
@@ -444,9 +442,9 @@ const formData = reactive({
   mat_employeur: '',
   raisonsociale: '',
   mat_interne: '',
-  EMAIL_PERS: 'nkoloceleste@gmail.com',
-  TEL_PERS: '659295629',
-  Adresse: 'Yaoundé',
+  EMAIL_PERS: '',
+  TEL_PERS: '',
+  Adresse: '',
   nom: '',
   numeroAssure: '',
   telephone: '',
@@ -484,6 +482,24 @@ const formData = reactive({
   attestationCessation: null,
   demandePremierExamen: false,
   demandeDeuxiemeExamen: false,
+});
+
+function applyCoordonneesFormDataFromProfil() {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    const raw = localStorage.getItem('user_info');
+    if (!raw) return;
+    const user = JSON.parse(raw);
+    if (user.email) formData.EMAIL_PERS = user.email;
+    if (user.telephone || user.tel) formData.TEL_PERS = user.telephone || user.tel;
+    if (user.adresse) formData.Adresse = String(user.adresse).toUpperCase();
+  } catch {
+    /* ignore */
+  }
+}
+
+onMounted(() => {
+  applyCoordonneesFormDataFromProfil();
 });
 
 const dynamicForm = reactive({});
@@ -550,34 +566,6 @@ const activite = reactive({
 });
 
 // Computed properties
-const totalActesNaissance = computed(() => {
-  return (
-    parseInt(allocationsForm.nombreEnfantsMoins6 || 0) +
-    parseInt(allocationsForm.nombreEnfantsPlus6 || 0) +
-    parseInt(allocationsForm.nombreEnfantsReconnus || 0)
-  );
-});
-
-const actesNaissanceSupplementairesRows = computed(() => {
-  const total = totalActesNaissance.value;
-  const rows = [];
-  for (let i = 0; i < Math.ceil(total / 3); i++) {
-    const row = [];
-    for (let j = 1; j <= 3; j++) {
-      const idx = i * 3 + j;
-      if (idx <= total) {
-        row.push(idx);
-      }
-    }
-    rows.push(row);
-  }
-  return rows;
-});
-
-const nombreActesNaissance = computed(() => {
-  return Math.max(0, formData.nombreEnfantsSousControle || 0);
-});
-
 const filteredTypes = computed(() => {
   if (!searchQuery.value) return prestationTypes.value;
 
@@ -740,17 +728,6 @@ const prestationTypes = ref([
   },
 ]);
 
-const employeurs = ref([
-  {
-    numeroEmployeur: '123-1234567-123-A',
-    raisonsociale: 'Orange Cameroun',
-    NOM_COMMERCIAL: 'Orange Cameroon',
-    ADRESSE_EMPLOYEUR: 'Yaoundé, Cameroun',
-    DATE_EMB_PREM_TRAV: '25/10/1998',
-    EFFECTIF_APPROX: 500,
-  },
-]);
-
 const revenusColumns = [
   {
     name: 'annee',
@@ -899,20 +876,6 @@ const simulatedActiviteData = [
     dateCessation: '',
   },
 ];
-// Validation rules
-const dateValidationRules = [
-  (val) => {
-    if (!val) return true;
-    if (formData.debutConges && formData.finConges) {
-      return (
-        new Date(formData.debutConges) <= new Date(formData.finConges) ||
-        'La date de début doit être antérieure à la date de fin'
-      );
-    }
-    return true;
-  },
-];
-
 // Functions
 const optionsDn = (date) => {
   const today = new Date();
@@ -936,8 +899,72 @@ const selectType = (type) => {
   searchQuery.value = '';
 };
 
+function syncLegacyFormsToDepotPfStore() {
+  if (!isDepotPfPrestation.value) {
+    Object.assign(depotPfStore.common, {
+      mat_employeur: formData.mat_employeur,
+      raisonsociale: formData.raisonsociale,
+      mat_interne: formData.mat_interne,
+      EMAIL_PERS: formData.EMAIL_PERS,
+      TEL_PERS: formData.TEL_PERS,
+      Adresse: formData.Adresse,
+      CODE_CENTRECNPSC: formData.CODE_CENTRECNPSC,
+      typeSubmission: formData.typeSubmission,
+    });
+  } else {
+    Object.assign(formData, {
+      mat_employeur: depotPfStore.common.mat_employeur,
+      raisonsociale: depotPfStore.common.raisonsociale,
+      mat_interne: depotPfStore.common.mat_interne,
+      EMAIL_PERS: depotPfStore.common.EMAIL_PERS,
+      TEL_PERS: depotPfStore.common.TEL_PERS,
+      Adresse: depotPfStore.common.Adresse,
+      CODE_CENTRECNPSC: depotPfStore.common.CODE_CENTRECNPSC,
+      typeSubmission: depotPfStore.common.typeSubmission,
+    });
+  }
+  Object.assign(depotPfStore.examensPrenataux, {
+    demandePremierExamen: formData.demandePremierExamen,
+    demandeDeuxiemeExamen: formData.demandeDeuxiemeExamen,
+    datePremierExamen: formData.datePremierExamen,
+    dateDeuxiemeExamen: formData.dateDeuxiemeExamen,
+    dateProbableAccouchement: formData.dateProbableAccouchement,
+    allocations1: formData.allocations1,
+    fraisMedicaux1: formData.fraisMedicaux1,
+    allocations2: formData.allocations2,
+    fraisMedicaux2: formData.fraisMedicaux2,
+    certificatPremier: formData.certificatPremier,
+    fraisMedicauxPremier: formData.fraisMedicauxPremier,
+    certificatDeuxieme: formData.certificatDeuxieme,
+    fraisMedicauxDeuxieme: formData.fraisMedicauxDeuxieme,
+  });
+  Object.assign(depotPfStore.accouchement, accouchementForm);
+  Object.assign(depotPfStore.congesMaternite, {
+    showIndemnites: formData.showIndemnites,
+    accouchementPremature: formData.accouchementPremature,
+    nombreJoursCouches: formData.nombreJoursCouches,
+    debutConges: formData.debutConges,
+    finConges: formData.finConges,
+    dateRepriseActivite: formData.dateRepriseActivite,
+    debutPeriodeNonSalaire: formData.debutPeriodeNonSalaire,
+    finPeriodeNonSalaire: formData.finPeriodeNonSalaire,
+    nombreEnfantsViables: formData.nombreEnfantsViables,
+    nombreEnfantsSousControle: formData.nombreEnfantsSousControle,
+    certificatMedical: formData.certificatMedical,
+    actesNaissance: formData.actesNaissance,
+    bulletinPaie: formData.bulletinPaie,
+    attestationCessation: formData.attestationCessation,
+  });
+  Object.assign(depotPfStore.allocations, allocationsForm);
+}
+
 const selectPrestation = (prestation) => {
   selectedPrestation.value = prestation;
+  if ([11, 12, 13, 14].includes(prestation.id)) {
+    depotPfStore.loadContexte().then(() => {
+      syncLegacyFormsToDepotPfStore();
+    });
+  }
   Object.keys(dynamicForm).forEach((key) => delete dynamicForm[key]);
   if (prestation.fields) {
     prestation.fields.forEach((field) => {
@@ -982,26 +1009,35 @@ const goHome = () => {
   searchQuery.value = '';
 };
 
+function onMatriculeEmployeurLegacyActivate() {
+  if (formData.mat_employeur?.trim()) {
+    fetchEmployerExamen();
+  }
+}
+
 const fetchEmployerExamen = async () => {
-  const matricule = formData.mat_employeur;
-  if (!matricule || matricule.trim() === '') {
+  const matricule = normalizeMatriculeEmployeur(formData.mat_employeur);
+  formData.mat_employeur = matricule;
+  if (!matricule) {
     notifyError('Veuillez saisir un matricule employeur');
     return;
   }
-  if (!validateMatriculeCNPS(matricule)) {
-    notifyError(t('errors.invalid_cnps_format'));
+  const matriculeValide = validateMatriculeCNPS(matricule);
+  if (matriculeValide !== true) {
+    notifyError(matriculeValide);
     return;
   }
-  const employer = employeurs.value.find((e) => e.numeroEmployeur === matricule);
-  if (employer) {
+  try {
+    const employer = await fetchEmployeurDepotPf(matricule);
     formData.raisonsociale = employer.raisonsociale;
     formData.NOM_COMMERCIAL = employer.NOM_COMMERCIAL;
     formData.ADRESSE_EMPLOYEUR = employer.ADRESSE_EMPLOYEUR;
     formData.DATE_EMB_PREM_TRAV = employer.DATE_EMB_PREM_TRAV;
     formData.EFFECTIF_APPROX = employer.EFFECTIF_APPROX;
-    notifySuccess('Employeur trouvé avec succès');
-  } else {
-    notifyError('Employeur non trouvé');
+    notifySuccess(t('modules.assure.depotPf.employeurTrouve'));
+  } catch {
+    formData.raisonsociale = '';
+    notifyError(t('modules.assure.depotPf.employeurIntrouvable'));
   }
 };
 
@@ -1013,8 +1049,13 @@ const validateEmail = (val) => {
 };
 
 const validateMatriculeCNPS = (val) => {
-  const regex = /^(?:\d{3}-\d{7}-\d{3}-[A-Z]|\d{3}-\d{7}-[A-Z])$/;
-  return regex.test(val) || t('errors.invalid_cnps_format');
+  if (!val) return true;
+  const v = normalizeMatriculeEmployeur(val);
+  return (
+    regexPatterns.numEmpl1.test(v) ||
+    regexPatterns.numEmpl2.test(v) ||
+    t('errors.invalid_cnps_format')
+  );
 };
 
 const validateFirstExamCheckboxes = () => {
@@ -1052,19 +1093,35 @@ const validateAllocations = () => {
   return errors;
 };
 
-const validateEnfantsSelection = () => {
-  return (
-    allocationsForm.nombreEnfantsMoins6 > 0 ||
-    allocationsForm.nombreEnfantsPlus6 > 0 ||
-    allocationsForm.nombreEnfantsReconnus > 0 ||
-    t('Au moins un enfant est requis')
-  );
-};
-
 const submitForm = async () => {
   loading.value = true;
   isSubmitting.value = true;
   try {
+    const pfLegacyId = selectedPrestation.value?.id;
+    if ([11, 12, 13, 14].includes(pfLegacyId)) {
+      syncLegacyFormsToDepotPfStore();
+      const typeCode = LEGACY_PRESTATION_ID_TO_CODE[pfLegacyId];
+      const valid = await prestationForm.value.validate();
+      if (!valid) {
+        notifyError(t('errors.required'));
+        throw new Error('form_invalid');
+      }
+      const result = await depotPfStore.submitDossier(typeCode);
+      if (result.errors?.length) {
+        result.errors.forEach((code) => notifyError(code));
+        throw new Error('pf_validation');
+      }
+      if (result.success) {
+        const message =
+          formData.typeSubmission === 'temporaire'
+            ? t('form.temporarySubmissionDescription')
+            : t('form.definitiveSubmissionDescription');
+        notifySuccess(result.result?.Msg || message);
+        selectedPrestation.value = null;
+      }
+      return;
+    }
+
     // Validations spécifiques
     if (selectedPrestation.value?.id === 11) {
       if (!formData.demandeDeuxiemeExamen) {
@@ -1261,7 +1318,7 @@ watch(
 </script>
 <style scoped>
 .prestations-container {
-  max-width: 1400px;
+  width: 100%;
   margin: 0 auto;
 }
 

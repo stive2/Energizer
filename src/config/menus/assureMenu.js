@@ -9,19 +9,36 @@ export const assureMenu = [
   },
   {
     type: 'group',
-    labelKey: 'layout.sidebar.dossiers',
+    labelKey: 'layout.sidebar.assureDepotDossiers',
+    labelBold: true,
     icon: 'folder_shared',
     defaultOpened: true,
     children: [
       {
-        labelKey: 'layout.sidebar.depotDossiers',
-        icon: 'upload_file',
-        to: { name: 'depot-dossier' },
-      },
-      {
-        labelKey: 'layout.sidebar.dashboard',
-        icon: 'dashboard',
-        to: { name: 'assure-dashboard' },
+        type: 'group',
+        labelKey: 'layout.sidebar.assureDossiersPrestations',
+        icon: 'folder_open',
+        defaultOpened: true,
+        children: [
+          {
+            type: 'item',
+            labelKey: 'layout.sidebar.assurePrestationsFamiliales',
+            icon: 'family_restroom',
+            to: { name: 'assure-prestations-familiales' },
+          },
+          {
+            type: 'item',
+            labelKey: 'layout.sidebar.assurePrestationPension',
+            icon: 'savings',
+            to: { name: 'assure-prestation-pension' },
+          },
+          {
+            type: 'item',
+            labelKey: 'layout.sidebar.assurePrestationPriseAtMp',
+            icon: 'medical_services',
+            to: { name: 'assure-prestation-prise-at-mp' },
+          },
+        ],
       },
     ],
   },

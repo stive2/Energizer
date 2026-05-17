@@ -24,8 +24,12 @@ function onAuth(payload) {
     JSON.stringify({
       profile: 'external',
       nom: payload.displayName,
-      email: payload.login,
-      numeroAssure: 'DEMO-ASS-001',
+      email: payload.login || 'marie-claire.kamga@example.cm',
+      telephone: '+237677123456',
+      adresse: 'YAOUNDE, CAMEROUN',
+      numeroAssure: '321-1234567-0',
+      sexe: 'F',
+      mat_interne: 'EMP-2024-001',
     }),
   )
   router.replace({ name: 'assure-home' })

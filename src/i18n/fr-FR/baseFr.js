@@ -33,6 +33,40 @@ export default {
       homeLead: 'Accédez au tableau de bord et au dépôt de dossiers de prestations.',
       btnDashboard: 'Tableau de bord',
       btnDepot: 'Dépôt de dossiers',
+      prestationsPlaceholder: 'Contenu à venir.',
+      depotPf: {
+        pageLead: 'Choisissez le type de prestation familiale puis complétez le formulaire de dépôt.',
+        instructionFormulaire:
+          'Fournir les informations liées à la prestation demandée et mettre éventuellement à jour vos adresse, email et téléphone',
+        sectionPrestation: 'RENSEIGNEZ LES INFORMATIONS SUR LA PRESTATION QUE VOUS SOLLICITEZ',
+        examensPrenatauxTitre: 'Examens prénataux',
+        selectType: 'Type de prestation familiale',
+        employeurTrouve: 'Employeur trouvé avec succès.',
+        employeurIntrouvable: 'Employeur non trouvé.',
+        matriculeRequis: 'Veuillez saisir le matricule employeur.',
+        raisonSocialeHint: 'Saisissez le matricule employeur puis cliquez sur le champ ou Entrée',
+        materniteFemmeUniquement:
+          'La prise en charge des congés de maternité est réservée aux assurées de sexe féminin.',
+        dateRepriseActivite: 'Date de reprise d’activité',
+        ajouterActeNaissance: 'Ajouter un acte de naissance',
+        supprimerActeNaissance: 'Supprimer cet acte de naissance',
+        errors: {
+          fileType: 'Seuls les fichiers image, PDF ou Excel sont acceptés.',
+          examens_prenataux_aucune_demande:
+            'Veuillez sélectionner au moins un examen prénatal (1er ou 2e).',
+          examens_prenataux_premier_checkbox:
+            'Cochez au moins une option pour le premier examen (allocations ou frais médicaux).',
+          examens_prenataux_deuxieme_checkbox:
+            'Cochez au moins une option pour le deuxième examen (allocations ou frais médicaux).',
+          accouchement_option_requise:
+            'Sélectionnez au moins une option : frais d’accouchement ou frais médicaux.',
+          accouchement_nombre_enfants_sous_controle_requis:
+            'Le nombre d’enfants nés sous contrôle médical est obligatoire (minimum 1).',
+          accouchement_nombre_enfants_max: 'Le nombre d’enfants sous contrôle médical ne peut pas dépasser 5.',
+          allocations_enfant_requis:
+            'Indiquez au moins un enfant (moins de 6 ans, plus de 6 ans ou reconnu).',
+        },
+      },
     },
     declarations: {
       cardTitle: 'Déclarations & immatriculations',
@@ -121,6 +155,11 @@ export default {
       rpNoteDeFrags: 'Note de Frais',
       assure: 'Espace assuré',
       depotDossiers: 'Dépôt des dossiers de prestations',
+      assureDepotDossiers: 'Dépôt des Dossiers',
+      assureDossiersPrestations: 'Dossiers de prestations',
+      assurePrestationsFamiliales: 'Prestations Familiales',
+      assurePrestationPension: 'Prestation de pension (consulter et renvendication)',
+      assurePrestationPriseAtMp: 'Prestation de prise en charge AT et MP',
       dashboard: 'Tableau de bord',
       employeurDemandes: 'Demandes de prestations',
     },
@@ -614,6 +653,12 @@ export default {
     frais_accouchement: 'Frais Accouchement',
     frais_medicaux: 'Frais médicaux',
     frais_allocation: 'Frais Allocation',
+    allocations_numero_1: 'Allocations n°1',
+    allocations_numero_2: 'Allocations n°2',
+    matricule_assure: 'Matricule',
+    nom_prenom: 'Nom & prénom',
+    date_naissance_assure: 'Date de naissance',
+    sexe: 'Sexe',
     certificat_medical_accouchement: "Certificat médical d'accouchement",
     acte_naissance_enfant: 'Acte de naissance enfant',
     informations_allocations_familiales: 'Informations sur les Allocations Familiales',

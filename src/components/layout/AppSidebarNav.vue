@@ -23,7 +23,7 @@
         expand-separator
         :icon="entry.icon"
         :label="t(entry.labelKey)"
-        header-class="sidebar-nav-group__header"
+        :header-class="groupHeaderClass(entry)"
         expand-icon-class="sidebar-nav-expand-icon"
         class="sidebar-nav-group"
         :default-opened="!!entry.defaultOpened"
@@ -35,9 +35,10 @@
             expand-separator
             :icon="child.icon"
             :label="t(child.labelKey)"
-            header-class="sidebar-nav-group__header sidebar-nav-group__header--nested"
+            :header-class="groupHeaderClass(child, 'sidebar-nav-group__header--nested')"
             expand-icon-class="sidebar-nav-expand-icon"
             class="sidebar-nav-group sidebar-nav-group--nested"
+            :default-opened="!!child.defaultOpened"
             dense
           >
             <template v-for="(sub, sIdx) in child.children" :key="entryKey(sub, sIdx)">
@@ -47,7 +48,7 @@
                 expand-separator
                 :icon="sub.icon"
                 :label="t(sub.labelKey)"
-                header-class="sidebar-nav-group__header sidebar-nav-group__header--deep"
+                :header-class="groupHeaderClass(sub, 'sidebar-nav-group__header--deep')"
                 expand-icon-class="sidebar-nav-expand-icon"
                 class="sidebar-nav-group sidebar-nav-group--deep"
                 dense
@@ -101,7 +102,7 @@
             :to="child.to"
             :exact="child.exact"
             active-class="sidebar-nav-item--active"
-            class="sidebar-nav-item sidebar-nav-item--child"
+            :class="childItemClass(child)"
           >
             <q-item-section v-if="child.icon" avatar>
               <q-icon :name="child.icon" size="sm" class="sidebar-nav-icon" />
@@ -137,6 +138,21 @@ const { t } = useI18n()
 
 function entryKey(entry, idx) {
   return entry.labelKey || entry.type || String(idx)
+}
+
+function groupHeaderClass(entry, extra = '') {
+  const classes = ['sidebar-nav-group__header']
+  if (extra) classes.push(extra)
+  if (entry.labelBold) classes.push('sidebar-nav-group__header--bold')
+  return classes.join(' ')
+}
+
+function childItemClass(child) {
+  return [
+    'sidebar-nav-item',
+    'sidebar-nav-item--child',
+    child.nestedChild && 'sidebar-nav-item--nested-child',
+  ]
 }
 </script>
 
@@ -181,6 +197,11 @@ function entryKey(entry, idx) {
   font-size: 0.875rem;
 }
 
+.sidebar-nav-group :deep(.sidebar-nav-group__header--bold),
+.sidebar-nav-group :deep(.sidebar-nav-group__header--bold .q-item__label) {
+  font-weight: 700 !important;
+}
+
 .sidebar-nav-group :deep(.q-expansion-item__header) {
   border-radius: 8px;
   margin: 1px 8px;
@@ -206,6 +227,11 @@ function entryKey(entry, idx) {
 .sidebar-nav-item--child {
   margin-left: 4px;
   padding-left: 8px;
+}
+
+.sidebar-nav-item--nested-child {
+  margin-left: 20px;
+  padding-left: 20px;
 }
 
 .sidebar-nav-group--nested {

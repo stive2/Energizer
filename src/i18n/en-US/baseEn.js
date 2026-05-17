@@ -32,6 +32,41 @@ export default {
       homeLead: 'Open the dashboard or submit a benefits file.',
       btnDashboard: 'Dashboard',
       btnDepot: 'File submission',
+      prestationsPlaceholder: 'Content coming soon.',
+      depotPf: {
+        pageLead: 'Select a family benefit type, then complete the submission form.',
+        instructionFormulaire:
+          'Provide the information related to the requested benefit and update your address, email and phone if needed',
+        sectionPrestation: 'ENTER THE INFORMATION FOR THE BENEFIT YOU ARE REQUESTING',
+        examensPrenatauxTitre: 'Prenatal examinations',
+        selectType: 'Family benefit type',
+        employeurTrouve: 'Employer found successfully.',
+        employeurIntrouvable: 'Employer not found.',
+        matriculeRequis: 'Please enter the employer registration number.',
+        raisonSocialeHint: 'Enter the employer number, then click the field or press Enter',
+        materniteFemmeUniquement:
+          'Maternity leave coverage is only available for female insured members.',
+        dateRepriseActivite: 'Return-to-work date',
+        ajouterActeNaissance: 'Add a birth certificate',
+        supprimerActeNaissance: 'Remove this birth certificate',
+        errors: {
+          fileType: 'Only image, PDF or Excel files are allowed.',
+          examens_prenataux_aucune_demande:
+            'Please select at least one prenatal examination (1st or 2nd).',
+          examens_prenataux_premier_checkbox:
+            'Check at least one option for the first examination.',
+          examens_prenataux_deuxieme_checkbox:
+            'Check at least one option for the second examination.',
+          accouchement_option_requise:
+            'Select at least one option: delivery fees or medical fees.',
+          accouchement_nombre_enfants_sous_controle_requis:
+            'Number of children born under medical supervision is required (minimum 1).',
+          accouchement_nombre_enfants_max:
+            'Number of children under medical supervision cannot exceed 5.',
+          allocations_enfant_requis:
+            'Enter at least one child (under 6, over 6, or recognized).',
+        },
+      },
     },
     declarations: {
       cardTitle: 'Declarations & registration',
@@ -119,6 +154,11 @@ export default {
       rpNoteDeFrags: 'Expense note',
       assure: 'Insured area',
       depotDossiers: 'Benefits file submission',
+      assureDepotDossiers: 'File deposit',
+      assureDossiersPrestations: 'Benefits files',
+      assurePrestationsFamiliales: 'Family benefits',
+      assurePrestationPension: 'Pension benefits (view and claim)',
+      assurePrestationPriseAtMp: 'Occupational disease and work accident coverage',
       dashboard: 'Dashboard',
       employeurDemandes: 'Benefit requests',
     },
@@ -690,6 +730,12 @@ export default {
     frais_accouchement: 'Delivery Fees',
     frais_medicaux: 'Medical Fees',
     frais_allocation: 'Allowance Fees',
+    allocations_numero_1: 'Allowances No. 1',
+    allocations_numero_2: 'Allowances No. 2',
+    matricule_assure: 'Registration number',
+    nom_prenom: 'Last & first name',
+    date_naissance_assure: 'Date of birth',
+    sexe: 'Gender',
     certificat_medical_accouchement: 'Childbirth Medical Certificate',
     acte_naissance_enfant: 'Child’s birth certificate',
     informations_allocations_familiales: 'Information on Family Allowances',

@@ -62,6 +62,21 @@ const routes = [
         name: 'depot-dossier',
         component: () => import('pages/prestations/dossiers.vue'),
       },
+      {
+        path: 'prestations-familiales',
+        name: 'assure-prestations-familiales',
+        component: () => import('pages/modules/assure/Prestations_Familiales.vue'),
+      },
+      {
+        path: 'prestation-pension',
+        name: 'assure-prestation-pension',
+        component: () => import('pages/modules/assure/Prestation_pension.vue'),
+      },
+      {
+        path: 'prestation-prise-at-mp',
+        name: 'assure-prestation-prise-at-mp',
+        component: () => import('pages/modules/assure/Prestation_prise_AT_MP.vue'),
+      },
     ],
   },
 
