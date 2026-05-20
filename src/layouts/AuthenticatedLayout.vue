@@ -85,15 +85,24 @@
       show-if-above
       side="left"
       bordered
-      :width="280"
-      :breakpoint="1024"
-      class="authenticated-drawer"
+      :width="drawerWidth"
+      :breakpoint="drawerBreakpoint"
+      :mini="drawerMini ? miniState : false"
+      :class="drawerClassList"
+      :content-class="drawerContentClass"
+      @mouseover="onDrawerMouseOver"
+      @mouseout="onDrawerMouseOut"
     >
-      <q-scroll-area class="fit">
-        <div class="authenticated-drawer__brand q-px-lg q-py-md">
+      <q-scroll-area class="fit authenticated-drawer__scroll">
+        <div v-if="showDrawerBrand" class="authenticated-drawer__brand">
           <div class="authenticated-drawer__brand-title">{{ drawerTitle }}</div>
         </div>
-        <AppSidebarNav :items="menuItems" />
+        <slot v-if="$slots.sidebar" name="sidebar" />
+        <AppSidebarNav
+          v-else-if="menuItems.length"
+          :items="menuItems"
+          :compact-top="!showDrawerBrand"
+        />
       </q-scroll-area>
     </q-drawer>
 
@@ -122,7 +131,7 @@ import { useAuthenticatedSession } from 'src/composables/useAuthenticatedSession
 const props = defineProps({
   menuItems: {
     type: Array,
-    required: true,
+    default: () => [],
   },
   sessionConfig: {
     type: Object,
@@ -136,14 +145,53 @@ const props = defineProps({
     type: String,
     default: 'layout.sidebar.navTitle',
   },
+  showDrawerBrand: {
+    type: Boolean,
+    default: true,
+  },
+  drawerWidth: {
+    type: Number,
+    default: 280,
+  },
+  drawerBreakpoint: {
+    type: Number,
+    default: 1024,
+  },
+  drawerMini: {
+    type: Boolean,
+    default: false,
+  },
+  drawerContentClass: {
+    type: String,
+    default: '',
+  },
+  drawerClass: {
+    type: String,
+    default: 'authenticated-drawer',
+  },
 })
 
 const $q = useQuasar()
 const { locale, t } = useI18n()
 
 const leftDrawerOpen = ref(true)
+const miniState = ref(true)
+
+const drawerClassList = computed(() => props.drawerClass)
 
 const { displayName, userInitials, logout } = useAuthenticatedSession(props.sessionConfig)
+
+function onDrawerMouseOver() {
+  if (props.drawerMini) {
+    miniState.value = false
+  }
+}
+
+function onDrawerMouseOut() {
+  if (props.drawerMini) {
+    miniState.value = true
+  }
+}
 
 const toolbarTitle = computed(() => {
   const key = props.toolbarTitleKey
@@ -189,24 +237,50 @@ function changeLang(lang) {
 
 <style>
 .authenticated-drawer {
-  background: #ffffff !important;
-  border-right: 1px solid #e5e7eb !important;
+  --app-sidebar-accent: #2563eb;
+  --app-sidebar-accent-light: #3b82f6;
+  --app-sidebar-bg: #f7f9fc;
+  --app-sidebar-bg-end: #eef2f7;
+  --app-sidebar-border: #e2e8f0;
+  --app-sidebar-text: #334155;
+  --app-sidebar-text-strong: #0f172a;
+  --app-sidebar-muted: #64748b;
+  --app-sidebar-hover: #e8eef5;
+  --app-sidebar-active-bg: #e8f2ff;
+  --app-sidebar-active-text: #1d4ed8;
+  --app-sidebar-icon-bg: #ffffff;
+  --app-sidebar-shadow: 4px 0 28px rgba(15, 23, 42, 0.07);
+
+  background: linear-gradient(180deg, var(--app-sidebar-bg) 0%, var(--app-sidebar-bg-end) 100%) !important;
+  border-right: 1px solid var(--app-sidebar-border) !important;
+  box-shadow: var(--app-sidebar-shadow);
 }
 
 .authenticated-drawer .q-drawer__content {
   background: transparent !important;
 }
 
+.authenticated-drawer__scroll :deep(.q-scrollarea__content) {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
 .authenticated-drawer__brand {
-  border-bottom: 1px solid #e5e7eb;
+  margin: 14px 14px 10px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--app-sidebar-border);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05);
 }
 
 .authenticated-drawer__brand-title {
-  font-size: 0.9375rem;
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: -0.02em;
-  color: #111827;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--app-sidebar-text-strong);
 }
 
 /* Footer fixe (F) au-dessus du drawer au scroll reveal */

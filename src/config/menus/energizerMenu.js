@@ -71,4 +71,6 @@ export const energizerSessionConfig = {
   loginRoute: { name: 'energizer-login' },
   logoutRoute: { name: 'energizer-login' },
   clearSessionKeys: ['energizer-portal-sim-profile', 'energizer-portal-sim-display-name'],
+  localTokenKey: 'auth_token',
+  clearLocalKeys: ['auth_token', 'user_info'],
 }

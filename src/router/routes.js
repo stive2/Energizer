@@ -27,6 +27,7 @@ const routes = [
   {
     path: '/energizer',
     component: () => import('layouts/MainLayout.vue'),
+    meta: { authProfile: 'internal' },
     children: [
       {
         path: '',
@@ -46,6 +47,7 @@ const routes = [
   {
     path: '/assure',
     component: () => import('layouts/AssureLayout.vue'),
+    meta: { authProfile: 'external' },
     children: [
       {
         path: '',

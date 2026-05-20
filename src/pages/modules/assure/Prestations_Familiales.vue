@@ -1,20 +1,27 @@
 <!-- eslint-disable vue/multi-word-component-names -->
 <template>
   <q-page class="q-pa-md depot-pf-page">
-    <q-card flat bordered>
-      <q-card-section class="text-primary">
-        <div class="text-h6">{{ t('layout.sidebar.assurePrestationsFamiliales') }}</div>
+    <q-card flat class="depot-pf-shell">
+      <q-card-section class="depot-pf-shell__header">
+        <div class="depot-pf-shell__title-row">
+          <q-icon name="family_restroom" size="28px" class="depot-pf-shell__title-icon" />
+          <div>
+            <div class="depot-pf-shell__title">{{ t('layout.sidebar.assurePrestationsFamiliales') }}</div>
+            <div class="depot-pf-shell__subtitle">{{ t('modules.assure.depotPf.pageLead') }}</div>
+          </div>
+        </div>
       </q-card-section>
 
       <q-card-section
         v-if="!store.contexte && store.loadingContexte"
-        class="flex flex-center q-pa-lg"
+        class="depot-pf-shell__loading flex flex-center q-pa-xl"
       >
         <q-spinner color="primary" size="40px" />
       </q-card-section>
 
       <q-card-section v-else class="depot-pf-form-body">
         <div class="depot-pf-form-stack">
+        <div class="depot-pf-type-card">
         <q-select
           v-model="selectedTypeCode"
           :options="typeOptions"
@@ -41,11 +48,12 @@
             </q-item>
           </template>
         </q-select>
+        </div>
 
         <q-form
           v-if="selectedTypeCode"
           ref="depotFormRef"
-          class="depot-pf-form-stack"
+          class="depot-pf-form-stack depot-pf-form-stack--active"
           @submit.prevent="onSubmit"
         >
           <Suspense>
@@ -68,17 +76,20 @@
             </template>
           </Suspense>
 
-          <q-separator />
+          <q-separator class="depot-pf-separator" />
 
-          <div class="text-subtitle2 text-primary">
-            {{ t('inputassu.type_soumission') }}
-          </div>
-          <q-option-group
-            v-model="store.common.typeSubmission"
-            :options="submissionOptions"
-            color="primary"
-            inline
-          />
+          <div class="depot-pf-submit-card">
+            <div class="depot-pf-submit-card__title">
+              <q-icon name="send" size="20px" />
+              {{ t('inputassu.type_soumission') }}
+            </div>
+            <q-option-group
+              v-model="store.common.typeSubmission"
+              :options="submissionOptions"
+              color="primary"
+              inline
+              class="depot-pf-submit-card__options"
+            />
 
           <div class="depot-pf-form-actions">
             <q-btn
@@ -98,6 +109,7 @@
               :label="t('form.reset')"
               @click="onReset"
             />
+          </div>
           </div>
         </q-form>
         </div>

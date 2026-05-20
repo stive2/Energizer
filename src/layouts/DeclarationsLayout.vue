@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf" class="declarations-layout">
-    <q-header class="declarations-header">
+    <q-header elevated class="declarations-header">
       <q-toolbar class="declarations-header__toolbar">
         <q-btn
           flat
@@ -28,9 +28,17 @@
       </q-toolbar>
     </q-header>
 
-    <q-page-container class="declarations-layout__page">
+    <q-page-container>
       <router-view />
     </q-page-container>
+
+    <q-footer elevated class="bg-primary text-white declarations-footer">
+      <q-toolbar class="declarations-footer__toolbar">
+        <q-toolbar-title class="text-bold text-center text-white declarations-footer__title">
+          © {{ new Date().getFullYear() }} CNPS Cameroun
+        </q-toolbar-title>
+      </q-toolbar>
+    </q-footer>
   </q-layout>
 </template>
 
@@ -42,7 +50,19 @@ const { t } = useI18n()
 
 <style scoped>
 .declarations-layout {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+/* Identique à PortalLayout — ne pas toucher au min-height inline de QPage */
+.declarations-layout :deep(.q-page-container) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .declarations-header {
@@ -51,32 +71,45 @@ const { t } = useI18n()
 }
 
 .declarations-header__toolbar {
-  min-height: 64px;
-  padding-left: 8px;
-  padding-right: 16px;
+  min-height: 60px;
+  padding-left: 6px;
+  padding-right: 12px;
+}
+
+.declarations-header__brand {
+  min-width: 0;
 }
 
 .declarations-header__logo {
-  background: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.2);
   color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
 }
 
 .declarations-header__title {
-  font-size: 1.05rem;
+  font-size: clamp(0.92rem, 2vw, 1.05rem);
   font-weight: 700;
   color: #fff;
   letter-spacing: 0.02em;
   line-height: 1.2;
+  text-align: center;
 }
 
 .declarations-header__subtitle {
-  font-size: 0.72rem;
-  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.9);
   font-weight: 500;
+  text-align: center;
 }
 
-.declarations-layout__page {
-  background: #f4f6f9;
+.declarations-footer :deep(.declarations-footer__toolbar) {
+  min-height: calc(var(--q-toolbar-min-height, 50px) - 8px);
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.declarations-footer__title {
+  font-size: 14px;
 }
 </style>

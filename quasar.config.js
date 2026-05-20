@@ -51,6 +51,8 @@ export default defineConfig((ctx) => {
         VITE_CNPS_API_BASE_URL: process.env.VITE_CNPS_API_BASE_URL || 'http://172.17.15.121:8020',
         VITE_CNPS_API_TIMEOUT: process.env.VITE_CNPS_API_TIMEOUT || '30000',
         VITE_CNPS_API_USE_PROXY: process.env.VITE_CNPS_API_USE_PROXY || '',
+        VITE_CNPS_API_FALLBACK_MOCK: process.env.VITE_CNPS_API_FALLBACK_MOCK || 'true',
+        VITE_CNPS_USE_REAL_AUTH: process.env.VITE_CNPS_USE_REAL_AUTH || '',
       },
       // rawDefine: {}
       // ignorePublicFolder: true,

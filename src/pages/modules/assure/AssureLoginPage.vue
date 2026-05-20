@@ -1,37 +1,137 @@
 <template>
-  <q-page class="column flex-center q-pa-md intranet-login-gate">
-    <PortalSimLogin variant="insured" @authenticated="onAuth" />
+  <q-page class="login-page fit column no-wrap">
+    <div class="login-layout">
+      <div class="login-image-side">
+        <img :src="bgImage" class="login-image" alt="CNPS — Espace assuré" />
+      </div>
+
+      <aside class="login-form-side">
+        <div class="login-form-top">
+          <q-btn
+            flat
+            dense
+            no-caps
+            icon="arrow_back"
+            label="Retour"
+            color="primary"
+            class="login-back-btn"
+            :to="{ name: 'module-portal' }"
+          />
+        </div>
+
+        <PortalSimLogin variant="insured" embedded @authenticated="onAuth" />
+      </aside>
+    </div>
   </q-page>
 </template>
 
 <script setup>
 import PortalSimLogin from 'components/logins/PortalSimLogin.vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import bgImage from 'assets/images/popularCnps.jpg'
+import { persistInsuredSession } from 'src/utils/portalSimAuthSession.js'
 
 const router = useRouter()
-
-const PROFILE_KEY = 'assure-sim-profile'
-const NAME_KEY = 'assure-sim-display-name'
+const route = useRoute()
 
 function onAuth(payload) {
-  if (typeof sessionStorage !== 'undefined') {
-    sessionStorage.setItem(PROFILE_KEY, 'external')
-    sessionStorage.setItem(NAME_KEY, payload.displayName)
+  persistInsuredSession(payload)
+  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : null
+  if (redirect && redirect.startsWith('/')) {
+    router.replace(redirect)
+    return
   }
-  localStorage.setItem('auth_token', 'sim-token-external')
-  localStorage.setItem(
-    'user_info',
-    JSON.stringify({
-      profile: 'external',
-      nom: payload.displayName,
-      email: payload.login || 'marie-claire.kamga@example.cm',
-      telephone: '+237677123456',
-      adresse: 'YAOUNDE, CAMEROUN',
-      numeroAssure: '321-1234567-0',
-      sexe: 'F',
-      mat_interne: 'EMP-2024-001',
-    }),
-  )
   router.replace({ name: 'assure-home' })
 }
 </script>
+
+<style scoped>
+.login-page {
+  overflow: hidden;
+  padding: 0 !important;
+  min-height: 0 !important;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+.login-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+}
+
+.login-image-side {
+  flex: 1 1 72%;
+  min-width: 0;
+  overflow: hidden;
+  background: #8ec8e8;
+}
+
+.login-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: left center;
+  display: block;
+}
+
+.login-form-side {
+  flex: 0 0 28%;
+  width: 28%;
+  min-width: 0;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: linear-gradient(180deg, #d4ebfa 0%, #eef7fd 100%);
+  border-left: 1px solid rgba(57, 73, 171, 0.14);
+}
+
+.login-form-top {
+  flex-shrink: 0;
+  padding: 0.45rem 0.5rem 0;
+  background: linear-gradient(180deg, #c5e3f8 0%, #e8f4fc 100%);
+}
+
+.login-back-btn {
+  font-size: 0.72rem;
+  font-weight: 600;
+  min-height: 32px;
+  padding: 0 0.35rem;
+}
+
+.login-form-side :deep(.portal-sim-login--embedded) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.login-form-side :deep(.portal-sim-login--embedded.portal-sim-login--insured .portal-sim-login__title) {
+  color: #3949ab;
+}
+
+@media (max-width: 900px) {
+  .login-form-side :deep(.portal-sim-login--embedded) {
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .login-layout {
+    flex-direction: column;
+  }
+
+  .login-image-side {
+    flex: 0 0 42%;
+    width: 100%;
+    max-width: none;
+  }
+
+  .login-form-side {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: none;
+  }
+}
+</style>

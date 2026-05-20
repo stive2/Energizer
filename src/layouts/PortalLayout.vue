@@ -36,8 +36,8 @@
       <router-view />
     </q-page-container>
 
-    <q-footer reveal elevated class="bg-primary text-white">
-      <q-toolbar>
+    <q-footer elevated class="bg-primary text-white portal-footer">
+      <q-toolbar class="portal-footer__toolbar">
         <q-toolbar-title class="text-bold text-center text-white" style="font-size: 14px">
           © {{ new Date().getFullYear() }} CNPS Cameroun
         </q-toolbar-title>
@@ -62,6 +62,22 @@ function changeLang(lang) {
 
 <style scoped>
 .portal-root-layout {
-  min-height: 100vh;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+.portal-root-layout :deep(.q-page-container) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.portal-footer :deep(.portal-footer__toolbar) {
+  min-height: calc(var(--q-toolbar-min-height, 50px) - 8px);
+  padding-top: 0;
+  padding-bottom: 0;
 }
 </style>

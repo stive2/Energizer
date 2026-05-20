@@ -1,51 +1,45 @@
 <template>
-  <q-page class="login-page">
+  <q-page class="login-page fit column no-wrap">
+    <div class="login-layout">
+      <div class="login-image-side">
+        <img :src="bgImage" class="login-image" alt="CNPS Sapelli Energizer" />
+      </div>
 
-    <!-- Image de fond -->
-    <div class="login-bg" :style="{ backgroundImage: `url(${bgImage})` }" />
-
-    <!-- Voile très léger : surtout à droite pour ne pas ternir le logo à gauche -->
-    <div class="login-overlay" />
-
-    <div class="login-content">
-      <div class="login-aside">
-        <q-btn
-          flat
-          dense
-          no-caps
-          icon="arrow_back"
-          label="Retour au portail"
-          color="primary"
-          class="login-back-btn"
-          :to="{ name: 'module-portal' }"
-        />
-
-        <div class="login-badge">
-          <q-icon name="shield" size="16px" class="q-mr-xs" />
-          Portail CNPS — Accès agent
+      <aside class="login-form-side">
+        <div class="login-form-top">
+          <q-btn
+            flat
+            dense
+            no-caps
+            icon="arrow_back"
+            label="Retour"
+            color="primary"
+            class="login-back-btn"
+            :to="{ name: 'module-portal' }"
+          />
         </div>
 
-        <PortalSimLogin variant="agent" @authenticated="onAuth" />
-      </div>
+        <PortalSimLogin variant="agent" embedded @authenticated="onAuth" />
+      </aside>
     </div>
-
   </q-page>
 </template>
 
 <script setup>
 import PortalSimLogin from 'components/logins/PortalSimLogin.vue'
-import { useRouter } from 'vue-router'
-import bgImage from 'assets/images/imgcnps.JPG'
+import { useRoute, useRouter } from 'vue-router'
+import bgImage from 'assets/images/energizerCnps.jpg'
+import { persistAgentSession } from 'src/utils/portalSimAuthSession.js'
 
 const router = useRouter()
-
-const PROFILE_KEY = 'energizer-portal-sim-profile'
-const NAME_KEY = 'energizer-portal-sim-display-name'
+const route = useRoute()
 
 function onAuth(payload) {
-  if (typeof sessionStorage !== 'undefined') {
-    sessionStorage.setItem(PROFILE_KEY, 'internal')
-    sessionStorage.setItem(NAME_KEY, payload.displayName)
+  persistAgentSession(payload)
+  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : null
+  if (redirect && redirect.startsWith('/')) {
+    router.replace(redirect)
+    return
   }
   router.replace({ name: 'energizer-home' })
 }
@@ -53,107 +47,87 @@ function onAuth(payload) {
 
 <style scoped>
 .login-page {
-  position: relative;
   overflow: hidden;
+  padding: 0 !important;
+  min-height: 0 !important;
   font-family: 'Segoe UI', system-ui, sans-serif;
-  /* La hauteur utile vient du style inline de QPage (écran − barres layout) */
-  display: flex;
-  flex-direction: column;
 }
 
-/* Fond fixe : couvre tout l’écran visible, sans trou ni bande (dvh = barre d’adresse mobile) */
-.login-bg {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
-  background-size: cover;
-  background-position: left center;
-  background-repeat: no-repeat;
-  filter: saturate(1.06) brightness(1.04);
-  z-index: 0;
-}
-
-/* Presque pas de voile à gauche (logo / façade) ; léger renfort à droite seulement */
-.login-overlay {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
-  pointer-events: none;
-  background: linear-gradient(
-    92deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0) 48%,
-    rgba(248, 250, 252, 0.35) 68%,
-    rgba(237, 242, 252, 0.55) 100%
-  );
-  z-index: 1;
-}
-
-.login-content {
-  position: relative;
-  z-index: 2;
+.login-layout {
   flex: 1 1 auto;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 1.25rem 1rem 1.5rem;
-  width: 100%;
   min-height: 0;
-  box-sizing: border-box;
-}
-
-@media (min-width: 720px) {
-  .login-content {
-    align-items: flex-end;
-    justify-content: center;
-    padding: 1.5rem clamp(1rem, 4vw, 3rem) 1.5rem 1.25rem;
-  }
-}
-
-/* Colonne formulaire : lisible sur tout fond, alignée avec la carte */
-.login-aside {
+  display: flex;
   width: 100%;
-  max-width: 460px;
+  overflow: hidden;
+}
+
+.login-image-side {
+  flex: 1 1 72%;
+  min-width: 0;
+  overflow: hidden;
+  background: #6eb8e8;
+}
+
+.login-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: left center;
+  display: block;
+}
+
+.login-form-side {
+  flex: 0 0 28%;
+  width: 28%;
+  min-width: 0;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
-  align-items: stretch;
-  gap: 0.75rem;
-  padding: 1.1rem 1.1rem 1rem;
-  border-radius: 16px;
-  background: rgba(241, 245, 249, 0.88);
-  border: 1px solid rgba(226, 232, 240, 0.95);
-  box-shadow:
-    0 4px 6px rgba(15, 23, 42, 0.04),
-    0 18px 48px rgba(15, 23, 42, 0.1);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  overflow: hidden;
+  background: linear-gradient(180deg, #d4ebfa 0%, #eef7fd 100%);
+  border-left: 1px solid rgba(21, 101, 192, 0.12);
+}
+
+.login-form-top {
+  flex-shrink: 0;
+  padding: 0.45rem 0.5rem 0;
+  background: linear-gradient(180deg, #c5e3f8 0%, #e8f4fc 100%);
 }
 
 .login-back-btn {
-  align-self: flex-start;
-  margin: -4px 0 0 -6px;
-  font-size: 0.875rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
+  min-height: 32px;
+  padding: 0 0.35rem;
 }
 
-.login-badge {
-  display: inline-flex;
-  align-self: flex-start;
-  align-items: center;
-  background: rgba(25, 118, 210, 0.1);
-  border: 1px solid rgba(25, 118, 210, 0.22);
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #1565c0;
+.login-form-side :deep(.portal-sim-login--embedded) {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .login-form-side :deep(.portal-sim-login--embedded) {
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 900px) {
+  .login-layout {
+    flex-direction: column;
+  }
+
+  .login-image-side {
+    flex: 0 0 42%;
+    width: 100%;
+    max-width: none;
+  }
+
+  .login-form-side {
+    flex: 1 1 auto;
+    width: 100%;
+    max-width: none;
+  }
 }
 </style>

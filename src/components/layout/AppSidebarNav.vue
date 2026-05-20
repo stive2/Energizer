@@ -1,5 +1,9 @@
 <template>
-  <q-list padding class="sidebar-nav-list sidebar-nav-root">
+  <q-list
+    padding
+    class="sidebar-nav-list sidebar-nav-root"
+    :class="{ 'sidebar-nav-root--compact-top': compactTop }"
+  >
     <template v-for="(entry, idx) in items" :key="entryKey(entry, idx)">
       <q-item
         v-if="entry.type === 'item'"
@@ -10,8 +14,10 @@
         active-class="sidebar-nav-item--active"
         class="sidebar-nav-item"
       >
-        <q-item-section v-if="entry.icon" avatar>
-          <q-icon :name="entry.icon" class="sidebar-nav-icon" />
+        <q-item-section v-if="entry.icon" avatar class="sidebar-nav-icon-slot">
+          <div class="sidebar-nav-icon-wrap">
+            <q-icon :name="entry.icon" class="sidebar-nav-icon" />
+          </div>
         </q-item-section>
         <q-item-section>
           <q-item-label class="sidebar-nav-label">{{ t(entry.labelKey) }}</q-item-label>
@@ -63,8 +69,10 @@
                   active-class="sidebar-nav-item--active"
                   class="sidebar-nav-item sidebar-nav-item--child sidebar-nav-item--deep"
                 >
-                  <q-item-section v-if="deep.icon" avatar>
-                    <q-icon :name="deep.icon" size="xs" class="sidebar-nav-icon" />
+                  <q-item-section v-if="deep.icon" avatar class="sidebar-nav-icon-slot">
+                    <div class="sidebar-nav-icon-wrap sidebar-nav-icon-wrap--sm">
+                      <q-icon :name="deep.icon" size="xs" class="sidebar-nav-icon" />
+                    </div>
                   </q-item-section>
                   <q-item-section>
                     <q-item-label class="text-caption sidebar-nav-label sidebar-nav-label--compact">{{
@@ -84,8 +92,10 @@
                 active-class="sidebar-nav-item--active"
                 class="sidebar-nav-item sidebar-nav-item--child sidebar-nav-item--grandchild"
               >
-                <q-item-section v-if="sub.icon" avatar>
-                  <q-icon :name="sub.icon" size="sm" class="sidebar-nav-icon" />
+                <q-item-section v-if="sub.icon" avatar class="sidebar-nav-icon-slot">
+                  <div class="sidebar-nav-icon-wrap sidebar-nav-icon-wrap--sm">
+                    <q-icon :name="sub.icon" size="sm" class="sidebar-nav-icon" />
+                  </div>
                 </q-item-section>
                 <q-item-section>
                   <q-item-label class="text-body2 sidebar-nav-label">{{ t(sub.labelKey) }}</q-item-label>
@@ -104,8 +114,10 @@
             active-class="sidebar-nav-item--active"
             :class="childItemClass(child)"
           >
-            <q-item-section v-if="child.icon" avatar>
-              <q-icon :name="child.icon" size="sm" class="sidebar-nav-icon" />
+            <q-item-section v-if="child.icon" avatar class="sidebar-nav-icon-slot">
+              <div class="sidebar-nav-icon-wrap sidebar-nav-icon-wrap--sm">
+                <q-icon :name="child.icon" size="sm" class="sidebar-nav-icon" />
+              </div>
             </q-item-section>
             <q-item-section>
               <q-item-label class="text-body2 sidebar-nav-label">{{ t(child.labelKey) }}</q-item-label>
@@ -131,6 +143,10 @@ defineProps({
   items: {
     type: Array,
     required: true,
+  },
+  compactTop: {
+    type: Boolean,
+    default: false,
   },
 })
 
@@ -158,55 +174,99 @@ function childItemClass(child) {
 
 <style scoped>
 .sidebar-nav-root {
-  --sidebar-text: #1f2937;
-  --sidebar-hover: #f3f4f6;
-  --sidebar-active: color-mix(in srgb, var(--q-primary) 12%, #ffffff);
+  --sidebar-text: var(--app-sidebar-text, #334155);
+  --sidebar-text-strong: var(--app-sidebar-text-strong, #0f172a);
+  --sidebar-muted: var(--app-sidebar-muted, #64748b);
+  --sidebar-hover: var(--app-sidebar-hover, #e8eef5);
+  --sidebar-active-bg: var(--app-sidebar-active-bg, #e8f2ff);
+  --sidebar-active-text: var(--app-sidebar-active-text, #1d4ed8);
+  --sidebar-accent: var(--app-sidebar-accent, #2563eb);
+  --sidebar-icon-bg: var(--app-sidebar-icon-bg, #ffffff);
 }
 
 .sidebar-nav-list {
-  padding: 8px 6px 28px;
+  padding: 10px 10px 24px;
+}
+
+.sidebar-nav-root--compact-top .sidebar-nav-list {
+  padding-top: 14px;
 }
 
 .sidebar-nav-label {
   color: var(--sidebar-text);
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.35;
   letter-spacing: -0.01em;
 }
 
 .sidebar-nav-label--compact {
-  font-size: 0.8125rem;
+  font-size: 0.78rem;
+}
+
+.sidebar-nav-icon-slot {
+  min-width: 40px;
+}
+
+.sidebar-nav-icon-wrap {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sidebar-icon-bg);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.sidebar-nav-icon-wrap--sm {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
 }
 
 .sidebar-nav-icon {
-  color: var(--q-primary);
+  color: var(--sidebar-accent);
+  font-size: 1.15rem;
 }
 
 .sidebar-nav-expand-icon {
-  color: var(--q-primary) !important;
+  color: var(--sidebar-muted) !important;
+  opacity: 0.85;
 }
 
 .sidebar-nav-group :deep(.q-expansion-item__content) {
   background: transparent;
+  padding-bottom: 2px;
 }
 
 .sidebar-nav-group__header {
   font-weight: 600;
-  color: var(--sidebar-text) !important;
-  font-size: 0.875rem;
+  color: var(--sidebar-text-strong) !important;
+  font-size: 0.8125rem;
 }
 
 .sidebar-nav-group :deep(.sidebar-nav-group__header--bold),
 .sidebar-nav-group :deep(.sidebar-nav-group__header--bold .q-item__label) {
   font-weight: 700 !important;
+  color: var(--sidebar-text-strong) !important;
+  font-size: 0.78rem !important;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .sidebar-nav-group :deep(.q-expansion-item__header) {
-  border-radius: 8px;
-  margin: 1px 8px;
-  min-height: 40px;
-  transition: background-color 0.12s ease;
+  border-radius: 10px;
+  margin: 2px 8px;
+  min-height: 42px;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .sidebar-nav-group :deep(.q-expansion-item__header:hover) {
@@ -214,74 +274,90 @@ function childItemClass(child) {
 }
 
 .sidebar-nav-group :deep(.q-expansion-item__header .q-icon) {
-  color: var(--q-primary) !important;
+  color: var(--sidebar-accent) !important;
 }
 
 .sidebar-nav-item {
-  border-radius: 8px;
-  margin: 2px 8px;
-  min-height: 40px;
-  transition: background-color 0.12s ease;
+  border-radius: 10px;
+  margin: 3px 8px;
+  min-height: 42px;
+  transition:
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .sidebar-nav-item--child {
-  margin-left: 4px;
-  padding-left: 8px;
+  margin-left: 6px;
+  padding-left: 4px;
 }
 
 .sidebar-nav-item--nested-child {
-  margin-left: 20px;
-  padding-left: 20px;
+  margin-left: 14px;
+  padding-left: 10px;
 }
 
 .sidebar-nav-group--nested {
-  margin-left: 6px;
+  margin-left: 4px;
+  border-left: 2px solid #dbe4ef;
+  margin-bottom: 2px;
 }
 
 .sidebar-nav-group--nested :deep(.q-expansion-item__container) {
-  padding-left: 6px;
+  padding-left: 4px;
 }
 
 .sidebar-nav-item--grandchild {
-  margin-left: 10px;
-  padding-left: 12px;
+  margin-left: 8px;
+  padding-left: 8px;
 }
 
 .sidebar-nav-group--deep {
-  margin-left: 12px;
+  margin-left: 8px;
+  border-left: 2px solid #e8eef5;
 }
 
 .sidebar-nav-group--deep :deep(.q-expansion-item__container) {
-  padding-left: 6px;
+  padding-left: 4px;
 }
 
 .sidebar-nav-group__header--deep {
-  font-size: 0.8125rem;
+  font-size: 0.78rem;
   font-weight: 600;
 }
 
 .sidebar-nav-item--deep {
-  margin-left: 16px;
-  padding-left: 10px;
+  margin-left: 12px;
+  padding-left: 8px;
 }
 
 .sidebar-nav-item:hover {
   background: var(--sidebar-hover);
 }
 
+.sidebar-nav-item:hover .sidebar-nav-icon-wrap {
+  border-color: #bfdbfe;
+  background: #f8fbff;
+}
+
 .sidebar-nav-item--active {
-  background: var(--sidebar-active) !important;
+  background: var(--sidebar-active-bg) !important;
+  box-shadow: inset 3px 0 0 var(--sidebar-accent);
   font-weight: 600;
-  box-shadow: none;
 }
 
 .sidebar-nav-item--active .sidebar-nav-label {
-  color: var(--q-primary);
+  color: var(--sidebar-active-text);
+  font-weight: 600;
+}
+
+.sidebar-nav-item--active .sidebar-nav-icon-wrap {
+  background: #fff;
+  border-color: #93c5fd;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.12);
 }
 
 .sidebar-nav-separator {
-  background: #e5e7eb;
-  margin-top: 6px;
-  margin-bottom: 6px;
+  background: #dbe4ef;
+  margin: 8px 16px;
 }
 </style>
