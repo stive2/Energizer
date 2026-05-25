@@ -1,4 +1,5 @@
 import { normalizeMatriculeEmployeur } from '../depotPrestationPfUtils.js'
+import { NOUVEAU_DOSSIER_TEST_EMPLOYEURS } from 'src/data/energizer/nouveauDossierTestData.js'
 
 /** Référence métier — employeur de démonstration (appel API fictif). */
 export const FICTIF_EMPLOYEUR_CAMTEL = {
@@ -11,7 +12,23 @@ export const FICTIF_EMPLOYEUR_CAMTEL = {
   EFFECTIF_APPROX: 1200,
 }
 
-const FICTIF_REGISTRE_EMPLOYEURS = [FICTIF_EMPLOYEUR_CAMTEL]
+const DEMO_EMPLOYEURS_NOUVEAU_DOSSIER = Object.entries(NOUVEAU_DOSSIER_TEST_EMPLOYEURS).map(
+  ([matricule, row]) => ({
+    numeroEmployeur: matricule,
+    matricule,
+    raisonsociale: row.RAISON_SOCIALE,
+    RAISON_SOCIALE: row.RAISON_SOCIALE,
+    NOM_COMMERCIAL: row.RAISON_SOCIALE,
+    ADRESSE_EMPLOYEUR: row.ADRESSE_EMPLOYEUR,
+    DATE_EMB_PREM_TRAV: '',
+    EFFECTIF_APPROX: '',
+  }),
+)
+
+const FICTIF_REGISTRE_EMPLOYEURS = [
+  FICTIF_EMPLOYEUR_CAMTEL,
+  ...DEMO_EMPLOYEURS_NOUVEAU_DOSSIER,
+]
 
 function delay(ms = 400) {
   return new Promise((resolve) => {

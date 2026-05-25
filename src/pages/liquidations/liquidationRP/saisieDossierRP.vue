@@ -1,13 +1,7 @@
 <template>
   <q-page class="q-pa-md saisie-dossier-rp-page">
 
-    <!-- Fil d'Ariane -->
-    <q-breadcrumbs class="q-mb-md" active-color="primary" separator-icon="chevron_right">
-      <q-breadcrumbs-el :label="t('layout.sidebar.stats')" :to="{ name: 'energizer-home' }" />
-      <q-breadcrumbs-el :label="t('layout.sidebar.liquidations')" />
-      <q-breadcrumbs-el :label="t('layout.sidebar.prestationRp')" />
-      <q-breadcrumbs-el :label="t('layout.sidebar.rpSaisieDossier')" />
-    </q-breadcrumbs>
+    <AppBreadcrumbs :menu-items="energizerMenu" class="q-mb-md" />
 
     <!-- ════════════════════════════════════════════════
          LANDING : grille de cartes
@@ -103,6 +97,8 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import NlleDeclaration from 'components/prestationRP/nlledeclaration.vue'
+import AppBreadcrumbs from 'components/layout/AppBreadcrumbs.vue'
+import { energizerMenu } from 'src/config/menus/energizerMenu.js'
 
 defineOptions({ name: 'SaisieDossierRPPage' })
 

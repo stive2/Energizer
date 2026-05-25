@@ -1,0 +1,181 @@
+/* Réception nouveau dossier — saisie et tableaux pièces jointes */
+@import './quasar.variables.scss';
+
+.nouveau-dossier-assure-info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 1rem;
+  color: var(--q-primary);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.nouveau-dossier-assure-info__label {
+  font-weight: 600;
+}
+
+.nouveau-dossier-assure-info__value {
+  font-weight: 500;
+}
+
+.nouveau-dossier-assure-info .q-separator {
+  background: rgba(var(--q-primary-rgb), 0.35);
+}
+
+.piece-row {
+  overflow-x: auto;
+}
+
+.piece-row-grid {
+  display: grid;
+  grid-template-columns:
+    24px
+    180px
+    160px
+    148px
+    148px
+    minmax(140px, 200px)
+    72px;
+  gap: 8px;
+  align-items: start;
+  width: max-content;
+  max-width: 100%;
+}
+
+.piece-row-grid__index {
+  padding-top: 6px;
+  font-size: 0.75rem;
+  color: #616161;
+  text-align: center;
+}
+
+/* Formulaire : 2 champs par ligne à partir de md */
+.nouveau-dossier-form__fields {
+  max-width: 920px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.nouveau-dossier-form__fields,
+.nouveau-dossier-form .nouveau-dossier-form__fields-row {
+  @media (min-width: $breakpoint-md-min) {
+    > .col-md-6 {
+      flex: 0 0 50%;
+      width: 50%;
+      max-width: 50%;
+    }
+  }
+
+  > [class*='col-'] > .q-field {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* Étape choix du type de prestation */
+.nouveau-dossier-dialog__pick-select {
+  width: 100%;
+  max-width: min(480px, 100%);
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+/* Icônes des champs (calendrier, etc.) */
+.nouveau-dossier-form .q-field__append .q-icon:not(.text-negative):not(.text-positive),
+.nouveau-dossier-pieces .q-field__append .q-icon:not(.text-negative):not(.text-positive),
+.nouveau-dossier-dialog__body .q-field__append .q-icon:not(.text-negative):not(.text-positive) {
+  color: var(--q-primary);
+}
+
+/* Astérisque champs obligatoires */
+.nouveau-dossier-form .q-field--required .q-field__label,
+.nouveau-dossier-pieces .q-field--required .q-field__label,
+.nouveau-dossier-dialog__body .q-field--required .q-field__label {
+  .q-field__label::after,
+  &::after {
+    color: var(--q-primary) !important;
+  }
+}
+
+.nouveau-dossier-form .q-field--required .text-negative,
+.nouveau-dossier-pieces .q-field--required .text-negative,
+.nouveau-dossier-dialog__body .q-field--required .text-negative {
+  color: var(--q-primary) !important;
+}
+
+.nouveau-dossier-dialog .q-expansion-item__icon {
+  color: var(--q-primary);
+}
+
+.piece-date-input .q-field__control {
+  background: #ffffcc;
+}
+
+/* Tableaux récap, liste existante, corbeille jAccueil */
+.nouveau-dossier-pieces-table {
+  width: 100%;
+  font-size: 14px;
+}
+
+.nouveau-dossier-pieces-table .q-table__container {
+  border-radius: 4px;
+  min-width: 720px;
+}
+
+.nouveau-dossier-pieces-table thead tr.nouveau-dossier-table__head-row,
+.nouveau-dossier-pieces-table thead tr.nouveau-dossier-table__head-row th,
+.nouveau-dossier-pieces-table thead th.nouveau-dossier-table__head-cell,
+.nouveau-dossier-pieces-table .q-table thead th {
+  background-color: $primary !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
+  padding: 12px 14px !important;
+  white-space: nowrap;
+}
+
+.nouveau-dossier-pieces-table tbody td.nouveau-dossier-table-col-cell,
+.nouveau-dossier-pieces-table tbody tr td {
+  padding: 12px 14px;
+  font-size: 14px;
+  vertical-align: middle;
+  color: $primary !important;
+  font-weight: 500;
+}
+
+.nouveau-dossier-pieces-table thead .q-table__sort-icon,
+.nouveau-dossier-pieces-table thead .q-icon {
+  color: rgba(255, 255, 255, 0.92) !important;
+  opacity: 1;
+}
+
+.nouveau-dossier-pieces-table tbody tr:hover td {
+  background: rgba($primary, 0.06);
+}
+
+.nouveau-dossier-pieces-recap-title,
+.nouveau-dossier-pieces-list-title {
+  color: var(--q-primary);
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 1.25rem;
+  line-height: 1.45;
+}
+
+.nouveau-dossier-jaccueil__title {
+  color: var(--q-primary);
+  font-weight: 600;
+  text-align: center;
+}
+
+@media (max-width: 1199px) {
+  .piece-row {
+    overflow-x: auto;
+  }
+
+  .piece-row-grid {
+    min-width: 920px;
+  }
+}

@@ -10,94 +10,60 @@
       </template>
     </q-banner>
 
-    <!-- ═══════════════════════════════════════════════════════
-         RECHERCHE
-    ═══════════════════════════════════════════════════════ -->
-    <q-card class="q-mb-sm card-elevated">
-      <q-card-section class="bg-primary text-white card-header-rounded q-py-sm">
-        <div class="row items-center">
-          <q-icon name="search" size="xs" class="q-mr-xs" />
-          <span class="text-body2 text-weight-bold">Recherche</span>
-        </div>
-      </q-card-section>
-      <q-card-section class="q-py-sm">
-        <q-form @submit.prevent="searchPeriodes" @reset="resetSearch">
-          <div class="row q-col-gutter-sm items-end">
-            <div class="col-12 col-sm-3">
-              <q-select
-                v-model="searchCriteria"
-                :options="searchOptions"
-                label="Critères"
-                outlined dense emit-value map-options color="primary"
-              />
-            </div>
-            <div class="col-12 col-sm-3">
-              <q-input
-                v-model="searchStartValue"
-                label="Valeur de Début"
-                outlined dense
-                @update:model-value="val => (searchStartValue = (val || '').toUpperCase())"
-              />
-            </div>
-            <div class="col-12 col-sm-3">
-              <q-input
-                v-model="searchEndValue"
-                label="Valeur de Fin"
-                outlined dense
-                @update:model-value="val => (searchEndValue = (val || '').toUpperCase())"
-              />
-            </div>
-            <div class="col-12 col-sm-3">
-              <div class="row q-gutter-xs">
-                <q-btn type="submit" color="primary" label="Rechercher" icon="search"
-                  dense unelevated style="border-radius:8px" :loading="loading" />
-                <q-btn type="reset" color="grey-6" label="Annuler" icon="close"
-                  dense unelevated style="border-radius:8px" />
+    <q-card class="card-elevated">
+      <q-card-section class="table-toolbar q-py-sm q-px-sm q-px-md">
+        <div class="row items-center q-col-gutter-sm q-mb-xs">
+          <div class="col-12 col-lg-auto row items-center no-wrap q-gutter-xs toolbar-title-row">
+            <q-icon name="calendar_month" size="sm" color="primary" />
+            <span class="text-body2 text-weight-bold text-primary">Interruptions &amp; Périodes d'Activité</span>
+            <q-badge outline color="primary" :label="`${periodes.length}`" />
+          </div>
+          <q-form class="col-12 col-lg toolbar-search-form" @submit.prevent="searchPeriodes" @reset.prevent="resetSearch">
+            <div class="row q-col-gutter-sm items-center">
+              <div class="col-12 col-sm-6 col-md-3 col-lg-auto">
+                <q-select v-model="cbxcritere" name="cbxcritere" :options="searchOptions" label="Critères" label-color="primary"
+                  outlined dense emit-value map-options color="primary" class="toolbar-field toolbar-field--critere full-width" hide-bottom-space />
+              </div>
+              <div class="col-12 col-sm-6 col-md-4 col-lg-auto">
+                <q-input v-model="txtvaleurdeb" name="txtvaleurdeb" label="Valeur de Début" label-color="primary" outlined dense color="primary"
+                  class="toolbar-field toolbar-field--valeur full-width" hide-bottom-space
+                  @update:model-value="val => (txtvaleurdeb = (val || '').toUpperCase())"
+                  @keyup.enter="searchPeriodes" />
+              </div>
+              <div class="col-12 col-sm-12 col-md-4 col-lg-auto row q-gutter-sm items-center toolbar-actions">
+                <q-btn type="submit" color="primary" icon="search" label="Rechercher" dense unelevated :loading="loading" class="toolbar-btn col-grow col-sm-auto" />
+                <q-btn type="reset" flat dense round color="primary" icon="restart_alt" :disable="loading"><q-tooltip>Réinitialiser</q-tooltip></q-btn>
               </div>
             </div>
-          </div>
-        </q-form>
-      </q-card-section>
-    </q-card>
-
-    <!-- ═══════════════════════════════════════════════════════
-         LISTE DES PÉRIODES  +  bouton Nouvelle Saisie
-    ═══════════════════════════════════════════════════════ -->
-    <q-card class="card-elevated">
-      <q-card-section class="bg-primary text-white card-header-rounded q-py-sm">
-        <div class="row items-center justify-between">
-          <div class="row items-center">
-            <q-icon name="calendar_month" size="xs" class="q-mr-xs" />
-            <span class="text-body2 text-weight-bold">
-              Gestion des Interruptions &amp; Périodes d'Activité
-            </span>
-          </div>
-          <div class="row items-center q-gutter-sm">
-            <q-badge color="white" text-color="primary" :label="`${periodes.length} enregistrement(s)`" />
-            <q-btn
-              color="white" text-color="primary" icon="add" label="Nouvelle saisie"
-              dense unelevated size="sm" style="border-radius:8px; font-weight:600;"
-              @click="openDialog()"
-            />
-          </div>
+          </q-form>
+        </div>
+        <div class="text-caption text-primary toolbar-hint row items-center">
+          <q-icon name="touch_app" size="xs" class="q-mr-xs flex-shrink-0" />
+          <span>Cliquez sur un N° assuré pour ouvrir la saisie période d'activité</span>
         </div>
       </q-card-section>
 
-      <q-card-section class="q-pa-none">
+      <q-card-section class="q-pa-none pf-table-responsive">
         <q-table
           :rows="periodes"
-          :columns="tableColumns"
+          :columns="visibleTableColumns"
           row-key="rowKey"
+          :grid="tableGrid"
           :loading="loading"
           dense flat
-          :rows-per-page-options="[10, 20, 50]"
-          no-data-label="Aucun enregistrement trouvé — utilisez la recherche ci-dessus"
-          class="periodes-table"
+          :rows-per-page-options="tableRowsPerPageOptions"
+          :pagination="{ rowsPerPage: tableDefaultRowsPerPage }"
+          no-data-label="Aucun enregistrement trouvé — modifiez les critères de recherche"
+          class="pf-module-table"
         >
+          <template v-slot:header-cell="props">
+            <q-th :props="props" class="pf-col-header bg-primary text-white">
+              <span class="pf-col-header__label text-weight-bold">{{ props.col.label }}</span>
+            </q-th>
+          </template>
           <template v-slot:body-cell-index="props">
             <q-td :props="props" class="text-center text-grey-6">{{ props.rowIndex + 1 }}</q-td>
           </template>
-
           <template v-slot:body-cell-numassu="props">
             <q-td :props="props">
               <a class="dossier-link" href="#" @click.prevent="loadPeriode(props.row)">
@@ -105,7 +71,16 @@
               </a>
             </q-td>
           </template>
-
+          <template v-slot:item="props">
+            <div class="pf-grid-card q-pa-sm q-mb-sm" @click="loadPeriode(props.row)">
+              <div class="row items-center justify-between q-mb-xs">
+                <a class="dossier-link text-body2" href="#" @click.prevent.stop="loadPeriode(props.row)">{{ props.row.numassu }}</a>
+                <q-badge :color="props.row.typeact === 'ACT' ? 'positive' : 'orange-7'"
+                  :label="props.row.libelleType || props.row.typeact" dense />
+              </div>
+              <div class="text-caption text-grey-8">{{ props.row.nomassu }}</div>
+            </div>
+          </template>
           <template v-slot:body-cell-typeact="props">
             <q-td :props="props">
               <q-badge
@@ -115,13 +90,11 @@
               />
             </q-td>
           </template>
-
           <template v-slot:no-data="{ message }">
             <div class="full-width row flex-center text-grey-6 q-pa-lg">
               <q-icon name="inbox" size="2rem" class="q-mr-sm" />{{ message }}
             </div>
           </template>
-
           <template v-slot:loading>
             <q-inner-loading showing color="primary" />
           </template>
@@ -132,177 +105,138 @@
     <!-- ═══════════════════════════════════════════════════════
          DIALOG – FORMULAIRE PÉRIODE D'ACTIVITÉ
     ═══════════════════════════════════════════════════════ -->
-    <q-dialog v-model="showDialog" persistent maximized transition-show="slide-up" transition-hide="slide-down">
-      <q-card class="dialog-form-card">
-
-        <!-- En-tête -->
-        <q-bar class="bg-primary text-white q-py-sm">
-          <q-icon name="calendar_month" />
-          <span class="q-ml-sm text-body1 text-weight-bold">
-            Période d'Activité — Saisie
-          </span>
+    <q-dialog
+      v-model="showDialog"
+      persistent
+      :maximized="$q.screen.lt.sm"
+      transition-show="slide-up"
+      transition-hide="slide-down"
+      :full-width="$q.screen.lt.md"
+      :full-height="$q.screen.lt.sm"
+    >
+      <q-card class="dialog-form-card" :class="{ 'dialog-form-card--desktop': $q.screen.gt.sm }">
+        <q-bar class="bg-primary text-white q-py-sm dialog-bar">
+          <q-icon name="calendar_month" class="flex-shrink-0" />
+          <span class="q-ml-sm text-body2 text-weight-bold dialog-bar__title ellipsis">Période d'Activité — Saisie</span>
           <q-space />
-          <q-btn flat dense round color="white" icon="restart_alt" size="sm" @click="resetForm">
-            <q-tooltip>Réinitialiser</q-tooltip>
-          </q-btn>
+          <q-btn flat dense round color="white" icon="restart_alt" size="sm" @click="resetForm"><q-tooltip>Réinitialiser</q-tooltip></q-btn>
           <q-btn flat dense round color="white" icon="close" size="sm" v-close-popup @click="resetForm" />
         </q-bar>
+        <q-card-section class="q-pa-md overflow-auto dialog-body">
+          <q-form ref="saisieFormRef" class="pf-legacy-form" @submit.prevent="submitForm" @reset="resetForm">
 
-        <!-- Corps scrollable -->
-        <q-card-section class="q-pa-sm overflow-auto dialog-body">
-          <q-form ref="saisieFormRef" @submit.prevent="submitForm" @reset="resetForm">
-
-            <!-- ── Employeur ── -->
-            <div class="sep q-mb-xs">
-              <q-icon name="business" size="xs" class="q-mr-xs" />Employeur
-            </div>
-            <div class="row q-col-gutter-xs q-mb-sm">
-              <div class="col-6 col-md-3">
-                <q-input v-model="form.matempl" label="Matricule Employeur" outlined dense readonly
-                  bg-color="blue-grey-1" label-color="primary" />
+            <div class="row pf-form-row q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Matricule Employeur</span>
+                  <q-input v-model="form.txtsaisiematempl" name="txtsaisiematempl" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                </div>
               </div>
-              <div class="col-6 col-md-5">
-                <q-input v-model="form.raisonsociale" label="Raison Sociale" outlined dense readonly
-                  bg-color="blue-grey-1" label-color="primary" />
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Raison Sociale</span>
+                  <q-input v-model="form.txtraisonsociale" name="txtraisonsociale" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                </div>
               </div>
-              <div class="col-6 col-md-4">
-                <q-input v-model="form.dateaffiliation" label="Date Affiliation" outlined dense readonly
-                  bg-color="blue-grey-1" label-color="primary" />
-              </div>
-            </div>
-
-            <!-- ── Assuré ── -->
-            <div class="sep q-mb-xs">
-              <q-icon name="person" size="xs" class="q-mr-xs" />Assuré
-            </div>
-            <div class="row q-col-gutter-xs q-mb-sm">
-              <div class="col-6 col-md-4">
-                <q-input v-model="form.numassu" label="N° Assuré" outlined dense readonly
-                  bg-color="blue-grey-1" label-color="primary" />
-              </div>
-              <div class="col-6 col-md-4">
-                <q-input v-model="form.nomassu" label="Noms Assuré" outlined dense readonly
-                  bg-color="blue-grey-1" label-color="primary" />
-              </div>
-              <div class="col-6 col-md-4">
-                <q-input v-model="form.prenomassu" label="Prénoms Assuré" outlined dense readonly
-                  bg-color="blue-grey-1" label-color="primary" />
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Date Affiliation</span>
+                  <q-input v-model="form.txtsaisiedateembauche" name="txtsaisiedateembauche" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                </div>
               </div>
             </div>
 
-            <!-- ── Données de la période ── -->
-            <div class="sep q-mb-xs">
-              <q-icon name="event_note" size="xs" class="q-mr-xs" />Données de la Période
-            </div>
-            <div class="row q-col-gutter-xs q-mb-sm items-start">
-
-              <!-- Type -->
-              <div class="col-12 col-md-2">
-                <q-select
-                  v-model="form.typeact"
-                  :options="typeOptions"
-                  label="Type"
-                  outlined dense emit-value map-options color="primary"
-                  :rules="[v => !!v || 'Veuillez sélectionner le type de chaque opération']"
-                />
+            <div class="row pf-form-row pf-form-row--alt q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">N° Assuré</span>
+                  <q-input v-model="form.txtsaisienumassu" name="txtsaisienumassu" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                </div>
               </div>
-
-              <!-- Matricule Assuré -->
-              <div class="col-12 col-md-3">
-                <q-input
-                  v-model="form.matassu"
-                  label="Matricule Assuré"
-                  outlined dense
-                  bg-color="yellow-1"
-                  :rules="[v => !!v || 'Veuillez saisir le Numéro Assuré SVP!!!']"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="badge" color="amber-8" size="xs" />
-                  </template>
-                </q-input>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Noms Assuré</span>
+                  <q-input v-model="form.txtsaisietextenomassu" name="txtsaisietextenomassu" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                </div>
               </div>
-
-              <!-- Numéro Employeur -->
-              <div class="col-12 col-md-3">
-                <q-input
-                  v-model="form.numempl"
-                  label="Numéro Employeur"
-                  outlined dense
-                  bg-color="yellow-1"
-                  :rules="[v => !!v || 'Veuillez saisir le Numéro Employeur SVP!!!']"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="business" color="amber-8" size="xs" />
-                  </template>
-                </q-input>
-              </div>
-
-              <!-- Date Embauche -->
-              <div class="col-12 col-md-2">
-                <q-input
-                  v-model="form.dateembauche"
-                  label="Date Embauche"
-                  outlined dense
-                  bg-color="yellow-1"
-                  :rules="[v => !!v || 'Veuillez saisir une Date embauche SVP!!!']"
-                >
-                  <template v-slot:append>
-                    <q-icon name="edit_calendar" class="cursor-pointer" color="amber-8" size="xs">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="form.dateembauche" mask="DD/MM/YYYY" today-btn color="primary">
-                          <div class="row items-center justify-end">
-                            <q-btn v-close-popup label="OK" color="primary" flat dense />
-                          </div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-
-              <!-- Date Cessation -->
-              <div class="col-12 col-md-2">
-                <q-input
-                  v-model="form.datecessation"
-                  label="Date Cessation"
-                  outlined dense
-                  bg-color="yellow-1"
-                >
-                  <template v-slot:append>
-                    <q-icon name="edit_calendar" class="cursor-pointer" color="amber-8" size="xs">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="form.datecessation" mask="DD/MM/YYYY" today-btn color="primary">
-                          <div class="row items-center justify-end">
-                            <q-btn v-close-popup label="OK" color="primary" flat dense />
-                          </div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Prénoms Assuré</span>
+                  <q-input v-model="form.txtsaisietexteprenomassu" name="txtsaisietexteprenomassu" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                </div>
               </div>
             </div>
 
-            <!-- ── Boutons d'action ── -->
-            <div class="row justify-center q-gutter-sm q-mt-sm">
-              <q-btn
-                type="submit"
-                color="primary"
-                label="Valider"
-                icon="save"
-                unelevated
-                style="border-radius:10px; min-width:140px"
-                :loading="submitting"
-              />
-              <q-btn
-                type="reset"
-                color="grey-6"
-                label="Annuler"
-                icon="refresh"
-                unelevated
-                style="border-radius:10px; min-width:140px"
-                @click="resetForm"
-              />
+            <div class="row pf-form-row q-col-gutter-sm">
+              <div class="col-12 col-sm-6 col-md-3">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Type</span>
+                  <q-select v-model="form.cbxtype" name="cbxtype" :options="typeOptions" dense outlined emit-value map-options hide-bottom-space
+                    class="pf-legacy-input pf-legacy-input--select"
+                    :rules="[v => !!v || 'Veuillez sélectionner le type de chaque opération']" />
+                </div>
+              </div>
+              <div class="col-12 col-sm-6 col-md-3">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Matricule Assuré</span>
+                  <q-input v-model="form.txtsaisiematassu" name="txtsaisiematassu" dense outlined hide-bottom-space bg-color="yellow-1" class="pf-legacy-input"
+                    :rules="[v => !!v || 'Veuillez saisir le Numéro Assuré SVP!!!']" />
+                </div>
+              </div>
+              <div class="col-12 col-sm-6 col-md-3">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Date Embauche</span>
+                  <q-input v-model="form.txtSaisiedatedebutreprise" name="txtSaisiedatedebutreprise" dense outlined hide-bottom-space
+                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date"
+                    :rules="[v => !!v || 'Veuillez saisir une Date embauche SVP!!!']">
+                    <template v-slot:append>
+                      <q-icon name="event" class="cursor-pointer" size="xs">
+                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                          <q-date v-model="form.txtSaisiedatedebutreprise" mask="DD/MM/YYYY" today-btn color="primary">
+                            <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
+                          </q-date>
+                        </q-popup-proxy>
+                      </q-icon>
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+              <div class="col-12 col-sm-6 col-md-3">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Date Cessation</span>
+                  <q-input v-model="form.txtSaisiedatefinreprise" name="txtSaisiedatefinreprise" dense outlined hide-bottom-space
+                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date">
+                    <template v-slot:append>
+                      <q-icon name="event" class="cursor-pointer" size="xs">
+                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                          <q-date v-model="form.txtSaisiedatefinreprise" mask="DD/MM/YYYY" today-btn color="primary">
+                            <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
+                          </q-date>
+                        </q-popup-proxy>
+                      </q-icon>
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+            </div>
+
+            <div class="row pf-form-row pf-form-row--alt q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Numéro Employeur</span>
+                  <q-input v-model="form.txtsaisienumempl" name="txtsaisienumempl" dense outlined hide-bottom-space bg-color="yellow-1" class="pf-legacy-input"
+                    :rules="[v => !!v || 'Veuillez saisir le Numéro Employeur SVP!!!']" />
+                </div>
+              </div>
+            </div>
+
+            <div class="row q-col-gutter-sm q-mt-md dialog-actions">
+              <div class="col-12 col-sm-auto">
+                <q-btn type="submit" color="primary" label="Valider" unelevated class="full-width pf-legacy-btn" :loading="submitting" />
+              </div>
+              <div class="col-12 col-sm-auto">
+                <q-btn type="reset" color="grey-7" label="Annuler" unelevated class="full-width pf-legacy-btn" @click="resetForm" />
+              </div>
             </div>
 
           </q-form>
@@ -317,6 +251,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useLiquidationPfStore } from 'src/stores/energizer/liquidationPfStore.js'
+import { usePfModuleTable } from 'src/composables/usePfModuleTable.js'
 
 defineOptions({ name: 'PeriodeActivite' })
 
@@ -331,9 +266,8 @@ const showDialog = ref(false)
 const saisieFormRef = ref(null)
 
 // ─── Recherche ──────────────────────────────────────────────────
-const searchCriteria   = ref('fnumassu')
-const searchStartValue = ref('')
-const searchEndValue   = ref('')
+const cbxcritere   = ref('fnumassu')
+const txtvaleurdeb = ref('')
 
 const searchOptions = [
   { label: 'Num Assuré',  value: 'fnumassu' },
@@ -348,19 +282,17 @@ const typeOptions = [
 
 // ─── Formulaire ─────────────────────────────────────────────────
 const FORM_INITIAL = {
-  // Readonly (chargés depuis la table)
-  matempl:        '',
-  raisonsociale:  '',
-  dateaffiliation:'',
-  numassu:        '',
-  nomassu:        '',
-  prenomassu:     '',
-  // Saisie
-  typeact:        '',
-  matassu:        '',
-  numempl:        '',
-  dateembauche:   '',
-  datecessation:  '',
+  txtsaisiematempl: '',
+  txtraisonsociale: '',
+  txtsaisiedateembauche: '',
+  txtsaisienumassu: '',
+  txtsaisietextenomassu: '',
+  txtsaisietexteprenomassu: '',
+  cbxtype: '',
+  txtsaisiematassu: '',
+  txtsaisienumempl: '',
+  txtSaisiedatedebutreprise: '',
+  txtSaisiedatefinreprise: '',
 }
 
 const form = reactive({ ...FORM_INITIAL })
@@ -377,6 +309,10 @@ const tableColumns = [
   { name: 'dateembauche',  label: 'Date Embauche',   field: 'dateembauche',  align: 'left', sortable: true },
   { name: 'datecessation', label: 'Date Cessation',  field: 'datecessation', align: 'left', sortable: true },
 ]
+const { visibleTableColumns, tableGrid, tableRowsPerPageOptions, tableDefaultRowsPerPage } = usePfModuleTable(tableColumns, {
+  mobileCols: ['index', 'numassu', 'nomassu', 'typeact'],
+  tabletHidden: ['dateembauche', 'datecessation', 'numempl'],
+})
 
 // ─── Données de test (à retirer en production) ──────────────────
 const MOCK_PERIODES = [
@@ -423,26 +359,21 @@ onMounted(async () => {
   }
 })
 
-// ─── Dialog ──────────────────────────────────────────────────────
-function openDialog() {
-  showDialog.value = true
-}
-
 // ─── Chargement depuis table (équivalent loading()) ──────────────
 // loading(numassu, nomassu, prenomassu, dateembauche, datecessation,
 //         matempl, dateaffiliation, type)
 function loadPeriode(row) {
-  form.numassu        = row.numassu        ?? ''
-  form.matassu        = row.numassu        ?? ''   // txtsaisiematassu = numassu
-  form.nomassu        = row.nomassu        ?? ''
-  form.prenomassu     = row.prenomassu     ?? ''
-  form.matempl        = row.matempl        ?? ''
-  form.numempl        = row.numempl        ?? ''   // txtsaisienumempl = matempl
-  form.raisonsociale  = row.raisonsociale  ?? ''
-  form.dateembauche   = row.dateembauche   ?? ''
-  form.datecessation  = row.datecessation  ?? ''
-  form.dateaffiliation = row.dateaffiliation ?? ''
-  form.typeact        = row.typeact        ?? ''
+  form.txtsaisienumassu = row.numassu ?? ''
+  form.txtsaisiematassu = row.numassu ?? ''
+  form.txtsaisietextenomassu = row.nomassu ?? ''
+  form.txtsaisietexteprenomassu = row.prenomassu ?? ''
+  form.txtsaisiematempl = row.matempl ?? ''
+  form.txtsaisienumempl = row.numempl ?? row.matempl ?? ''
+  form.txtraisonsociale = row.raisonsociale ?? ''
+  form.txtSaisiedatedebutreprise = row.dateembauche ?? ''
+  form.txtSaisiedatefinreprise = row.datecessation ?? ''
+  form.txtsaisiedateembauche = row.dateaffiliation ?? ''
+  form.cbxtype = row.typeact ?? ''
 
   showDialog.value = true
   $q.notify({ type: 'positive', message: `Assuré ${row.numassu} chargé`, position: 'top', timeout: 1500 })
@@ -450,19 +381,19 @@ function loadPeriode(row) {
 
 // ─── Validation ──────────────────────────────────────────────────
 function validateForm() {
-  if (!form.matassu) {
+  if (!form.txtsaisiematassu) {
     $q.notify({ type: 'negative', message: 'Veuillez saisir le Numéro Assuré SVP!!!', position: 'top' })
     return false
   }
-  if (!form.numempl) {
+  if (!form.txtsaisienumempl) {
     $q.notify({ type: 'negative', message: 'Veuillez saisir le Numéro Employeur SVP!!!', position: 'top' })
     return false
   }
-  if (!form.dateembauche) {
+  if (!form.txtSaisiedatedebutreprise) {
     $q.notify({ type: 'negative', message: 'Veuillez saisir une Date embauche SVP!!!', position: 'top' })
     return false
   }
-  if (!form.typeact) {
+  if (!form.cbxtype) {
     $q.notify({ type: 'negative', message: 'Veuillez sélectionner le type de chaque opération!!!', position: 'top' })
     return false
   }
@@ -477,7 +408,7 @@ async function submitForm() {
 
   submitting.value = true
   try {
-    await pfStore.submitPeriode({ ...form })
+    await pfStore.submitPeriode(form)
     $q.notify({ type: 'positive', message: 'Période d\'activité enregistrée avec succès !', position: 'top', icon: 'check_circle' })
     showDialog.value = false
     resetForm()
@@ -500,9 +431,8 @@ async function searchPeriodes() {
   errorMsg.value = ''
   try {
     periodes.value = await pfStore.loadPeriodes({
-      criteria: searchCriteria.value,
-      start: searchStartValue.value,
-      end: searchEndValue.value,
+      criteria: cbxcritere.value,
+      start: txtvaleurdeb.value,
     })
     $q.notify({ type: 'info', message: 'Recherche effectuée', position: 'top' })
   } catch {
@@ -513,9 +443,8 @@ async function searchPeriodes() {
 }
 
 function resetSearch() {
-  searchCriteria.value   = 'fnumassu'
-  searchStartValue.value = ''
-  searchEndValue.value   = ''
+  cbxcritere.value = 'fnumassu'
+  txtvaleurdeb.value = ''
   periodes.value = MOCK_PERIODES
   errorMsg.value = ''
 }
@@ -536,47 +465,4 @@ function resetSearch() {
   border-radius: 15px 15px 0 0;
 }
 
-/* ── Dialog ───────────────────────────────────── */
-.dialog-form-card {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-}
-
-.dialog-body {
-  flex: 1;
-  overflow-y: auto;
-}
-
-/* ── Séparateurs de sections ──────────────────── */
-.sep {
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: #1976d2;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-left: 3px solid #1976d2;
-  padding: 2px 0 2px 8px;
-  background: linear-gradient(to right, rgba(25, 118, 210, 0.06), transparent);
-  border-radius: 0 4px 4px 0;
-}
-
-/* ── Liens table ──────────────────────────────── */
-.dossier-link {
-  color: #1976d2;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.85rem;
-  transition: color 0.2s;
-}
-.dossier-link:hover {
-  color: #0d47a1;
-  text-decoration: underline;
-}
-
-.periodes-table { border-radius: 0 0 15px 15px; }
-.periodes-table :deep(.q-table__bottom) {
-  background: #fafafa;
-  border-radius: 0 0 15px 15px;
-}
 </style>

@@ -1,13 +1,7 @@
 <template>
   <q-page class="q-pa-md saisie-elements-rp-page">
 
-    <!-- Fil d'Ariane -->
-    <q-breadcrumbs class="q-mb-md" active-color="primary" separator-icon="chevron_right">
-      <q-breadcrumbs-el :label="t('layout.sidebar.stats')" :to="{ name: 'energizer-home' }" />
-      <q-breadcrumbs-el :label="t('layout.sidebar.liquidations')" />
-      <q-breadcrumbs-el :label="t('layout.sidebar.prestationRp')" />
-      <q-breadcrumbs-el :label="t('layout.sidebar.rpSaisieElementsLiquidation')" />
-    </q-breadcrumbs>
+    <AppBreadcrumbs :menu-items="energizerMenu" class="q-mb-md" />
 
     <!-- ════════════════════════════════════════════════
          LANDING : grille de cartes
@@ -102,7 +96,9 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import NewCertificat       from 'components/prestationRP/newcertificat.vue'
+import NewCertificat       from 'components/prestationRP/NewCertificatMedical.vue'
+import AppBreadcrumbs from 'components/layout/AppBreadcrumbs.vue'
+import { energizerMenu } from 'src/config/menus/energizerMenu.js'
 import NewCertificatDeces  from 'components/prestationRP/newcertificatdeces.vue'
 import NlleNoteDeFrags     from 'components/prestationRP/nllenotedefrais.vue'
 

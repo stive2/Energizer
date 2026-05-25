@@ -448,8 +448,8 @@ function readSimProfileFromSession() {
 }
 
 function handleOpenQuery(open) {
-  if (open === 'FORM1') {
-    router.replace({ name: 'reception-nouveau-dossier' })
+  if (open === 'FORM1' || open === 'reception' || open === 'dialog') {
+    router.push({ name: 'energizer-reception-nouveau-dossier', query: { open: 'dialog' } })
   }
 }
 

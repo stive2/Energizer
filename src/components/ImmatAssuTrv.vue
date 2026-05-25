@@ -11,6 +11,33 @@
 
       <q-card-section>
         <q-form ref="formRef" @submit.prevent="submitForm">
+          <div class="immat-legacy-hidden" aria-hidden="true" style="display: none">
+            <input type="hidden" name="regime" :value="form.regime" />
+            <input type="hidden" name="regimeAffi" :value="form.regimeAffi" />
+            <input type="hidden" name="date_effet" :value="form.date_effet" />
+            <input type="hidden" name="taux" :value="form.taux" />
+            <input type="hidden" name="min_date_effet" :value="form.min_date_effet" />
+            <input type="hidden" name="smig_annuel" :value="form.smig_annuel" />
+            <input type="hidden" name="max_cotisation_annuel" :value="form.max_cotisation_annuel" />
+            <input type="hidden" name="code_tele" :value="form.code_tele" />
+            <input type="hidden" name="code_secret" :value="form.code_secret" />
+            <input type="hidden" name="minDateAffi" :value="form.minDateAffi" />
+            <input type="hidden" name="Dest" :value="form.Dest" />
+            <input type="hidden" name="LIEU_NAISS_PERS" :value="form.LIEU_NAISS_PERS" />
+            <input type="hidden" name="CODE_PAYS_NAISS" :value="form.CODE_PAYS_NAISS" />
+            <input type="hidden" name="CIVILITE_PERS" :value="form.CIVILITE_PERS" />
+            <input type="hidden" name="NATIONALITE" :value="form.NATIONALITE" />
+            <input type="hidden" name="NUM_TYPEPIECE" :value="form.NUM_TYPEPIECE" />
+            <input type="hidden" name="LIEU_PIECE" :value="form.LIEU_PIECE" />
+            <input type="hidden" name="CODE_VILLE" :value="form.CODE_VILLE" />
+            <input type="hidden" name="CODE_CENTRECNPS" :value="form.CODE_CENTRECNPS" />
+            <input type="hidden" name="LIEU_NAISS_PERE" :value="form.LIEU_NAISS_PERE" />
+            <input type="hidden" name="CODE_PAYS_NAISSP" :value="form.CODE_PAYS_NAISSP" />
+            <input type="hidden" name="LIEU_NAISS_MERE" :value="form.LIEU_NAISS_MERE" />
+            <input type="hidden" name="CODE_PAYS_NAISSM" :value="form.CODE_PAYS_NAISSM" />
+            <input type="hidden" name="laction" :value="form.laction" />
+            <input type="hidden" name="valider" :value="form.valider" />
+          </div>
           <q-stepper
             v-model="step"
             :vertical="!$q.screen.gt.sm"
@@ -32,6 +59,7 @@
               <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
                 <q-input
                   v-model="form.mat_employeur"
+                  name="mat_employeur"
                   :label="$t('inputassu.employer_cnps_registration_number')"
                   outlined
                   dense
@@ -64,6 +92,7 @@
                 </q-input>
                 <q-input
                   v-model="form.NOM_COMMERCIAL"
+                  name="NOM_COMMERCIAL"
                   :label="$t('inputassu.trade_name')"
                   outlined
                   dense
@@ -74,6 +103,7 @@
                 />
                 <q-input
                   v-model="form.RAISON_SOCIALE"
+                  name="RAISON_SOCIALE"
                   :label="$t('inputassu.legal_name')"
                   outlined
                   dense
@@ -84,7 +114,7 @@
 
                 >
                   <template v-slot:label>
-                    {{ $t('inputassu.trade_name') }}
+                    {{ $t('inputassu.legal_name') }}
                     <span
                       class="q-px-sm bg-red text-white text-italic rounded-borders"
                       style="font-size: 10px"
@@ -95,6 +125,7 @@
                 </q-input>
                 <q-input
                   v-model="form.ADRESSE_EMPLOYEUR"
+                  name="ADRESSE_EMPLOYEUR"
                   :label="$t('inputassu.company_location')"
                   outlined
                   dense
@@ -105,6 +136,7 @@
                 />
                 <q-input
                   v-model="form.DATE_EMB_PREM_TRAV"
+                  name="DATE_EMB_PREM_TRAV"
                   :label="$t('inputassu.first_employee_hiring_date')"
                   outlined
                   dense
@@ -130,6 +162,7 @@
                 </q-input>
                 <q-input
                   v-model="form.SMIG_VALUE"
+                  name="SMIG_VALUE"
                   :label="$t('inputassu.minimum_wage')"
                   :hint="$t('inputassu.minimum_wage')"
                   outlined
@@ -142,6 +175,7 @@
                 />
                 <q-input
                   v-model="form.DATE_EMB_PRE_SALL"
+                  name="DATE_EMB_PRE_SALL"
                   :label="$t('inputassu.hiring_date')"
                   outlined
                   dense
@@ -179,6 +213,7 @@
 
                 <q-select
                   v-model="form.CODE_categ"
+                  name="CODE_categ"
                   :label="$t('inputassu.category')"
                   :options="[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]"
                   outlined
@@ -188,6 +223,7 @@
                 />
                 <q-select
                   v-model="form.CODE_echelon"
+                  name="CODE_echelon"
                   :label="$t('inputassu.level')"
                   :options="['A', 'B', 'C', 'D', 'E', 'F', 'G']"
                   outlined
@@ -197,6 +233,7 @@
                 />
                 <q-input
                   v-model="form.Specialite"
+                  name="Specialite"
                   :label="$t('inputassu.specialty')"
                   outlined
                   dense
@@ -207,6 +244,7 @@
                 />
                 <q-input
                   v-model="form.EFFECTIF_APPROX"
+                  name="EFFECTIF_APPROX"
                   :label="$t('inputassu.approximate_workforce')"
                   outlined
                   dense
@@ -217,6 +255,7 @@
                 />
                 <q-input
                   v-model="form.NiveauAss"
+                  name="NiveauAss"
                   :label="$t('inputassu.education_level')"
                   outlined
                   dense
@@ -227,6 +266,7 @@
                 />
                 <q-input
                   v-model="form.ActuelRevenu"
+                  name="ActuelRevenu"
                   :label="$t('inputassu.current_income')"
                   outlined
                   dense
@@ -239,13 +279,14 @@
 
                 <q-file
                 v-model="form.avisEmbauche"
+                name="110"
                 :label="$t('inputassu.hiring_notice')"
                 outlined
                 dense
                 :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                 :counter-label="counterLabelFn"
                 max-files="1"
-                accept=".jpg, .png, image/*, .pdf"
+                accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png"
                 max-file-size="3072000"
                 class="q-mr-sm q-mb-sm"
                 :rules="[required]"
@@ -285,7 +326,28 @@
             >
               <div class="justify-center row" :class="{ 'column': !$q.screen.gt.sm }">
                 <q-input
+                  v-model="form.DATE_DEMANDE"
+                  name="DATE_DEMANDE"
+                  :label="$t('inputassu.request_date')"
+                  outlined
+                  dense
+                  readonly
+                  :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
+                  class="q-mr-sm q-mb-sm"
+                />
+                <q-input
+                  v-model="form.regimeAffiC"
+                  name="regimeAffiC"
+                  :label="$t('inputassu.affiliation_regime')"
+                  outlined
+                  dense
+                  readonly
+                  :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
+                  class="q-mr-sm q-mb-sm"
+                />
+                <q-input
                   v-model="form.NOM_PERS"
+                  name="NOM_PERS"
                   :label="$t('inputassu.last_name')"
                   outlined
                   dense
@@ -306,6 +368,7 @@
                 </q-input>
                 <q-input
                   v-model="form.PRENOM_PERS"
+                  name="PRENOM_PERS"
                   :label="$t('inputassu.first_name')"
                   outlined
                   dense
@@ -316,8 +379,13 @@
                 />
                 <q-select
                   v-model="form.SEXE_PERS"
+                  name="SEXE_PERS"
                   :label="$t('inputassu.gender')"
-                  :options="genderOptions"
+                  :options="sexeOptions"
+                  emit-value
+                  map-options
+                  option-value="value"
+                  option-label="label"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
@@ -336,6 +404,7 @@
                 </q-select>
                 <q-input
                   v-model="form.DATE_NAISS_PERS"
+                  name="DATE_NAISS_PERS"
                   :label="$t('inputassu.date_of_birth')"
                   outlined
                   dense
@@ -394,6 +463,7 @@
                 </q-input>
                 <q-select
                   v-model="form.LieuNaiss"
+                  name="LieuNaiss"
                   :label="$t('inputassu.birth_district')"
                   :hint="$t('inputassu.birth_district')"
                   :options="arrondissements"
@@ -422,8 +492,12 @@
                 </q-select>
                 <q-select
                   v-model="form.civilite"
+                  name="civilite"
                   :label="$t('inputassu.marital_status')"
-                  :options="maritalStatusOptions"
+                  :options="matrimonialList"
+                  option-label="LIBELLE_MATRI"
+                  emit-value
+                  map-options
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
@@ -443,6 +517,7 @@
                 </q-select>
                 <q-select
                   v-model="form.NATIONALITEC"
+                  name="NATIONALITEC"
                   :label="$t('inputassu.nationality')"
                   :options="pays"
                   option-label="nationalite"
@@ -468,10 +543,11 @@
                     </span>
                   </template>
                 </q-select>
-                <q-select typepiece
+                <q-select
                   v-model="form.typepiece"
+                  name="typepiece"
                   :label="$t('inputassu.identity_document_type')"
-                  :options="documentsOptions"
+                  :options="pieces"
                   option-label="LIBELLE"
                   outlined
                   dense
@@ -497,6 +573,7 @@
                 </q-select>
                 <q-input
                   v-model="form.NUM_PIECE"
+                  name="NUM_PIECE"
                   :label="$t('inputassu.identity_document_number')"
                   outlined
                   dense
@@ -518,6 +595,7 @@
                 </q-input>
                 <q-input
                   v-model="form.DATE_PIECE"
+                  name="DATE_PIECE"
                   :label="$t('inputassu.issued_on')"
                   outlined
                   dense
@@ -552,6 +630,7 @@
                 </q-input>
                 <q-select
                   v-model="form.LIEU_PIECEC"
+                  name="LIEU_PIECEC"
                   :label="$t('inputassu.place_issuance_identity_document')"
                   :options="arrondissements"
                   option-label="NOM_ARROND"
@@ -578,6 +657,36 @@
                     </span>
                   </template>
                 </q-select>
+                <q-file
+                  v-if="form.NUM_TYPEPIECE || form.typepiece"
+                  v-model="form.pieceIdentite"
+                  :name="form.NUM_TYPEPIECE || 'pieceIdentite'"
+                  :label="form.typepiece?.LIBELLE || $t('inputassu.identity_document_type')"
+                  outlined
+                  dense
+                  :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
+                  max-files="1"
+                  accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png"
+                  max-file-size="3072000"
+                  class="q-mr-sm q-mb-sm"
+                  :rules="[required]"
+                  @rejected="onRejected"
+                />
+                <q-file
+                  v-if="form.NUM_TYPEPIECE && form.NUM_TYPEPIECE !== '99'"
+                  v-model="form.declarationHonneur"
+                  name="153"
+                  :label="$t('inputassu.declaration_on_honor')"
+                  outlined
+                  dense
+                  :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
+                  max-files="1"
+                  accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png"
+                  max-file-size="3072000"
+                  class="q-mr-sm q-mb-sm"
+                  :rules="[required]"
+                  @rejected="onRejected"
+                />
               </div>
 
               <q-stepper-navigation>
@@ -664,21 +773,25 @@
                   emit-value
                   map-options
                   @filter="filterArrondissement"
-                  @update:model-value="(val) => (form.LieuNaissPere = val.toUpperCase())"
-
                 />
                 <q-select
                   v-model="form.etatP"
+                  name="etatP"
                   :label="$t('inputassu.alive')"
-                  :options="yesNoOptions"
+                  :options="etatVieOptions"
+                  emit-value
+                  map-options
+                  option-value="value"
+                  option-label="label"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
                   class="q-mr-sm q-mb-sm"
                 />
                 <q-input
-                  v-if="form.etatP === $t('inputassu.no')"
+                  v-if="form.etatP === 'Décédé'"
                   v-model="form.DATE_DECES_PERSP"
+                  name="DATE_DECES_PERSP"
                   :label="$t('inputassu.date_death')"
                   outlined
                   dense
@@ -835,8 +948,13 @@
                 </q-select>
                 <q-select
                   v-model="form.etatM"
+                  name="etatM"
                   :label="$t('inputassu.alive')"
-                  :options="yesNoOptions"
+                  :options="etatVieOptions"
+                  emit-value
+                  map-options
+                  option-value="value"
+                  option-label="label"
                   outlined
                   dense
                   :style="$q.screen.gt.sm ? 'width: 600px' : 'width: 100%'"
@@ -854,8 +972,9 @@
                   </template>
                 </q-select>
                 <q-input
-                  v-if="form.etatM === $t('inputassu.no')"
+                  v-if="form.etatM === 'Décédé'"
                   v-model="form.DATE_DECES_PERSM"
+                  name="DATE_DECES_PERSM"
                   :label="$t('inputassu.date_death')"
                   outlined
                   dense
@@ -1493,7 +1612,7 @@
                                 </q-item-section>
                                 <q-item-section>
                                   <q-item-label class="text-weight-medium">{{ $t('inputassu.marital_status') }}</q-item-label>
-                                  <q-item-label caption>{{ form.civilite || $t('inputassu.not_specified') }}</q-item-label>
+                                  <q-item-label caption>{{ form.civilite?.LIBELLE_MATRI || $t('inputassu.not_specified') }}</q-item-label>
                                 </q-item-section>
                               </q-item>
 
@@ -1512,7 +1631,7 @@
                               </q-item-section>
                               <q-item-section>
                                 <q-item-label class="text-weight-medium">{{ $t('inputassu.identity_document_type') }}</q-item-label>
-                                <q-item-label caption>{{ form.typepiece || $t('inputassu.not_specified') }}</q-item-label>
+                                <q-item-label caption>{{ form.typepiece?.LIBELLE || $t('inputassu.not_specified') }}</q-item-label>
                               </q-item-section>
                             </q-item>
 
@@ -1601,14 +1720,14 @@
                                   {{ $t('inputassu.birth_district') }}: {{ form.LieuNaissPere && form.LieuNaissPere.NOM_ARROND ? form.LieuNaissPere.NOM_ARROND : $t('inputassu.not_specified') }}
                                 </div>
                                 <q-badge
-                                  :color="form.etatP === $t('inputassu.yes') || form.etatP === 'OUI' || form.etatP === 'YES' ? 'positive' : 'negative'"
+                                  :color="form.etatP === 'Vivant' ? 'positive' : 'negative'"
                                   :label="form.etatP || $t('inputassu.not_specified')"
                                   class="q-mt-sm"
                                 />
                                 <!-- Afficher la date de décès seulement si le père est décédé -->
                                 <div
                                   class="text-caption q-mt-sm"
-                                  v-if="form.etatP === $t('inputassu.no') || form.etatP === 'NON' || form.etatP === 'NO' || form.DATE_DECES_PERSP"
+                                  v-if="form.etatP === 'Décédé' || form.DATE_DECES_PERSP"
                                 >
                                   <q-icon name="event" color="grey-7" size="xs" class="q-mr-xs" />
                                   {{ $t('inputassu.date_death') }}: {{ form.DATE_DECES_PERSP || $t('inputassu.not_specified') }}
@@ -1649,14 +1768,14 @@
                                   {{ $t('inputassu.birth_district') }}: {{ form.LieuNaissMere && form.LieuNaissMere.NOM_ARROND ? form.LieuNaissMere.NOM_ARROND : $t('inputassu.not_specified') }}
                                 </div>
                                 <q-badge
-                                  :color="form.etatM === $t('inputassu.yes') || form.etatM === 'OUI' || form.etatM === 'YES' ? 'positive' : 'negative'"
+                                  :color="form.etatM === 'Vivant' ? 'positive' : 'negative'"
                                   :label="form.etatM || $t('inputassu.not_specified')"
                                   class="q-mt-sm"
                                 />
                                 <!-- Afficher la date de décès seulement si la mère est décédée -->
                                 <div
                                   class="text-caption q-mt-sm"
-                                  v-if="form.etatM === $t('inputassu.no') || form.etatM === 'NON' || form.etatM === 'NO' || form.DATE_DECES_PERSM"
+                                  v-if="form.etatM === 'Décédé' || form.DATE_DECES_PERSM"
                                 >
                                   <q-icon name="event" color="grey-7" size="xs" class="q-mr-xs" />
                                   {{ $t('inputassu.date_death') }}: {{ form.DATE_DECES_PERSM || $t('inputassu.not_specified') }}
@@ -2101,16 +2220,24 @@
   </q-dialog>
 </template>
 <script setup>
-import { ref, computed, defineProps, defineEmits } from 'vue';
+import { ref, computed, defineProps, defineEmits, onMounted, watch } from 'vue';
 import { useNotify } from './useNotify.js';
 import { arrondissements as rawArrondissements } from '../data/Arrondissements.js';
 import { pays as rawPays } from '../data/Pays.js';
 import { pieces as rawPieces } from '../data/Pieces.js';
 import { centres as rawCentres } from '../data/Centres.js';
+import { matrimonial as rawMatrimonial } from '../data/immat/Matrimonial.js';
+import {
+  initImmatAssuTrvRegime0,
+  buildLegacyFormData,
+  validateRegime0Business,
+  syncLegacyHiddenFields,
+  parseLegacyDate,
+} from '../utils/immatAssuTrvLegacy.js';
 import { useI18n } from 'vue-i18n';
 import html2pdf from 'html2pdf.js';
-// import axios from 'axios';
- import { useQuasar } from 'quasar';
+import { submitTeleImmatAssure } from 'src/api/assure/immatAssureApi.js';
+import { useQuasar } from 'quasar';
 
 const $q = useQuasar();
 defineProps({
@@ -2138,6 +2265,7 @@ const arrondissements = ref([...rawArrondissements]);
 const pays = ref([...rawPays]);
 const pieces = ref([...rawPieces]);
 const centres = ref([...rawCentres]);
+const matrimonialList = ref([...rawMatrimonial]);
 
 // Mock data for employers
 const employeurs = ref([
@@ -2157,13 +2285,22 @@ const form = ref({
   NOM_COMMERCIAL: '',
   avisEmbauche: null,
   DATE_EMB_PRE_SALL: '',
-  DATE_DEMANDE:'',
-  code_tele:'',
-  code_secret:'',
-  minDateAffi:'',
+  DATE_DEMANDE: '',
+  code_tele: '',
+  code_secret: '',
+  minDateAffi: '',
+  regime: '0',
+  regimeAffiC: 'Obligatoire',
+  regimeAffi: '0',
+  date_effet: '',
+  taux: '',
+  min_date_effet: '',
+  smig_annuel: '',
+  max_cotisation_annuel: '',
+  Dest: '',
+  laction: 'Créer',
+  valider: 'OUI',
   CODE_echelon: '',
-  regimeAffiC:'',
-  regimeAffi:'',
   Specialite: '',
   ADRESSE_EMPLOYEUR: '',
   DATE_EMB_PREM_TRAV: '',
@@ -2178,27 +2315,40 @@ const form = ref({
   DATE_NAISS_PERS: '',
   LOCALITE_NAISS: '',
   LieuNaiss: null,
+  LIEU_NAISS_PERS: '',
+  CODE_PAYS_NAISS: '',
   NATIONALITEC: null,
-  typepiece: '',
+  NATIONALITE: '',
+  typepiece: null,
+  NUM_TYPEPIECE: '',
   NUM_PIECE: '',
   DATE_PIECE: '',
   LIEU_PIECEC: null,
-  civilite: '',
+  LIEU_PIECE: '',
+  civilite: null,
+  CIVILITE_PERS: '',
+  pieceIdentite: null,
+  declarationHonneur: null,
   NOM_PERE: '',
   PRENOM_PERE: '',
   DATE_NAISS_PERSP: '',
   LOCALITE_NAISS_PERE: '',
   LieuNaissPere: null,
-  etatP: '',
+  LIEU_NAISS_PERE: '',
+  CODE_PAYS_NAISSP: '',
+  etatP: 'Vivant',
   DATE_DECES_PERSP: '',
   NOM_MERE: '',
   PRENOM_MERE: '',
   DATE_NAISS_PERSM: '',
   LOCALITE_NAISS_MERE: '',
   LieuNaissMere: null,
-  etatM: '',
+  LIEU_NAISS_MERE: '',
+  CODE_PAYS_NAISSM: '',
+  etatM: 'Vivant',
   DATE_DECES_PERSM: '',
   CODE_VILLEC: null,
+  CODE_VILLE: '',
   QUARTIER: '',
   TEL_PERS: '',
   FAX_PERS: '',
@@ -2206,6 +2356,7 @@ const form = ref({
   EMAIL_PERS: '',
   BP: '',
   CODE_CENTRECNPSC: null,
+  CODE_CENTRECNPS: '',
   nombEnfa: 0,
   actesNaissance: [],
   nombCert: 0,
@@ -2214,25 +2365,34 @@ const form = ref({
   actesMariage: [],
 });
 
-const genderOptions = computed(() => [
-  t('inputassu.male'),
-  t('inputassu.female'),
+onMounted(() => {
+  initImmatAssuTrvRegime0(form.value);
+});
+
+watch(
+  () => form.value,
+  () => syncLegacyHiddenFields(form.value),
+  { deep: true }
+);
+
+watch(
+  () => form.value.typepiece,
+  (piece) => {
+    form.value.NUM_TYPEPIECE = piece?.NUM_TYPEPIECE || '';
+    if (!form.value.NUM_TYPEPIECE || form.value.NUM_TYPEPIECE === '99') {
+      form.value.declarationHonneur = null;
+    }
+  }
+);
+
+const sexeOptions = computed(() => [
+  { label: t('inputassu.male'), value: 'MASCULIN' },
+  { label: t('inputassu.female'), value: 'FEMININ' },
 ]);
 
-const maritalStatusOptions = computed(() => [
-  t('inputassu.single'),
-  t('inputassu.married'),
-  t('inputassu.divorced'),
-  t('inputassu.widowed'),
-]);
-const documentsOptions = computed(() => [
-  t('inputassu.national_Identity_Card'),
-  t('inputassu.residence_Permit'),
-  t('inputassu.diplomatic_Card'),
-  t('inputassu.Copy_Birth_Certificate'),
-  t('inputassu.passport'),
-  t('inputassu.drivers_License'),
-
+const etatVieOptions = computed(() => [
+  { label: t('inputassu.yes'), value: 'Vivant' },
+  { label: t('inputassu.no'), value: 'Décédé' },
 ]);
 
 const dynamicTextClass = computed(() => [
@@ -2242,10 +2402,6 @@ const dynamicTextClass = computed(() => [
   'q-mb-sm',
 ]);
 
-const yesNoOptions = computed(() => [
-  t('inputassu.yes'),
-  t('inputassu.no'),
-]);
 const required = (val) => !!val || 'Ce champ est requis / This field is required';
 
 
@@ -2299,32 +2455,10 @@ const filterCentreCNPS = (val, update) => {
   });
 };
 
-const getArrondissementName = (id) => {
-  const arr = arrondissements.value.find((a) => a.ID_ARROND === id);
-  return arr ? arr.NOM_ARROND : '';
-};
-
-const getPaysName = (id) => {
-  const paysItem = pays.value.find((p) => p.ID_PAYS === id);
-  return paysItem ? paysItem.nationalite : '';
-};
-
-const getPieceName = (id) => {
-  const piece = pieces.value.find((p) => p.ID_PIECE === id);
-  return piece ? piece.LIBELLE : '';
-};
-
-const getCentreCNPSName = (id) => {
-  const centre = centres.value.find((c) => c.ID_CENTRE === id);
-  return centre ? centre.LIB_CENTRE : '';
-};
-
 const calculateSmig = () => {
-  const DATE_EMB_PRE_SALL = form.value.DATE_EMB_PRE_SALL;
-  const [day, month, year] = DATE_EMB_PRE_SALL.split('/').map(Number);
-  const hireDate = new Date(year, month - 1, day);
-  const smigValue = hireDate.getFullYear() >= 2014 ? 36270 : 28182;
-  form.value.SMIG_VALUE = smigValue;
+  const hire = parseLegacyDate(form.value.DATE_EMB_PRE_SALL);
+  if (!hire) return;
+  form.value.SMIG_VALUE = hire.getFullYear() >= 2014 ? 36270 : 28182;
 };
 
 const fetchEmployerData = async () => {
@@ -2354,10 +2488,8 @@ const resetFileField = (field) => {
 const onFileSelected = (field) => (file) => {
   if (file && file.size > 3072000) {
     notifyError(t('errors.file_too_large'));
-    form[field] = null; // Réinitialise le champ
-    return;
+    form.value[field] = field === 'avisEmbauche' || field === 'pieceIdentite' || field === 'declarationHonneur' ? null : [];
   }
-
 };
 
 const onRejected = (rejectedEntries) => {
@@ -2385,83 +2517,56 @@ const isStepAllowed = (stepNumber) => {
 
 
 const goToNextStep = async (nextStep) => {
-
-  const valid = await formRef.value.validate()
-  if (valid) {
-    step.value = nextStep
-    if (nextStep > maxStep.value) {
-      maxStep.value = nextStep
-    }
-  } else {
-    notifyError('Veuillez remplir tous les champs requis / Please fill in all required fields.')
+  const currentStep = step.value;
+  syncLegacyHiddenFields(form.value);
+  const valid = await formRef.value.validate();
+  const businessErr = validateRegime0Business(form.value, currentStep);
+  if (!valid || businessErr) {
+    stepErrors.value[currentStep] = true;
+    notifyError(businessErr || 'Veuillez remplir tous les champs requis / Please fill in all required fields.');
+    return;
+  }
+  stepErrors.value[currentStep] = false;
+  step.value = nextStep;
+  if (nextStep > maxStep.value) {
+    maxStep.value = nextStep;
   }
 };
 
 const submitForm = async () => {
-
-    showConfirmationDialog.value = true;
-
+  syncLegacyHiddenFields(form.value);
+  const valid = await formRef.value.validate();
+  const businessErr = validateRegime0Business(form.value, null);
+  if (!valid || businessErr) {
+    notifyError(businessErr || 'Veuillez remplir tous les champs requis / Please fill in all required fields.');
+    return;
+  }
+  showConfirmationDialog.value = true;
 };
 
- const confirmSubmission = async () => {
+const confirmSubmission = async () => {
+  if (!submissionType.value) {
+    notifyError(t('form.selectSubmissionType'));
+    return;
+  }
   spinner.value = true;
   try {
-       // Prepare form data for submission
-    const formData = new FormData();
-
-       // Append form fields
-    Object.keys(form.value).forEach((key) => {
-      if (key === 'avisEmbauche' && form.value[key]) {
-        formData.append(key, form.value[key], form.value[key].name);
-      } else if (['actesNaissance', 'certificatsTravail', 'actesMariage'].includes(key)) {
-        form.value[key].forEach((file, index) => {
-          formData.append(`${key}[${index}]`, file, file.name);
-        });
-      } else if (form.value[key] !== null && form.value[key] !== undefined) {
-        formData.append(key, form.value[key]);
-      }
+    const formData = buildLegacyFormData(form.value, {
+      submissionType: submissionType.value,
     });
-      // Append translated values for specific fields
-    formData.append('SEXE_PERS', t(form.value.SEXE_PERS));
-    formData.append('civilite', t(form.value.civilite));
-    formData.append('etatP', form.value.etatP ? t(form.value.etatP) : '');
-    formData.append('etatM', form.value.etatM ? t(form.value.etatM) : '');
-    formData.append('LieuNaiss', form.value.LieuNaiss ? getArrondissementName(form.value.LieuNaiss) : '');
-    formData.append('NATIONALITEC', form.value.NATIONALITEC ? getPaysName(form.value.NATIONALITEC) : '');
-    formData.append('typepiece', form.value.typepiece ? getPieceName(form.value.typepiece) : '');
-    formData.append('LIEU_PIECEC', form.value.LIEU_PIECEC ? getArrondissementName(form.value.LIEU_PIECEC) : '');
-    formData.append('LieuNaissPere', form.value.LieuNaissPere ? getArrondissementName(form.value.LieuNaissPere) : '');
-    formData.append('LieuNaissMere', form.value.LieuNaissMere ? getArrondissementName(form.value.LieuNaissMere) : '');
-    formData.append('CODE_VILLEC', form.value.CODE_VILLEC ? getArrondissementName(form.value.CODE_VILLEC) : '');
-    formData.append('CODE_CENTRECNPSC', form.value.CODE_CENTRECNPSC ? getCentreCNPSName(form.value.centreCNPS) : '');
-
-     // API call to OneBase GED system
-    /* const response = await axios.post('https://api.onebase.ged/submit', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        // Add any required authentication headers
-        // 'Authorization': `Bearer ${token}`,
-      },
-    }); */
-    console.log(formData)
-    if (submissionType.value === 'temporary') {
-      // Handle temporary submission
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate temporary submission API call
-      notifySuccess(t('form.submitted'));
-    } else if (submissionType.value === 'definitive') {
-      // Handle definitive submission
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate definitive submission API call
-      notifySuccess(t('form.submitted'));
-    } else {
-      throw new Error('No submission type selected');
+    if (import.meta.env.DEV) {
+      console.info('GererAssure FormData (régime 0):', [...formData.entries()]);
     }
+    const result = await submitTeleImmatAssure(formData);
+    notifySuccess(result.message || t('form.submitted'));
     closeDialog();
   } catch (error) {
-    notifyError(t('form.submit_error', { error: error.message }));
+    const msg = error?.message || String(error);
+    notifyError(t('form.submit_error', { error: msg }));
   } finally {
     spinner.value = false;
     showConfirmationDialog.value = false;
-    submissionType.value = null; // Reset selection
+    submissionType.value = null;
   }
 };
 

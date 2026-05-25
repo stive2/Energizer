@@ -2,6 +2,11 @@ import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
+import {
+  computeUserInitials,
+  formatUserDisplayName,
+  splitFullName,
+} from 'src/utils/userDisplay.js'
 
 /**
  * @param {object} options
@@ -19,6 +24,18 @@ export function useAuthenticatedSession(options) {
   const { t } = useI18n()
 
   const displayName = ref('')
+  const userProfile = ref(null)
+
+  function readUserInfoRaw() {
+    const key = options.localUserInfoKey || 'user_info'
+    if (typeof localStorage === 'undefined') return null
+    try {
+      const raw = localStorage.getItem(key)
+      return raw ? JSON.parse(raw) : null
+    } catch {
+      return null
+    }
+  }
 
   function readDisplayName() {
     if (options.displayNameKey && typeof sessionStorage !== 'undefined') {
@@ -51,54 +68,101 @@ export function useAuthenticatedSession(options) {
     return true
   }
 
+  function refreshUserProfile() {
+    userProfile.value = readUserInfoRaw()
+    const name = formatUserDisplayName(userProfile.value, readDisplayName())
+    if (name) displayName.value = name
+  }
+
+  function persistUserProfile(updates) {
+    const current = { ...(readUserInfoRaw() || {}), ...updates }
+    if (updates.nom && !updates.prenom && String(updates.nom).includes(' ')) {
+      const split = splitFullName(updates.nom)
+      if (split.prenom) {
+        current.prenom = split.prenom
+        current.nom = split.nom
+      }
+    }
+    const key = options.localUserInfoKey || 'user_info'
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(key, JSON.stringify(current))
+    }
+    const label = formatUserDisplayName(current)
+    if (label && options.displayNameKey && typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem(options.displayNameKey, label)
+    }
+    refreshUserProfile()
+    return current
+  }
+
+  function readSimPassword() {
+    if (options.simPasswordKey && typeof sessionStorage !== 'undefined') {
+      const stored = sessionStorage.getItem(options.simPasswordKey)
+      if (stored) return stored
+    }
+    return options.defaultSimPassword || ''
+  }
+
+  function changeSimPassword(currentPassword, newPassword) {
+    const expected = readSimPassword()
+    if (expected && currentPassword !== expected) {
+      return { ok: false, error: 'current_invalid' }
+    }
+    if (!newPassword || newPassword.length < 8) {
+      return { ok: false, error: 'too_short' }
+    }
+    if (options.simPasswordKey && typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem(options.simPasswordKey, newPassword)
+    }
+    return { ok: true }
+  }
+
   onMounted(() => {
     if (!isAuthenticated()) {
       router.replace(options.loginRoute)
       return
     }
-    displayName.value = readDisplayName()
+    refreshUserProfile()
+    if (!displayName.value) {
+      displayName.value = readDisplayName()
+    }
   })
 
-  const userInitials = computed(() => {
-    const name = displayName.value.trim()
-    if (!name) return '?'
-    const parts = name.split(/\s+/).filter(Boolean)
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-    }
-    return name.slice(0, 2).toUpperCase()
-  })
+  const userInitials = computed(() =>
+    computeUserInitials(userProfile.value, displayName.value),
+  )
 
   function clearStorage() {
     if (options.clearSessionKeys?.length && typeof sessionStorage !== 'undefined') {
       options.clearSessionKeys.forEach((k) => sessionStorage.removeItem(k))
+    }
+    if (options.simPasswordKey && typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem(options.simPasswordKey)
     }
     if (options.clearLocalKeys?.length && typeof localStorage !== 'undefined') {
       options.clearLocalKeys.forEach((k) => localStorage.removeItem(k))
     }
   }
 
-  function logout() {
-    $q.dialog({
-      title: t('layout.logoutConfirmTitle'),
-      message: t('layout.logoutConfirmMessage'),
-      cancel: true,
-      persistent: true,
-    }).onOk(() => {
-      clearStorage()
-      displayName.value = ''
-      $q.notify({
-        type: 'positive',
-        message: t('layout.logoutSuccess'),
-        position: 'top',
-      })
-      router.push(options.logoutRoute)
+  function performLogout() {
+    clearStorage()
+    displayName.value = ''
+    $q.notify({
+      type: 'positive',
+      message: t('layout.logoutSuccess'),
+      position: 'top',
     })
+    router.push(options.logoutRoute)
   }
 
   return {
     displayName,
     userInitials,
-    logout,
+    userProfile,
+    refreshUserProfile,
+    persistUserProfile,
+    changeSimPassword,
+    readSimPassword,
+    performLogout,
   }
 }

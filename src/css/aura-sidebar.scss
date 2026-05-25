@@ -1,0 +1,94 @@
+/* Styles Aura — sidebar drawer */
+
+.aura-drawer {
+  background: linear-gradient(170deg, #1a6fba 0%, #2196f3 40%, #5ac8fa 100%) !important;
+  border-right: none !important;
+  overflow: visible !important;
+}
+
+.aura-drawer .q-drawer__content {
+  background: transparent !important;
+  overflow: visible !important;
+}
+
+.authenticated-layout .q-drawer.aura-drawer .aura-sidebar-shell__collapse {
+  z-index: 3001;
+}
+
+.aura-drawer .aura-item {
+  border-radius: 10px;
+  margin-bottom: 2px;
+  transition: background 0.18s;
+  min-height: 42px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.aura-drawer .aura-item:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+}
+
+.aura-drawer .aura-active {
+  background: rgba(255, 255, 255, 0.22) !important;
+}
+
+.aura-drawer .aura-icon {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 18px;
+}
+
+.aura-drawer .aura-item-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.aura-drawer .aura-item .q-focus-helper {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.aura-drawer .aura-expand-icon,
+.aura-drawer .q-expansion-item__toggle-icon {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.aura-drawer .q-expansion-item > .q-item,
+.aura-drawer .q-expansion-item__header {
+  border-radius: 10px;
+  margin-bottom: 2px;
+  transition: background 0.18s;
+}
+
+.aura-drawer .q-expansion-item > .q-item:hover,
+.aura-drawer .q-expansion-item__header:hover {
+  background: rgba(255, 255, 255, 0.14) !important;
+}
+
+.aura-drawer .q-expansion-item__content {
+  background: transparent;
+  padding-right: 0;
+}
+
+.aura-drawer .q-item__section--avatar {
+  min-width: 40px;
+}
+
+.aura-drawer .q-scrollarea__thumb {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.aura-drawer .q-item__section--main {
+  min-width: 0;
+}
+
+.aura-drawer--overlay {
+  box-shadow: 8px 0 36px rgba(15, 23, 42, 0.28) !important;
+}
+
+@media (max-width: 1023px) {
+  .aura-drawer .aura-item {
+    min-height: 44px;
+  }
+}

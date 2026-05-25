@@ -3,14 +3,6 @@
  * Alignés sur les anciennes JSP / actions métier.
  */
 export const ENERGIZER_API = {
-  reception: {
-    dossiers: '/energizer/reception/dossiers',
-    dossier: (id) => `/energizer/reception/dossiers/${encodeURIComponent(id)}`,
-    assure: '/energizer/reception/assure',
-    employeur: '/energizer/reception/employeur',
-    teleImport: '/energizer/reception/tele-importation',
-    prestationTypes: '/energizer/reception/prestation-types',
-  },
   rp: {
     dossiers: '/energizer/rp/dossiers',
     declaration: '/energizer/rp/declaration',
@@ -21,6 +13,16 @@ export const ENERGIZER_API = {
     notesFraisDossiers: '/energizer/rp/notes-frais/dossiers',
     notesFraisObjets: '/energizer/rp/notes-frais/objets',
     tiersBeneficiaires: '/energizer/rp/tiers-beneficiaires',
+  },
+  reception: {
+    objets: '/energizer/reception/nouveau-dossier/objets',
+    naturePrestations: '/energizer/reception/nouveau-dossier/nature-prestations',
+    typeCircuits: '/energizer/reception/nouveau-dossier/type-circuits',
+    infoAssure: '/energizer/reception/nouveau-dossier/info-assure',
+    infoEmployeur: '/energizer/reception/nouveau-dossier/info-employeur',
+    teleimportation: '/energizer/reception/nouveau-dossier/teleimportation',
+    submit: '/energizer/reception/nouveau-dossier',
+    dossiers: '/energizer/reception/nouveau-dossier/dossiers',
   },
   pf: {
     dossiers: '/energizer/pf/dossiers',

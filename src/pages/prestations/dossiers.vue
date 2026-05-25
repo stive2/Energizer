@@ -39,7 +39,9 @@
             <template v-if="isDepotPfPrestation">
               <div class="depot-pf-form-body">
                 <div class="depot-pf-form-stack">
-                  <DepotPrestationPF_ChampsCommuns />
+                  <DepotPrestationPF_ChampsCommuns
+                    :hide-centre="[12, 13, 14].includes(selectedPrestation?.id)"
+                  />
                   <DepotPrestationPF_ExamensPrenataux v-if="selectedPrestation.id === 11" />
                   <DepotPrestationPF_Accouchement v-if="selectedPrestation.id === 12" />
                   <DepotPrestationPF_CongesMaternite v-if="selectedPrestation.id === 13" />
@@ -66,6 +68,7 @@
                 @keyup.enter="fetchEmployerExamen()"
                 @keydown.enter.prevent
                 @click="onMatriculeEmployeurLegacyActivate"
+                @blur="onMatriculeEmployeurLegacyActivate"
                 @update:model-value="(val) => (formData.mat_employeur = val.toUpperCase())"
               >
                 <template v-slot:append>
@@ -395,7 +398,7 @@
     </div>
   </div>
 </template>
-```
+
 <script setup>
 import { ref, computed, reactive, watch, onMounted } from 'vue';
 import { useQuasar } from 'quasar';
@@ -410,9 +413,14 @@ import DepotPrestationPF_AllocationsFamiliales from 'src/components/assure/depot
 import {
   useDepotPrestationPfStore,
 } from 'src/stores/assure/depotPrestationPfStore.js';
-import { LEGACY_PRESTATION_ID_TO_CODE } from 'src/constants/assure/depotPrestationPfTypes.js';
+import { LEGACY_PRESTATION_ID_TO_CODE } from 'src/data/assure/depotPrestationPfTypes.js';
 import { fetchEmployeurDepotPf } from 'src/api/assure/depotPrestationPfApi.js';
 import { normalizeMatriculeEmployeur } from 'src/api/assure/depotPrestationPfUtils.js';
+import {
+  acteNaissanceKey,
+  clearAccouchementActesNaissance,
+  parseNombreEnfantsSousControleAccouchement,
+} from 'src/utils/depotPrestationPfAccouchement.js';
 import { regexPatterns } from 'src/js/regex.js';
 import Prestation21 from 'src/components/Prestations/Prestation21.vue';
 import Prestation31 from 'src/components/Prestations/Prestation31.vue';
@@ -505,29 +513,24 @@ onMounted(() => {
 const dynamicForm = reactive({});
 
 const accouchementForm = reactive({
-  dateAccouchement: '',
-  nombreEnfantsViables: 0,
-  fraisAccouchement: false,
-  fraisMedicaux: false,
-  certificatMedical: null,
-  nombreEnfantsSousControle: null,
-  acteNaissanceEnfant1: null,
-  acteNaissanceEnfant2: null,
-  acteNaissanceEnfant3: null,
-  acteNaissanceEnfant4: null,
-  acteNaissanceEnfant5: null,
+  dateAccoEffe: '',
+  nombEnfaViab: 0,
+  FAChBo: false,
+  FMAChBo: false,
+  63: null,
+  nombEnfaContMedi: null,
 });
 
 const allocationsForm = reactive({
-  dateSignatureDossier: '',
-  dateEmbauche: '',
-  heuresTravaillees: '',
-  nombreEnfantsMoins6: 0,
-  nombreEnfantsPlus6: 0,
-  nombreEnfantsReconnus: 0,
-  attestationNonPerceptionAF: null,
-  acteMariageCertifie: null,
-  originalActeMariage: null,
+  dateSignEmpl: '',
+  dateEmba: '',
+  nbreHeurEmba: '',
+  nombEnfaMoin6: 0,
+  nombEnfaPlus6: 0,
+  nombEnfaReco: 0,
+  210: null,
+  16: null,
+  113: null,
 });
 
 const accidentForm = reactive({
@@ -902,58 +905,55 @@ const selectType = (type) => {
 function syncLegacyFormsToDepotPfStore() {
   if (!isDepotPfPrestation.value) {
     Object.assign(depotPfStore.common, {
-      mat_employeur: formData.mat_employeur,
-      raisonsociale: formData.raisonsociale,
-      mat_interne: formData.mat_interne,
-      EMAIL_PERS: formData.EMAIL_PERS,
-      TEL_PERS: formData.TEL_PERS,
-      Adresse: formData.Adresse,
+      matEmployeur: formData.matEmployeur ?? formData.mat_employeur,
+      RAISON_SOCIALE: formData.RAISON_SOCIALE ?? formData.raisonsociale,
+      matrInteText: formData.matrInteText ?? formData.mat_interne,
+      emailAssuText: formData.emailAssuText ?? formData.EMAIL_PERS,
+      telAssuText: formData.telAssuText ?? formData.TEL_PERS,
+      addrAssuText: formData.addrAssuText ?? formData.Adresse,
       CODE_CENTRECNPSC: formData.CODE_CENTRECNPSC,
       typeSubmission: formData.typeSubmission,
     });
   } else {
     Object.assign(formData, {
-      mat_employeur: depotPfStore.common.mat_employeur,
-      raisonsociale: depotPfStore.common.raisonsociale,
-      mat_interne: depotPfStore.common.mat_interne,
-      EMAIL_PERS: depotPfStore.common.EMAIL_PERS,
-      TEL_PERS: depotPfStore.common.TEL_PERS,
-      Adresse: depotPfStore.common.Adresse,
+      matEmployeur: depotPfStore.common.matEmployeur,
+      RAISON_SOCIALE: depotPfStore.common.RAISON_SOCIALE,
+      matrInteText: depotPfStore.common.matrInteText,
+      emailAssuText: depotPfStore.common.emailAssuText,
+      telAssuText: depotPfStore.common.telAssuText,
+      addrAssuText: depotPfStore.common.addrAssuText,
       CODE_CENTRECNPSC: depotPfStore.common.CODE_CENTRECNPSC,
       typeSubmission: depotPfStore.common.typeSubmission,
     });
   }
   Object.assign(depotPfStore.examensPrenataux, {
-    demandePremierExamen: formData.demandePremierExamen,
-    demandeDeuxiemeExamen: formData.demandeDeuxiemeExamen,
-    datePremierExamen: formData.datePremierExamen,
-    dateDeuxiemeExamen: formData.dateDeuxiemeExamen,
-    dateProbableAccouchement: formData.dateProbableAccouchement,
-    allocations1: formData.allocations1,
-    fraisMedicaux1: formData.fraisMedicaux1,
-    allocations2: formData.allocations2,
-    fraisMedicaux2: formData.fraisMedicaux2,
-    certificatPremier: formData.certificatPremier,
-    fraisMedicauxPremier: formData.fraisMedicauxPremier,
-    certificatDeuxieme: formData.certificatDeuxieme,
-    fraisMedicauxDeuxieme: formData.fraisMedicauxDeuxieme,
+    dateExam1Date: formData.dateExam1Date ?? formData.datePremierExamen,
+    dateExam2: formData.dateExam2 ?? formData.dateDeuxiemeExamen,
+    dateAccoProb: formData.dateAccoProb ?? formData.dateProbableAccouchement,
+    AP1ChBo: formData.AP1ChBo ?? formData.allocations1,
+    FM1ChBo: formData.FM1ChBo ?? formData.fraisMedicaux1,
+    AP2ChBo: formData.AP2ChBo ?? formData.allocations2,
+    FM2ChBo: formData.FM2ChBo ?? formData.fraisMedicaux2,
+    61: formData['61'] ?? formData.certificatPremier,
+    65: formData['65'] ?? formData.fraisMedicauxPremier,
+    62: formData['62'] ?? formData.certificatDeuxieme,
+    66: formData['66'] ?? formData.fraisMedicauxDeuxieme,
   });
   Object.assign(depotPfStore.accouchement, accouchementForm);
   Object.assign(depotPfStore.congesMaternite, {
-    showIndemnites: formData.showIndemnites,
-    accouchementPremature: formData.accouchementPremature,
-    nombreJoursCouches: formData.nombreJoursCouches,
-    debutConges: formData.debutConges,
-    finConges: formData.finConges,
-    dateRepriseActivite: formData.dateRepriseActivite,
-    debutPeriodeNonSalaire: formData.debutPeriodeNonSalaire,
-    finPeriodeNonSalaire: formData.finPeriodeNonSalaire,
-    nombreEnfantsViables: formData.nombreEnfantsViables,
-    nombreEnfantsSousControle: formData.nombreEnfantsSousControle,
-    certificatMedical: formData.certificatMedical,
-    actesNaissance: formData.actesNaissance,
-    bulletinPaie: formData.bulletinPaie,
-    attestationCessation: formData.attestationCessation,
+    ijcmChBo: formData.ijcmChBo ?? formData.showIndemnites,
+    accoPremChBo: formData.accoPremChBo ?? formData.accouchementPremature,
+    nombJourSupp: formData.nombJourSupp ?? formData.nombreJoursCouches,
+    dateDebuCongEffe: formData.dateDebuCongEffe ?? formData.debutConges,
+    dateFinCongEffe: formData.dateFinCongEffe ?? formData.finConges,
+    dateReprActi: formData.dateReprActi ?? formData.dateRepriseActivite,
+    dateDebuNonSala: formData.dateDebuNonSala ?? formData.debutPeriodeNonSalaire,
+    dateFinNonSala: formData.dateFinNonSala ?? formData.finPeriodeNonSalaire,
+    nombEnfaViab: formData.nombEnfaViab ?? formData.nombreEnfantsViables,
+    nombEnfaContMedi: formData.nombEnfaContMedi ?? formData.nombreEnfantsSousControle,
+    63: formData['63'] ?? formData.certificatMedical,
+    '92_1': formData['92_1'] ?? formData.bulletinPaie,
+    94: formData['94'] ?? formData.attestationCessation,
   });
   Object.assign(depotPfStore.allocations, allocationsForm);
 }
@@ -991,15 +991,14 @@ const selectPrestation = (prestation) => {
   }
 
   if (prestation.id !== 12) {
-    accouchementForm.dateAccouchement = '';
-    accouchementForm.nombreEnfantsViables = null;
-    accouchementForm.nombreEnfantsSousControle = null;
-    accouchementForm.fraisAccouchement = false;
-    accouchementForm.fraisMedicaux = false;
-    accouchementForm.certificatMedical = null;
-    for (let i = 1; i <= 5; i++) {
-      accouchementForm[`acteNaissanceEnfant${i}`] = null;
-    }
+    accouchementForm.dateAccoEffe = '';
+    accouchementForm.nombEnfaViab = null;
+    accouchementForm.nombEnfaContMedi = null;
+    accouchementForm.FAChBo = false;
+    accouchementForm.FMAChBo = false;
+    accouchementForm['63'] = null;
+    clearAccouchementActesNaissance(accouchementForm);
+    clearAccouchementActesNaissance(depotPfStore.accouchement);
   }
 };
 
@@ -1037,6 +1036,10 @@ const fetchEmployerExamen = async () => {
     notifySuccess(t('modules.assure.depotPf.employeurTrouve'));
   } catch {
     formData.raisonsociale = '';
+    formData.NOM_COMMERCIAL = '';
+    formData.ADRESSE_EMPLOYEUR = '';
+    formData.DATE_EMB_PREM_TRAV = '';
+    formData.EFFECTIF_APPROX = '';
     notifyError(t('modules.assure.depotPf.employeurIntrouvable'));
   }
 };
@@ -1068,12 +1071,15 @@ const validateSecondExamCheckboxes = () => {
 
 const validateAccouchement = () => {
   const errors = [];
-  if (!accouchementForm.fraisAccouchement && !accouchementForm.fraisMedicaux) {
+  if (!accouchementForm.FAChBo && !accouchementForm.FMAChBo) {
     errors.push("Vous devez sélectionner au moins une option (Frais Accouchement ou Frais médicaux).");
   } else {
 
-    for (let i = 1; i <= parseInt(accouchementForm.nombreEnfantsSousControle || 0); i++) {
-      if (!accouchementForm[`acteNaissanceEnfant${i}`]) {
+    const actesCount = parseNombreEnfantsSousControleAccouchement(
+      accouchementForm.nombEnfaContMedi,
+    );
+    for (let i = 1; i <= actesCount; i += 1) {
+      if (!accouchementForm[acteNaissanceKey(i)]) {
         errors.push(`L'acte de naissance de l'enfant ${i} est requis.`);
       }
     }
@@ -1084,9 +1090,9 @@ const validateAccouchement = () => {
 const validateAllocations = () => {
   const errors = [];
   if (
-    parseInt(allocationsForm.nombreEnfantsMoins6 || 0) === 0 &&
-    parseInt(allocationsForm.nombreEnfantsPlus6 || 0) === 0 &&
-    parseInt(allocationsForm.nombreEnfantsReconnus || 0) === 0
+    parseInt(allocationsForm.nombEnfaMoin6 || 0) === 0 &&
+    parseInt(allocationsForm.nombEnfaPlus6 || 0) === 0 &&
+    parseInt(allocationsForm.nombEnfaReco || 0) === 0
   ) {
     errors.push("Vous devez sélectionner au moins un type d'enfant (moins de 6 ans, plus de 6 ans, ou reconnu).");
   }
@@ -1210,15 +1216,14 @@ const resetForm = () => {
 
   Object.keys(dynamicForm).forEach((key) => delete dynamicForm[key]);
 
-  accouchementForm.dateAccouchement = '';
-  accouchementForm.nombreEnfantsViables = null;
-  accouchementForm.nombreEnfantsSousControle = null;
-  accouchementForm.fraisAccouchement = false;
-  accouchementForm.fraisMedicaux = false;
-  accouchementForm.certificatMedical = null;
-  for (let i = 1; i <= 5; i++) {
-    accouchementForm[`acteNaissanceEnfant${i}`] = null;
-  }
+  accouchementForm.dateAccoEffe = '';
+  accouchementForm.nombEnfaViab = null;
+  accouchementForm.nombEnfaContMedi = null;
+  accouchementForm.FAChBo = false;
+  accouchementForm.FMAChBo = false;
+  accouchementForm['63'] = null;
+  clearAccouchementActesNaissance(accouchementForm);
+  clearAccouchementActesNaissance(depotPfStore.accouchement);
 
   formData.typeSubmission = 'definitive';
   selectedPrestation.value = null;

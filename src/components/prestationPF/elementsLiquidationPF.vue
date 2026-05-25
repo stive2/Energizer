@@ -1,5 +1,5 @@
 <template>
-  <div class="q-pa-sm elements-liquidation-pf">
+  <div class="q-pa-xs q-pa-sm elements-liquidation-pf">
 
     <!-- Bannière d'erreur -->
     <q-banner v-if="errorMsg" class="bg-negative text-white q-mb-sm" rounded dense>
@@ -11,83 +11,114 @@
     </q-banner>
 
     <!-- ═══════════════════════════════════════════════════════
-         RECHERCHE
-    ═══════════════════════════════════════════════════════ -->
-    <q-card class="q-mb-sm card-elevated">
-      <q-card-section class="bg-primary text-white card-header-rounded q-py-sm">
-        <div class="row items-center">
-          <q-icon name="search" size="xs" class="q-mr-xs" />
-          <span class="text-body2 text-weight-bold">Recherche de Dossiers</span>
-        </div>
-      </q-card-section>
-      <q-card-section class="q-py-sm">
-        <q-form @submit.prevent="searchDossiers" @reset="resetSearch">
-          <div class="row q-col-gutter-sm items-end">
-            <div class="col-12 col-sm-3">
-              <q-select
-                v-model="searchCriteria"
-                :options="searchOptions"
-                label="Critères"
-                outlined dense emit-value map-options color="primary"
-              />
-            </div>
-            <div class="col-12 col-sm-3">
-              <q-input
-                v-model="searchStartValue"
-                label="Valeur de Début"
-                outlined dense
-                @update:model-value="val => (searchStartValue = (val || '').toUpperCase())"
-              />
-            </div>
-            <div class="col-12 col-sm-3">
-              <q-input
-                v-model="searchEndValue"
-                label="Valeur de Fin"
-                outlined dense
-                @update:model-value="val => (searchEndValue = (val || '').toUpperCase())"
-              />
-            </div>
-            <div class="col-12 col-sm-3">
-              <div class="row q-gutter-xs">
-                <q-btn type="submit" color="primary" label="Rechercher" icon="search"
-                  dense unelevated style="border-radius:8px" :loading="loading" />
-                <q-btn type="reset" color="grey-6" label="Annuler" icon="close"
-                  dense unelevated style="border-radius:8px" />
-              </div>
-            </div>
-          </div>
-        </q-form>
-      </q-card-section>
-    </q-card>
-
-    <!-- ═══════════════════════════════════════════════════════
-         LISTE DES DOSSIERS  +  bouton Nouvelle Saisie
+         LISTE DES DOSSIERS (recherche intégrée dans l'en-tête)
     ═══════════════════════════════════════════════════════ -->
     <q-card class="card-elevated">
-      <q-card-section class="bg-primary text-white card-header-rounded q-py-sm">
-        <div class="row items-center justify-between">
-          <div class="row items-center">
-            <q-icon name="list_alt" size="xs" class="q-mr-xs" />
-            <span class="text-body2 text-weight-bold">Liste des Dossiers PF</span>
+      <q-card-section class="table-toolbar q-py-sm q-px-sm q-px-md">
+        <div class="row items-center q-col-gutter-sm q-mb-xs">
+          <div class="col-12 col-lg-auto row items-center no-wrap q-gutter-xs toolbar-title-row">
+            <q-icon name="list_alt" size="sm" color="primary" />
+            <span class="text-body2 text-weight-bold text-primary toolbar-title-text">Liste des Dossiers PF</span>
+            <q-badge outline color="primary" :label="`${dossiers.length}`" />
           </div>
-          <div class="row items-center q-gutter-sm">
-            <q-badge color="white" text-color="primary" :label="`${dossiers.length} dossier(s)`" />
-            <q-btn
-              color="white" text-color="primary" icon="add" label="Nouvelle saisie"
-              dense unelevated size="sm" style="border-radius:8px; font-weight:600;"
-              @click="openDialog()"
-            />
-          </div>
+
+          <q-form
+            class="col-12 col-lg toolbar-search-form"
+            @submit.prevent="searchDossiers"
+            @reset.prevent="resetSearch"
+          >
+            <div class="row q-col-gutter-sm items-center">
+              <div class="col-12 col-sm-6 col-md-4 col-lg-auto">
+                <q-select
+                  v-model="cbxcritere"
+                  name="cbxcritere"
+                  :options="cbxcritereOptions"
+                  label="Critères"
+                  label-color="primary"
+                  outlined
+                  dense
+                  color="primary"
+                  emit-value
+                  map-options
+                  class="toolbar-field toolbar-field--critere full-width"
+                  hide-bottom-space
+                />
+              </div>
+              <div class="col-12 col-sm-6 col-md-4 col-lg-auto">
+                <q-input
+                  v-model="txtvaleurdeb"
+                  name="txtvaleurdeb"
+                  label="Valeur de Début"
+                  label-color="primary"
+                  outlined
+                  dense
+                  color="primary"
+                  clearable
+                  class="toolbar-field toolbar-field--valeur full-width"
+                  hide-bottom-space
+                  input-class="text-primary"
+                  @update:model-value="val => (txtvaleurdeb = (val || '').toUpperCase())"
+                  @keyup.enter="searchDossiers"
+                >
+                  <template v-slot:prepend>
+                    <q-icon name="search" size="xs" color="primary" />
+                  </template>
+                </q-input>
+              </div>
+              <div class="col-12 col-sm-12 col-md-4 col-lg-auto row q-gutter-sm items-center toolbar-actions">
+                <q-btn
+                  type="submit"
+                  color="primary"
+                  icon="search"
+                  label="Rechercher"
+                  dense
+                  unelevated
+                  :loading="loading"
+                  class="toolbar-btn col-grow col-sm-auto"
+                />
+                <q-btn
+                  type="reset"
+                  flat
+                  dense
+                  round
+                  color="primary"
+                  icon="restart_alt"
+                  :disable="loading"
+                >
+                  <q-tooltip>Réinitialiser la recherche</q-tooltip>
+                </q-btn>
+              </div>
+            </div>
+          </q-form>
+        </div>
+
+        <div class="text-caption text-primary toolbar-hint row items-center">
+          <q-icon name="touch_app" size="xs" class="q-mr-xs flex-shrink-0" />
+          <span>Cliquez sur un N° dossier pour ouvrir la saisie des éléments de liquidation</span>
         </div>
       </q-card-section>
 
-      <q-card-section class="q-pa-none">
+      <q-card-section class="q-pa-none pf-table-responsive">
         <q-table
-          :rows="dossiers" :columns="tableColumns" row-key="numdoss"
-          :loading="loading" dense flat :rows-per-page-options="[10, 20, 50]"
-          no-data-label="Aucun dossier trouvé — utilisez la recherche ci-dessus"
-          class="pf-dossier-table"
+          :rows="dossiers"
+          :columns="visibleTableColumns"
+          row-key="numdoss"
+          :grid="tableGrid"
+          :loading="loading"
+          dense
+          flat
+          :rows-per-page-options="tableRowsPerPageOptions"
+          :pagination="{ rowsPerPage: tableDefaultRowsPerPage }"
+          no-data-label="Aucun dossier trouvé — modifiez les critères ou la valeur de début"
+          class="pf-module-table"
         >
+          <template v-slot:header-cell="props">
+            <q-th :props="props" class="pf-col-header bg-primary text-white">
+              <span class="pf-col-header__label text-weight-bold">
+                {{ props.col.label }}
+              </span>
+            </q-th>
+          </template>
           <template v-slot:body-cell-index="props">
             <q-td :props="props" class="text-center text-grey-6">{{ props.rowIndex + 1 }}</q-td>
           </template>
@@ -97,6 +128,20 @@
                 <q-icon name="folder_open" size="xs" class="q-mr-xs" />{{ props.row.numdoss }}
               </a>
             </q-td>
+          </template>
+          <template v-slot:item="props">
+            <div class="pf-grid-card q-pa-sm q-mb-sm" @click="loadDossier(props.row)">
+              <div class="row items-center justify-between q-mb-xs">
+                <a class="dossier-link text-body2" href="#" @click.prevent.stop="loadDossier(props.row)">
+                  {{ props.row.numdoss }}
+                </a>
+                <q-badge :color="getStatusColor(props.row.position)" :label="props.row.position || '—'" dense />
+              </div>
+              <div class="text-caption text-grey-8">{{ props.row.requerant }}</div>
+              <div class="text-caption text-grey-6 q-mt-xs">
+                {{ props.row.numassu }} · {{ props.row.datedemande }}
+              </div>
+            </div>
           </template>
           <template v-slot:body-cell-position="props">
             <q-td :props="props">
@@ -119,11 +164,21 @@
     <!-- ═══════════════════════════════════════════════════════
          DIALOG – FORMULAIRE DE SAISIE
     ═══════════════════════════════════════════════════════ -->
-    <q-dialog v-model="showDialog" persistent maximized transition-show="slide-up" transition-hide="slide-down">
-      <q-card class="dialog-form-card">
-        <q-bar class="bg-primary text-white q-py-sm">
-          <q-icon name="edit_document" />
-          <span class="q-ml-sm text-body1 text-weight-bold">Saisie des Éléments de Liquidation</span>
+    <q-dialog
+      v-model="showDialog"
+      persistent
+      :maximized="$q.screen.lt.sm"
+      transition-show="slide-up"
+      transition-hide="slide-down"
+      :full-width="$q.screen.lt.md"
+      :full-height="$q.screen.lt.sm"
+    >
+      <q-card class="dialog-form-card" :class="{ 'dialog-form-card--desktop': $q.screen.gt.sm }">
+        <q-bar class="bg-primary text-white q-py-sm dialog-bar">
+          <q-icon name="edit_document" class="flex-shrink-0" />
+          <span class="q-ml-sm text-body2 text-weight-bold dialog-bar__title ellipsis">
+            Saisie des Éléments de Liquidation
+          </span>
           <q-space />
           <q-btn v-if="totalMontant > 0" flat dense round color="white" icon="payments" size="sm">
             <q-tooltip>TOTAL : {{ formatMoney(totalMontant) }} FCFA</q-tooltip>
@@ -134,296 +189,426 @@
           <q-btn flat dense round color="white" icon="close" size="sm" v-close-popup @click="resetForm" />
         </q-bar>
 
-        <q-card-section class="q-pa-sm overflow-auto dialog-body">
-          <q-form ref="saisieFormRef" @submit.prevent="submitForm" @reset="resetForm">
+        <q-card-section class="q-pa-md overflow-auto dialog-body">
+          <q-form ref="saisieFormRef" class="pf-legacy-form" @submit.prevent="submitForm" @reset="resetForm">
 
-            <div class="sep q-mb-xs"><q-icon name="folder_open" size="xs" class="q-mr-xs" />Identification du Dossier</div>
-            <div class="row q-col-gutter-xs q-mb-sm">
-              <div class="col-6 col-md-2">
-                <q-input v-model="form.numdoss" label="N° Dossier" outlined dense readonly bg-color="blue-grey-1" label-color="primary" />
-              </div>
-              <div class="col-6 col-md-3">
-                <q-input v-model="form.natupres" label="Nature Prestation" outlined dense readonly bg-color="blue-grey-1" label-color="primary" />
-              </div>
-              <div class="col-6 col-md-2">
-                <q-input v-model="form.datedemande" label="Date Demande" outlined dense readonly bg-color="blue-grey-1" label-color="primary" />
-              </div>
-              <div class="col-6 col-md-2">
-                <q-input v-model="form.numassu" label="N° Assuré" outlined dense readonly bg-color="blue-grey-1" label-color="primary" />
-              </div>
-              <div class="col-6 col-md-2">
-                <q-input v-model="form.nomassu" label="Noms Assuré" outlined dense readonly bg-color="blue-grey-1" label-color="primary" />
-              </div>
-              <div class="col-6 col-md-1">
-                <q-input v-model="form.prenomassu" label="Prénoms" outlined dense readonly bg-color="blue-grey-1" label-color="primary" />
-              </div>
-            </div>
-
-            <div class="sep q-mb-xs"><q-icon name="medical_services" size="xs" class="q-mr-xs" />Examens Prénataux</div>
-            <div class="row q-col-gutter-xs q-mb-sm items-start">
-              <div class="col-6 col-md-2">
-                <div class="inline-check">
-                  <q-checkbox v-model="form.ap1" label="AP1" color="primary" dense @update:model-value="onAP1Change" />
-                  <span v-if="form.ap1" class="chip-montant">{{ formatMoney(form.montap1) }} F</span>
-                </div>
-              </div>
-              <div class="col-6 col-md-2">
-                <div class="inline-check">
-                  <q-checkbox v-model="form.fm1" label="FM1" color="teal" dense @update:model-value="onFM1Change" />
-                  <span v-if="form.fm1" class="chip-montant chip-teal">{{ formatMoney(form.montfm1) }} F</span>
+            <!-- Ligne 1 : N° Dossier | Nature Prestation | Date Demande -->
+            <div class="row pf-form-row q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">N° Dossier</span>
+                  <q-input v-model="form.txtsaisienumdoss" name="txtsaisienumdoss" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
                 </div>
               </div>
               <div class="col-12 col-md-4">
-                <q-input v-model="form.dateExamen1" label="1er Examen Prénatal" outlined dense bg-color="yellow-1"
-                  :rules="[v => !form.ap1 || !!v || 'Date 1er Examen obligatoire']">
-                  <template v-slot:append>
-                    <q-icon name="edit_calendar" class="cursor-pointer" color="amber-8" size="xs">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="form.dateExamen1" mask="DD/MM/YYYY" today-btn color="primary">
-                          <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-              <div class="col-6 col-md-2">
-                <div class="inline-check">
-                  <q-checkbox v-model="form.ap2" label="AP2" color="primary" dense @update:model-value="onAP2Change" />
-                  <span v-if="form.ap2" class="chip-montant">{{ formatMoney(form.montap2) }} F</span>
-                </div>
-              </div>
-              <div class="col-6 col-md-2">
-                <div class="inline-check">
-                  <q-checkbox v-model="form.fm2" label="FM2" color="teal" dense @update:model-value="onFM2Change" />
-                  <span v-if="form.fm2" class="chip-montant chip-teal">{{ formatMoney(form.montfm2) }} F</span>
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Nature Prestation</span>
+                  <q-input v-model="form.txtsaisienatupres" name="txtsaisienatupres" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
                 </div>
               </div>
               <div class="col-12 col-md-4">
-                <q-input v-model="form.dateExamen2" label="2e Examen Prénatal" outlined dense bg-color="yellow-1"
-                  :rules="[v => !form.ap2 || !!v || 'Date 2e Examen obligatoire']">
-                  <template v-slot:append>
-                    <q-icon name="edit_calendar" class="cursor-pointer" color="amber-8" size="xs">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="form.dateExamen2" mask="DD/MM/YYYY" today-btn color="primary">
-                          <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-            </div>
-
-            <div class="sep q-mb-xs"><q-icon name="child_care" size="xs" class="q-mr-xs" />Accouchement</div>
-            <div class="row q-col-gutter-xs q-mb-sm items-start">
-              <div class="col-6 col-md-2">
-                <div class="inline-check">
-                  <q-checkbox v-model="form.acc" label="Accouchement" color="purple" dense @update:model-value="onACCChange" />
-                  <span v-if="form.acc" class="chip-montant chip-purple">{{ formatMoney(form.montacc) }} F</span>
-                </div>
-              </div>
-              <div class="col-6 col-md-2">
-                <q-input v-model.number="form.nbreenfantsviables" label="Enfants Viables" type="number" min="0"
-                  outlined dense @update:model-value="onNbreEnfantsViablesChange" />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-input v-model="form.datepreacc" label="Date Probable Accouchement" outlined dense bg-color="yellow-1"
-                  @update:model-value="onDatePreaccChange">
-                  <template v-slot:append>
-                    <q-icon name="edit_calendar" class="cursor-pointer" color="amber-8" size="xs">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="form.datepreacc" mask="DD/MM/YYYY" today-btn color="primary"
-                          @update:model-value="onDatePreaccChange">
-                          <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-              <div class="col-6 col-md-2">
-                <div class="inline-check">
-                  <q-checkbox v-model="form.fraisMedicauxAcc" label="Frais Méd. Acc" color="orange" dense @update:model-value="onFMACCChange" />
-                  <span v-if="form.fraisMedicauxAcc" class="chip-montant chip-orange">{{ formatMoney(form.montfmacc) }} F</span>
-                </div>
-              </div>
-              <div class="col-6 col-md-2">
-                <q-input v-model.number="form.nbreenfantssouscontr" label="Enfants Sous Contrôle" type="number" min="0"
-                  outlined dense @update:model-value="onNbreEnfantsSousContrChange" />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-input v-model="form.dateeffacc" label="Date Effective Accouchement" outlined dense bg-color="yellow-1"
-                  :rules="[v => !form.acc || !!v || 'Date d\'accouchement obligatoire']">
-                  <template v-slot:append>
-                    <q-icon name="edit_calendar" class="cursor-pointer" color="amber-8" size="xs">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="form.dateeffacc" mask="DD/MM/YYYY" today-btn color="primary">
-                          <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-            </div>
-
-            <div class="sep q-mb-xs"><q-icon name="event_note" size="xs" class="q-mr-xs" />Indemnité Journalière (IJ)</div>
-            <div class="row q-col-gutter-xs q-mb-sm items-start">
-              <div class="col-6 col-md-2">
-                <q-checkbox v-model="form.ij" label="IJ" color="indigo" dense />
-              </div>
-              <div class="col-6 col-md-2">
-                <q-input v-model.number="form.nbrejourscouches" label="Jours Couches Supp." type="number" min="0"
-                  outlined dense :rules="[v => Number(v) <= 28 || 'Max 28 j']" />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-input v-model="form.datedebconges" label="Date Début Congés Effectif" outlined dense bg-color="yellow-1"
-                  :rules="[v => !form.ij || !!v || 'Date début congés obligatoire']">
-                  <template v-slot:append>
-                    <q-icon name="edit_calendar" class="cursor-pointer" color="amber-8" size="xs">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="form.datedebconges" mask="DD/MM/YYYY" today-btn color="primary">
-                          <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-              <div class="col-6 col-md-2">
-                <q-input v-model.number="form.nbrejoursijpayer" label="Nb Jours IJ Payés" type="number" min="0"
-                  outlined dense :rules="[v => Number(v) <= 98 || 'Max 98 j']" />
-              </div>
-              <div class="col-6 col-md-2">
-                <q-input v-model="form.sexeassu" label="Sexe Assuré" outlined dense readonly bg-color="blue-grey-1" />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-input v-model="form.cessationactivite" label="Date Cessation d'Activité" outlined dense readonly bg-color="deep-orange-1" label-color="deep-orange" />
-              </div>
-            </div>
-
-            <div class="sep q-mb-xs"><q-icon name="business_center" size="xs" class="q-mr-xs" />Congés & Employeur</div>
-            <div class="row q-col-gutter-xs q-mb-sm">
-              <div class="col-12 col-md-4">
-                <q-input v-model="form.employeuractuel" label="Employeur Actuel" outlined dense bg-color="yellow-1" />
-              </div>
-              <div class="col-12 col-md-4">
-                <q-input v-model="form.finconges" label="Date Effective Fin Congés" outlined dense bg-color="yellow-1"
-                  @update:model-value="onFinCongesChange">
-                  <template v-slot:append>
-                    <q-icon name="edit_calendar" class="cursor-pointer" color="amber-8" size="xs">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="form.finconges" mask="DD/MM/YYYY" today-btn color="primary"
-                          @update:model-value="onFinCongesChange">
-                          <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-              <div class="col-12 col-md-4">
-                <q-input v-model="form.probablefinconges" label="Date Probable Fin Congès" outlined dense readonly bg-color="deep-orange-1" label-color="deep-orange" />
-              </div>
-            </div>
-
-            <div class="sep q-mb-xs"><q-icon name="warning_amber" size="xs" class="q-mr-xs" />Accouchement Prématuré & Cessation de Paiement</div>
-            <div class="row q-col-gutter-xs q-mb-sm items-start">
-              <div class="col-6 col-md-2">
-                <q-checkbox v-model="form.accpremature" label="Acc. Prématuré" color="orange-8" dense @update:model-value="onAccPrematureChange" />
-              </div>
-              <div class="col-12 col-md-5">
-                <q-input v-model="form.datedebcesspaie" label="Début Cessation Paiement" outlined dense bg-color="yellow-1">
-                  <template v-slot:append>
-                    <q-icon name="edit_calendar" class="cursor-pointer" color="amber-8" size="xs">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="form.datedebcesspaie" mask="DD/MM/YYYY" today-btn color="primary">
-                          <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-              <div class="col-12 col-md-5">
-                <q-input v-model="form.datefincesspaie" label="Fin Cessation Paiement" outlined dense bg-color="yellow-1">
-                  <template v-slot:append>
-                    <q-icon name="edit_calendar" class="cursor-pointer" color="amber-8" size="xs">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="form.datefincesspaie" mask="DD/MM/YYYY" today-btn color="primary">
-                          <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-            </div>
-
-            <div class="sep q-mb-xs"><q-icon name="calculate" size="xs" class="q-mr-xs" />Base de Calcul & Reprise</div>
-            <div class="row q-col-gutter-xs q-mb-sm items-center">
-              <div class="col-6 col-md-2">
-                <div class="inline-check">
-                  <q-checkbox v-model="form.mode30" label="1/30" color="primary" dense @update:model-value="v => { if (v) form.mode25 = false }" />
-                  <q-checkbox v-model="form.mode25" label="1/25" color="primary" dense @update:model-value="v => { if (v) form.mode30 = false }" />
-                </div>
-              </div>
-              <div class="col-12 col-md-5">
-                <q-input v-model="form.repriseactivite" label="Date Reprise Activité" outlined dense bg-color="yellow-1">
-                  <template v-slot:append>
-                    <q-icon name="edit_calendar" class="cursor-pointer" color="amber-8" size="xs">
-                      <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                        <q-date v-model="form.repriseactivite" mask="DD/MM/YYYY" today-btn color="primary">
-                          <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
-                        </q-date>
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-              </div>
-              <div class="col-12 col-md-5">
-                <q-input v-model="form.probablejouissance" label="Date Probable Début Jouissance" outlined dense readonly bg-color="deep-orange-1" label-color="deep-orange" />
-              </div>
-            </div>
-
-            <div class="sep q-mb-xs"><q-icon name="info_outline" size="xs" class="q-mr-xs" />Informations Complémentaires</div>
-            <div class="row q-col-gutter-xs q-mb-sm items-start">
-              <div class="col-6 col-md-3">
-                <q-input v-model.number="form.salnetreconstitue" label="Salaire Net Reconstitué" type="number" min="0" outlined dense>
-                  <template v-slot:append><span class="text-caption text-grey-6">FCFA</span></template>
-                </q-input>
-              </div>
-              <div class="col-6 col-md-3">
-                <q-input v-model="form.matinterne" label="Matricule Interne" outlined dense
-                  :rules="[v => !form.ij || !!v || 'Matricule interne obligatoire si IJ']" />
-              </div>
-              <div class="col-12 col-md-6">
-                <div class="inline-check q-mt-xs">
-                  <span class="text-caption text-grey-7 q-mr-sm">≥ 6 mois d'activité ?</span>
-                  <q-checkbox v-model="form.sixmoisactivite" label="OUI" color="positive" dense disable />
-                  <q-checkbox v-model="form.nonsixmoisactivite" label="NON" color="negative" dense disable />
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Date Demande</span>
+                  <q-input v-model="form.txtsaisiedatedemande" name="txtsaisiedatedemande" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
                 </div>
               </div>
             </div>
 
-            <div v-if="totalMontant > 0" class="recap-bar q-mb-sm">
+            <!-- Ligne 2 : N° Assuré | Noms Assuré | Prénoms Assuré -->
+            <div class="row pf-form-row pf-form-row--alt q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">N° Assuré</span>
+                  <q-input v-model="form.txtsaisienumassu" name="txtsaisienumassu" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Noms Assuré</span>
+                  <q-input v-model="form.txtsaisietextenomassu" name="txtsaisietextenomassu" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Prénoms Assuré</span>
+                  <q-input v-model="form.txtsaisietexteprenomassu" name="txtsaisietexteprenomassu" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Ligne 3 : AP1 ? | FM1 ? | Date Premier Examen Prénatal -->
+            <div class="row pf-form-row q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">AP1 ?</span>
+                  <q-checkbox v-model="form.chsaisieAP1" name="chsaisieAP1" dense @update:model-value="onAP1Change" />
+                  <input type="hidden" name="txtsaisiemontap1" :value="form.txtsaisiemontap1" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">FM1 ?</span>
+                  <q-checkbox v-model="form.chsaisieFM1" name="chsaisieFM1" dense @update:model-value="onFM1Change" />
+                  <input type="hidden" name="txtsaisiemontfm1" :value="form.txtsaisiemontfm1" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Date Premier Examen Prénatal</span>
+                  <q-input v-model="form.txtSaisieDateExamen1" name="txtSaisieDateExamen1" dense outlined hide-bottom-space
+                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date"
+                    :rules="[v => !form.chsaisieAP1 || !!v || 'Date 1er Examen obligatoire']">
+                    <template v-slot:append>
+                      <q-icon name="event" class="cursor-pointer" size="xs">
+                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                          <q-date v-model="form.txtSaisieDateExamen1" mask="DD/MM/YYYY" today-btn color="primary">
+                            <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
+                          </q-date>
+                        </q-popup-proxy>
+                      </q-icon>
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ligne 4 : AP2 ? | FM2 ? | Date Deuxième Examen Prénatal -->
+            <div class="row pf-form-row pf-form-row--alt q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">AP2 ?</span>
+                  <q-checkbox v-model="form.chsaisieAP2" name="chsaisieAP2" dense @update:model-value="onAP2Change" />
+                  <input type="hidden" name="txtsaisiemontap2" :value="form.txtsaisiemontap2" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">FM2 ?</span>
+                  <q-checkbox v-model="form.chsaisieFM2" name="chsaisieFM2" dense @update:model-value="onFM2Change" />
+                  <input type="hidden" name="txtsaisiemontfm2" :value="form.txtsaisiemontfm2" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Date Deuxième Examen Prénatal</span>
+                  <q-input v-model="form.txtSaisieDateExamen2" name="txtSaisieDateExamen2" dense outlined hide-bottom-space
+                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date"
+                    :rules="[v => !form.chsaisieAP2 || !!v || 'Date 2e Examen obligatoire']">
+                    <template v-slot:append>
+                      <q-icon name="event" class="cursor-pointer" size="xs">
+                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                          <q-date v-model="form.txtSaisieDateExamen2" mask="DD/MM/YYYY" today-btn color="primary">
+                            <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
+                          </q-date>
+                        </q-popup-proxy>
+                      </q-icon>
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ligne 5 : Accouchement ? | Nombre Enfants Nés Viables | Date Probable Accouchement -->
+            <div class="row pf-form-row q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Accouchement ?</span>
+                  <q-checkbox v-model="form.chsaisieAcc" name="chsaisieAcc" dense @update:model-value="onACCChange" />
+                  <input type="hidden" name="txtsaisiemontacc" :value="form.txtsaisiemontacc" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Nombre Enfants Nés Viables</span>
+                  <q-input v-model.number="form.txtsaisienbreenfantsviables" name="txtsaisienbreenfantsviables" type="number" min="0"
+                    dense outlined hide-bottom-space class="pf-legacy-input pf-legacy-input--narrow" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Date Probable Accouchement</span>
+                  <q-input v-model="form.txtSaisieDatepreacc" name="txtSaisieDatepreacc" dense outlined hide-bottom-space
+                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date" @update:model-value="onDatePreaccChange">
+                    <template v-slot:append>
+                      <q-icon name="event" class="cursor-pointer" size="xs">
+                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                          <q-date v-model="form.txtSaisieDatepreacc" mask="DD/MM/YYYY" today-btn color="primary" @update:model-value="onDatePreaccChange">
+                            <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
+                          </q-date>
+                        </q-popup-proxy>
+                      </q-icon>
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ligne 6 : Frais Médicaux Accouchement | Enfants Sous Contrôle | Date Effective Accouchement -->
+            <div class="row pf-form-row pf-form-row--alt q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Frais Médicaux Accouchement</span>
+                  <q-checkbox v-model="form.chsaisieFraisMedicauxAcc" name="chsaisieFraisMedicauxAcc" dense @update:model-value="onFMACCChange" />
+                  <input type="hidden" name="txtsaisiemontfmacc" :value="form.txtsaisiemontfmacc" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Enfants Nés Sous Contrôle Médical</span>
+                  <q-input v-model.number="form.txtsaisienbreenfantssouscontr" name="txtsaisienbreenfantssouscontr" type="number" min="0"
+                    dense outlined hide-bottom-space class="pf-legacy-input pf-legacy-input--narrow"
+                    @blur="onNbreEnfantsSousContrChange(form.txtsaisienbreenfantssouscontr)" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Date Effective Accouchement</span>
+                  <q-input v-model="form.txtSaisieDateeffacc" name="txtSaisieDateeffacc" dense outlined hide-bottom-space
+                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date"
+                    :rules="[v => !form.chsaisieAcc || !!v || 'Date d\'accouchement obligatoire']">
+                    <template v-slot:append>
+                      <q-icon name="event" class="cursor-pointer" size="xs">
+                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                          <q-date v-model="form.txtSaisieDateeffacc" mask="DD/MM/YYYY" today-btn color="primary">
+                            <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
+                          </q-date>
+                        </q-popup-proxy>
+                      </q-icon>
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ligne 7 : IJ ? | Jours Couches | Date Début Congés -->
+            <div class="row pf-form-row q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Indemnité Journalière (IJ) ?</span>
+                  <q-checkbox v-model="form.chsaisieIj" name="chsaisieIj" dense />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Jours Couches Supplémentaires</span>
+                  <q-input v-model.number="form.txtsaisienbrejourscouches" name="txtsaisienbrejourscouches" type="number" min="0"
+                    dense outlined hide-bottom-space class="pf-legacy-input pf-legacy-input--narrow"
+                    @blur="valideNombrejrCouches(form.txtsaisienbrejourscouches)" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Date Début Congés Effectif</span>
+                  <q-input v-model="form.txtSaisieDateDebConges" name="txtSaisieDateDebConges" dense outlined hide-bottom-space
+                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date"
+                    :rules="[v => !form.chsaisieIj || !!v || 'Date début congés obligatoire']">
+                    <template v-slot:append>
+                      <q-icon name="event" class="cursor-pointer" size="xs">
+                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                          <q-date v-model="form.txtSaisieDateDebConges" mask="DD/MM/YYYY" today-btn color="primary">
+                            <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
+                          </q-date>
+                        </q-popup-proxy>
+                      </q-icon>
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ligne 8 : Nombre Jours IJ | Sexe Assuré | Date Cessation d'Activité -->
+            <div class="row pf-form-row pf-form-row--alt q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Nombre Jours IJ</span>
+                  <input type="hidden" name="txtsaisienbrejoursij" :value="form.txtsaisienbrejoursij" />
+                  <q-input v-model.number="form.txtsaisienbrejoursijpayer" name="txtsaisienbrejoursijpayer" type="number" min="0"
+                    dense outlined hide-bottom-space class="pf-legacy-input pf-legacy-input--narrow"
+                    @click="calculerNombrejoursIJPayes()"
+                    @blur="onBlurNombrejoursIjPayer" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Sexe Assuré</span>
+                  <q-input v-model="form.txtsaisiesexeassu" name="txtsaisiesexeassu" dense outlined readonly hide-bottom-space
+                    class="pf-legacy-input pf-legacy-input--narrow" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Date Cessation d'Activité</span>
+                  <q-input v-model="form.txtSaisieCessationActivite" name="txtSaisieCessationActivite" dense outlined readonly hide-bottom-space
+                    bg-color="deep-orange-2" class="pf-legacy-input pf-legacy-input--date cursor-pointer"
+                    @click="onCessationActiviteClick" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Ligne 9 : Employeur | Fin Congés | Probable Fin Congés -->
+            <div class="row pf-form-row q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Employeur Actuel</span>
+                  <q-input v-model="form.txtSaisieemployeuractuel" name="txtSaisieemployeuractuel" dense outlined hide-bottom-space
+                    bg-color="yellow-1" class="pf-legacy-input" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Date Effective Fin Congés</span>
+                  <q-input v-model="form.txtSaisiefinconges" name="txtSaisiefinconges" dense outlined hide-bottom-space
+                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date" @update:model-value="onFinCongesChange">
+                    <template v-slot:append>
+                      <q-icon name="event" class="cursor-pointer" size="xs">
+                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                          <q-date v-model="form.txtSaisiefinconges" mask="DD/MM/YYYY" today-btn color="primary" @update:model-value="onFinCongesChange">
+                            <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
+                          </q-date>
+                        </q-popup-proxy>
+                      </q-icon>
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Date Probable Fin Congés</span>
+                  <q-input v-model="form.txtSaisieProbablefinconges" name="txtSaisieProbablefinconges" dense outlined readonly hide-bottom-space
+                    bg-color="deep-orange-2" class="pf-legacy-input pf-legacy-input--date cursor-pointer" @click="onProbableFinCongesClick" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Ligne 10 : Acc. Prématuré | Début Cessation Paiement | Fin Cessation Paiement -->
+            <div class="row pf-form-row pf-form-row--alt q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Accouchement Prématuré ?</span>
+                  <q-checkbox v-model="form.chsaisieaccpremature" name="chsaisieaccpremature" dense @update:model-value="onAccPrematureChange" />
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Début Cessation Paiement ( Début Non Salaire)</span>
+                  <q-input v-model="form.txtSaisieDateDebCessationPaiement" name="txtSaisieDateDebCessationPaiement" dense outlined hide-bottom-space
+                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date">
+                    <template v-slot:append>
+                      <q-icon name="event" class="cursor-pointer" size="xs">
+                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                          <q-date v-model="form.txtSaisieDateDebCessationPaiement" mask="DD/MM/YYYY" today-btn color="primary">
+                            <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
+                          </q-date>
+                        </q-popup-proxy>
+                      </q-icon>
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Fin Cessation Paiement (Fin Non Salaire)</span>
+                  <q-input v-model="form.txtSaisieFinCessationPaiement" name="txtSaisieFinCessationPaiement" dense outlined hide-bottom-space
+                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date">
+                    <template v-slot:append>
+                      <q-icon name="event" class="cursor-pointer" size="xs">
+                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                          <q-date v-model="form.txtSaisieFinCessationPaiement" mask="DD/MM/YYYY" today-btn color="primary">
+                            <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
+                          </q-date>
+                        </q-popup-proxy>
+                      </q-icon>
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ligne 11 : Base de calcul | Reprise | Jouissance -->
+            <div class="row pf-form-row q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell pf-legacy-cell--base">
+                  <span class="pf-legacy-label">Base de calcul</span>
+                  <div class="pf-base-calcul">
+                    <q-checkbox v-model="form.chsaisiemode30" name="chsaisiemode30" label="(1/30)" dense :disable="mode30Disabled" @update:model-value="onMode30Change" />
+                    <q-checkbox v-model="form.chsaisiemode25" name="chsaisiemode25" label="(1/25)" dense :disable="mode25Disabled" @update:model-value="onMode25Change" />
+                  </div>
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Date Reprise Activité</span>
+                  <q-input v-model="form.txtSaisierepriseactivite" name="txtSaisierepriseactivite" dense outlined hide-bottom-space
+                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date">
+                    <template v-slot:append>
+                      <q-icon name="event" class="cursor-pointer" size="xs">
+                        <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                          <q-date v-model="form.txtSaisierepriseactivite" mask="DD/MM/YYYY" today-btn color="primary">
+                            <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
+                          </q-date>
+                        </q-popup-proxy>
+                      </q-icon>
+                    </template>
+                  </q-input>
+                </div>
+              </div>
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Date Probable Début Jouissance</span>
+                  <q-input v-model="form.txtSaisieProbablejouissance" name="txtSaisieProbablejouissance" dense outlined readonly hide-bottom-space
+                    bg-color="deep-orange-2" class="pf-legacy-input pf-legacy-input--date cursor-pointer" @click="onProbableJouissanceClick" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Ligne 12 : Salaire Reconstitué | Question 6 mois (colspan 2) -->
+            <div class="row pf-form-row pf-form-row--alt q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Salaire Reconstitué</span>
+                  <q-input v-model.number="form.txtsaisiesalnetreconstitue" name="txtsaisiesalnetreconstitue" type="number" min="0"
+                    dense outlined hide-bottom-space class="pf-legacy-input pf-legacy-input--narrow" />
+                </div>
+              </div>
+              <div class="col-12 col-md-8">
+                <div class="pf-legacy-cell pf-legacy-cell--question text-center">
+                  <p class="pf-six-mois-text q-mb-xs">
+                    La femme (assuré) justifie elle d'au moins six mois d'activités consécutifs avant son début congés ?
+                  </p>
+                  <div class="pf-six-mois-checks">
+                    <q-checkbox v-model="form.chsalouisixmoisactivite" name="chsalouisixmoisactivite" label="OUI" dense disable />
+                    <q-checkbox v-model="form.chsalnonsixmoisactivite" name="chsalnonsixmoisactivite" label="NON" dense disable />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Ligne 13 : Matricule Interne -->
+            <div class="row pf-form-row q-col-gutter-sm">
+              <div class="col-12 col-md-4">
+                <div class="pf-legacy-cell">
+                  <span class="pf-legacy-label">Matricule Interne</span>
+                  <q-input v-model="form.txtsaisiematinterne" name="txtsaisiematinterne" dense outlined hide-bottom-space class="pf-legacy-input pf-legacy-input--matricule"
+                    :rules="[v => !form.chsaisieIj || !!v || 'Matricule interne obligatoire si IJ']" />
+                </div>
+              </div>
+            </div>
+
+            <div v-if="totalMontant > 0" class="recap-bar q-mb-sm q-mt-sm">
               <q-icon name="summarize" size="xs" class="q-mr-xs text-primary" />
               <span class="text-caption text-weight-bold text-primary q-mr-sm">Récap :</span>
-              <q-chip v-if="form.ap1" color="primary" text-color="white" dense size="sm">AP1 {{ formatMoney(form.montap1) }}</q-chip>
-              <q-chip v-if="form.fm1" color="teal" text-color="white" dense size="sm">FM1 {{ formatMoney(form.montfm1) }}</q-chip>
-              <q-chip v-if="form.ap2" color="indigo" text-color="white" dense size="sm">AP2 {{ formatMoney(form.montap2) }}</q-chip>
-              <q-chip v-if="form.fm2" color="cyan-8" text-color="white" dense size="sm">FM2 {{ formatMoney(form.montfm2) }}</q-chip>
-              <q-chip v-if="form.acc" color="purple" text-color="white" dense size="sm">ACC {{ formatMoney(form.montacc) }}</q-chip>
-              <q-chip v-if="form.fraisMedicauxAcc" color="orange-8" text-color="white" dense size="sm">FMACC {{ formatMoney(form.montfmacc) }}</q-chip>
+              <q-chip v-if="form.chsaisieAP1" color="primary" text-color="white" dense size="sm">AP1 {{ formatMoney(form.txtsaisiemontap1) }}</q-chip>
+              <q-chip v-if="form.chsaisieFM1" color="teal" text-color="white" dense size="sm">FM1 {{ formatMoney(form.txtsaisiemontfm1) }}</q-chip>
+              <q-chip v-if="form.chsaisieAP2" color="indigo" text-color="white" dense size="sm">AP2 {{ formatMoney(form.txtsaisiemontap2) }}</q-chip>
+              <q-chip v-if="form.chsaisieFM2" color="cyan-8" text-color="white" dense size="sm">FM2 {{ formatMoney(form.txtsaisiemontfm2) }}</q-chip>
+              <q-chip v-if="form.chsaisieAcc" color="purple" text-color="white" dense size="sm">ACC {{ formatMoney(form.txtsaisiemontacc) }}</q-chip>
+              <q-chip v-if="form.chsaisieFraisMedicauxAcc" color="orange-8" text-color="white" dense size="sm">FMACC {{ formatMoney(form.txtsaisiemontfmacc) }}</q-chip>
               <q-chip color="positive" text-color="white" icon="payments" dense size="sm">TOTAL {{ formatMoney(totalMontant) }} FCFA</q-chip>
             </div>
 
-            <div class="row justify-center q-gutter-sm q-mt-sm">
-              <q-btn type="submit" color="primary" label="Valider" icon="save"
-                unelevated style="border-radius:10px; min-width:140px" :loading="submitting" />
-              <q-btn type="reset" color="grey-6" label="Annuler" icon="refresh"
-                unelevated style="border-radius:10px; min-width:140px" @click="resetForm" />
+            <div class="row q-mt-md dialog-actions justify-center q-gutter-md">
+              <q-btn type="submit" color="primary" label="Valider" unelevated :loading="submitting" class="pf-legacy-btn" />
+              <q-btn type="reset" color="grey-7" label="Annuler" unelevated class="pf-legacy-btn" @click="resetForm" />
             </div>
 
           </q-form>
@@ -500,46 +685,95 @@ const MOCK_DOSSIERS = [
   },
 ]
 
-onMounted(() => { dossiers.value = MOCK_DOSSIERS })
-
-const searchCriteria   = ref('fnumdoss')
-const searchStartValue = ref('000-')
-const searchEndValue   = ref('')
-const searchOptions = [
+const cbxcritere   = ref('fnumdoss')
+const txtvaleurdeb = ref('000-')
+const cbxcritereOptions = [
   { label: 'Num Dossier', value: 'fnumdoss' },
   { label: 'Num Assuré',  value: 'fnumassu' },
   { label: 'Noms Assuré', value: 'fnomassu' },
 ]
 
+/** Noms identiques à elementsLiquidationPF.jsp (frmSaisieElementLiquidat) */
 const FORM_INITIAL = {
-  numdoss: '', numassu: '', natupres: '', datedemande: '', nomassu: '', prenomassu: '',
-  ap1: false, montap1: 0, fm1: false, montfm1: 0, dateExamen1: '',
-  ap2: false, montap2: 0, fm2: false, montfm2: 0, dateExamen2: '',
-  acc: false, montacc: 0, nbreenfantsviables: 0, datepreacc: '',
-  fraisMedicauxAcc: false, montfmacc: 0, nbreenfantssouscontr: 0, dateeffacc: '',
-  ij: false, nbrejourscouches: 0, datedebconges: '',
-  nbrejoursij: 0, nbrejoursijpayer: 0, sexeassu: '', cessationactivite: '',
-  employeuractuel: '', finconges: '', probablefinconges: '',
-  accpremature: false, datedebcesspaie: '', datefincesspaie: '',
-  mode30: false, mode25: false, repriseactivite: '', probablejouissance: '',
-  salnetreconstitue: 0, sixmoisactivite: false, nonsixmoisactivite: false, matinterne: '',
+  txtsaisienumdoss: '',
+  txtsaisienatupres: '',
+  txtsaisiedatedemande: '',
+  txtsaisienumassu: '',
+  txtsaisietextenomassu: '',
+  txtsaisietexteprenomassu: '',
+  chsaisieAP1: false,
+  txtsaisiemontap1: 0,
+  chsaisieFM1: false,
+  txtsaisiemontfm1: 0,
+  txtSaisieDateExamen1: '',
+  chsaisieAP2: false,
+  txtsaisiemontap2: 0,
+  chsaisieFM2: false,
+  txtsaisiemontfm2: 0,
+  txtSaisieDateExamen2: '',
+  chsaisieAcc: false,
+  txtsaisiemontacc: 0,
+  txtsaisienbreenfantsviables: 0,
+  txtSaisieDatepreacc: '',
+  chsaisieFraisMedicauxAcc: false,
+  txtsaisiemontfmacc: 0,
+  txtsaisienbreenfantssouscontr: 0,
+  txtSaisieDateeffacc: '',
+  chsaisieIj: false,
+  txtsaisienbrejourscouches: 0,
+  txtSaisieDateDebConges: '',
+  txtsaisienbrejoursij: 0,
+  txtsaisienbrejoursijpayer: 0,
+  txtsaisiesexeassu: '',
+  txtSaisieCessationActivite: '',
+  txtSaisieemployeuractuel: '',
+  txtSaisiefinconges: '',
+  txtSaisieProbablefinconges: '',
+  chsaisieaccpremature: false,
+  txtSaisieDateDebCessationPaiement: '',
+  txtSaisieFinCessationPaiement: '',
+  chsaisiemode30: false,
+  chsaisiemode25: false,
+  txtSaisierepriseactivite: '',
+  txtSaisieProbablejouissance: '',
+  txtsaisiesalnetreconstitue: 0,
+  chsalouisixmoisactivite: false,
+  chsalnonsixmoisactivite: false,
+  txtsaisiematinterne: '',
 }
 const form = reactive({ ...FORM_INITIAL })
 const dossiers = ref([])
-const tableColumns = [
-  { name: 'index',      label: 'N°',               field: 'index',       align: 'center', style: 'width:50px' },
-  { name: 'numdoss',    label: 'N° Dossier',        field: 'numdoss',     align: 'left', sortable: true },
-  { name: 'numassu',    label: 'N° Assuré',         field: 'numassu',     align: 'left', sortable: true },
-  { name: 'requerant',  label: 'Noms Requérant',    field: 'requerant',   align: 'left', sortable: true },
-  { name: 'datedemande',label: 'Date Demande',       field: 'datedemande', align: 'left', sortable: true },
-  { name: 'natupres',   label: 'Nature Prestation', field: 'natupres',    align: 'left', sortable: true },
-  { name: 'position',   label: 'Position Dossier',  field: 'position',    align: 'left', sortable: true },
-  { name: 'dateposi',   label: 'Date Position',     field: 'dateposi',    align: 'left', sortable: true },
+const ALL_TABLE_COLUMNS = [
+  { name: 'index',       label: 'N°',                field: 'index',       align: 'center', style: 'width:50px' },
+  { name: 'numdoss',     label: 'N° Dossier',         field: 'numdoss',     align: 'left', sortable: true },
+  { name: 'numassu',     label: 'N° Assuré',          field: 'numassu',     align: 'left', sortable: true },
+  { name: 'requerant',   label: 'Noms Requérant',     field: 'requerant',   align: 'left', sortable: true },
+  { name: 'datedemande', label: 'Date Demande',        field: 'datedemande', align: 'left', sortable: true },
+  { name: 'natupres',    label: 'Nature Prestation',  field: 'natupres',    align: 'left', sortable: true },
+  { name: 'position',    label: 'Position Dossier',   field: 'position',    align: 'left', sortable: true },
+  { name: 'dateposi',    label: 'Date Position',      field: 'dateposi',    align: 'left', sortable: true },
 ]
+
+const visibleTableColumns = computed(() => {
+  if ($q.screen.lt.sm) {
+    return ALL_TABLE_COLUMNS.filter((c) => ['index', 'numdoss', 'requerant', 'position'].includes(c.name))
+  }
+  if ($q.screen.lt.md) {
+    return ALL_TABLE_COLUMNS.filter((c) => !['dateposi', 'natupres'].includes(c.name))
+  }
+  return ALL_TABLE_COLUMNS
+})
+
+const tableGrid = computed(() => $q.screen.lt.sm)
+const tableRowsPerPageOptions = computed(() => ($q.screen.lt.sm ? [5, 10] : [10, 20, 50]))
+const tableDefaultRowsPerPage = computed(() => ($q.screen.lt.sm ? 5 : 10))
+const mode30Disabled = ref(false)
+const mode25Disabled = ref(false)
+
 const totalMontant = computed(() =>
-  (form.ap1 ? form.montap1 : 0) + (form.fm1 ? form.montfm1 : 0)
-  + (form.ap2 ? form.montap2 : 0) + (form.fm2 ? form.montfm2 : 0)
-  + (form.acc ? form.montacc : 0) + (form.fraisMedicauxAcc ? form.montfmacc : 0),
+  (form.chsaisieAP1 ? form.txtsaisiemontap1 : 0) + (form.chsaisieFM1 ? form.txtsaisiemontfm1 : 0)
+  + (form.chsaisieAP2 ? form.txtsaisiemontap2 : 0) + (form.chsaisieFM2 ? form.txtsaisiemontfm2 : 0)
+  + (form.chsaisieAcc ? form.txtsaisiemontacc : 0) + (form.chsaisieFraisMedicauxAcc ? form.txtsaisiemontfmacc : 0),
 )
 
 function addDays(strDate, j) {
@@ -566,115 +800,244 @@ function determinerdatefinprobableaccnormal(d)   { return addDays(d, 69) }
 function determinerdatefinprobableaccpremature(d){ return addDays(d, 98) }
 function determineDateCessationAccNormal(d)      { return addDays(d, -29) }
 function determineDateCessationAccPrema(d)       { return addDays(d, -1) }
-function calculeDateProbablejouissance(d) { form.probablejouissance = calculerDateProbableDebutJouissance(d) }
+function calculeDateProbablejouissance(d) {
+  form.txtSaisieProbablejouissance = calculerDateProbableDebutJouissance(d)
+}
 function calculeDateProbableFinConges(d) {
-  form.probablefinconges = form.accpremature
-    ? determinerdatefinprobableaccpremature(form.cessationactivite)
+  form.txtSaisieProbablefinconges = form.chsaisieaccpremature
+    ? determinerdatefinprobableaccpremature(form.txtSaisieCessationActivite)
     : determinerdatefinprobableaccnormal(d)
 }
 function calculeDateCessationActivite(d) {
-  if (form.accpremature && compareDeuxDates(form.datedebconges, form.dateeffacc)) {
-    form.cessationactivite = determineDateCessationAccPrema(form.dateeffacc)
-    form.datedebconges = form.dateeffacc
+  if (form.chsaisieaccpremature && compareDeuxDates(form.txtSaisieDateDebConges, form.txtSaisieDateeffacc)) {
+    form.txtSaisieCessationActivite = determineDateCessationAccPrema(form.txtSaisieDateeffacc)
+    form.txtSaisieDateDebConges = form.txtSaisieDateeffacc
     calculeDateProbableFinConges(d)
   } else {
-    form.cessationactivite = determineDateCessationAccNormal(d)
+    form.txtSaisieCessationActivite = determineDateCessationAccNormal(d)
     calculeDateProbableFinConges(d)
   }
-  calculeDateProbablejouissance(form.cessationactivite)
+  calculeDateProbablejouissance(form.txtSaisieCessationActivite)
 }
-function calculerNombrejoursIJPayes() { form.nbrejoursij = differenceDeuxDatesEnJour(form.finconges, form.datedebconges) }
-function calculMontantAcc() {
-  const n = parseInt(String(form.nbreenfantsviables)) || 0
-  form.montacc = form.acc && n > 0 ? 21600 * n : form.acc ? 21600 : 0
+function validateNombrejrIj(nbjrij) {
+  if (Number(nbjrij) > 98) {
+    $q.notify({ type: 'warning', message: 'Le nombre de Jours de congés de maternité doit être inférieur ou égal à 98', position: 'top' })
+    form.txtsaisienbrejoursij = 0
+    form.txtsaisienbrejoursijpayer = 0
+  }
 }
-function onAP1Change(v)  { form.montap1  = v ? 8100 : 0 }
-function onAP2Change(v)  { form.montap2  = v ? 8100 : 0 }
-function onFM1Change(v)  { form.montfm1  = v ? 200  : 0 }
-function onFM2Change(v)  { form.montfm2  = v ? 200  : 0 }
-function onFMACCChange(v){ form.montfmacc = v ? 1400 : 0 }
+function onBlurNombrejoursIjPayer() {
+  form.txtsaisienbrejoursij = form.txtsaisienbrejoursijpayer
+  validateNombrejrIj(form.txtsaisienbrejoursij)
+}
+function valideNombrejrCouches(nbjrcouche) {
+  if (Number(nbjrcouche) > 28) {
+    $q.notify({ type: 'warning', message: 'Le nombre de Jours de couches doit être inférieur ou égal à 28', position: 'top' })
+    form.txtsaisienbrejourscouches = 0
+  }
+}
+function calculerNombrejoursIJPayes() {
+  form.txtsaisienbrejoursij = differenceDeuxDatesEnJour(form.txtSaisiefinconges, form.txtSaisieDateDebConges)
+  form.txtsaisienbrejoursijpayer = form.txtsaisienbrejoursij
+  validateNombrejrIj(form.txtsaisienbrejoursij)
+}
+function calculMontantAcc(value) {
+  const raw = value != null ? value : form.txtsaisienbreenfantssouscontr
+  const s = String(raw ?? '')
+  if (s.length > 0) {
+    const nbre = parseInt(s, 10) || 0
+    form.txtsaisiemontacc = 21600 * nbre
+  }
+}
+function onAP1Change(v) { form.txtsaisiemontap1 = v ? 8100 : 0 }
+function onAP2Change(v) { form.txtsaisiemontap2 = v ? 8100 : 0 }
+function onFM1Change(v) { form.txtsaisiemontfm1 = v ? 200 : 0 }
+function onFM2Change(v) { form.txtsaisiemontfm2 = v ? 200 : 0 }
+function onFMACCChange(v) { form.txtsaisiemontfmacc = v ? 1400 : 0 }
 function onACCChange(v) {
-  if (v) { form.nbreenfantsviables = 1; form.nbreenfantssouscontr = 1; form.montacc = 21600 }
-  else   { form.montacc = 0; form.nbreenfantsviables = 0; form.nbreenfantssouscontr = 0 }
+  if (v) {
+    form.txtsaisienbreenfantsviables = 1
+    form.txtsaisienbreenfantssouscontr = 1
+    form.txtsaisiemontacc = 21600
+  } else {
+    form.txtsaisiemontacc = 0
+    form.txtsaisienbreenfantsviables = 0
+    form.txtsaisienbreenfantssouscontr = 0
+  }
 }
-function onAccPrematureChange()         { calculeDateCessationActivite(form.datepreacc) }
-function onDatePreaccChange(d)          { calculeDateCessationActivite(d || form.datepreacc) }
-function onFinCongesChange()            { calculerNombrejoursIJPayes() }
-function onNbreEnfantsViablesChange()   { calculMontantAcc() }
-function onNbreEnfantsSousContrChange() { calculMontantAcc() }
-function openDialog()  { showDialog.value = true }
+function onMode25Change(v) {
+  if (v) {
+    form.chsaisiemode30 = false
+    mode30Disabled.value = true
+  } else {
+    mode30Disabled.value = false
+  }
+}
+function onMode30Change(v) {
+  if (v) {
+    form.chsaisiemode25 = false
+    mode25Disabled.value = true
+  } else {
+    mode25Disabled.value = false
+  }
+}
+function onAccPrematureChange() { calculeDateCessationActivite(form.txtSaisieDatepreacc) }
+function onDatePreaccChange(d) { calculeDateCessationActivite(d || form.txtSaisieDatepreacc) }
+function onFinCongesChange() { calculerNombrejoursIJPayes() }
+function onNbreEnfantsSousContrChange(v) { calculMontantAcc(v) }
+function onCessationActiviteClick() { calculeDateCessationActivite(form.txtSaisieDatepreacc) }
+function onProbableFinCongesClick() { calculeDateProbableFinConges(form.txtSaisieDatepreacc) }
+function onProbableJouissanceClick() { calculeDateProbablejouissance(form.txtSaisieCessationActivite) }
+
+/** Filtre local des mocks (aligné JSP : LIKE %valeur% sur le critère choisi). */
+function filterMockDossiers() {
+  const needle = (txtvaleurdeb.value || '').toUpperCase().trim()
+  if (!needle) return [...MOCK_DOSSIERS]
+  return MOCK_DOSSIERS.filter((row) => {
+    if (cbxcritere.value === 'fnumassu') {
+      return (row.numassu || '').toUpperCase().includes(needle)
+    }
+    if (cbxcritere.value === 'fnomassu') {
+      const nom = (row.nomassu || '').toUpperCase()
+      const req = (row.requerant || '').toUpperCase()
+      return nom.includes(needle) || req.includes(needle)
+    }
+    return (row.numdoss || '').toUpperCase().includes(needle)
+  })
+}
+
 function loadDossier(row) {
-  form.numdoss = row.numdoss ?? ''; form.numassu = row.numassu ?? ''
-  form.datedemande = row.datedemande ?? ''; form.natupres = row.natupres ?? ''
-  form.nomassu = row.nomassu ?? ''; form.prenomassu = row.prenomassu ?? ''
-  form.datepreacc = row.datepreacc ?? ''; form.dateeffacc = row.dateeffacc ?? ''
-  form.datedebconges = row.datedebconges ?? ''; form.finconges = row.datefinconge ?? ''
-  form.cessationactivite = row.datecessaactivite ?? ''; form.probablejouissance = row.dateprobjouiss ?? ''
-  form.repriseactivite = row.datereprise ?? ''; form.datedebcesspaie = row.datedebcesspaie ?? ''
-  form.datefincesspaie = row.datefincesspaie ?? ''; form.probablefinconges = row.dateprevfincong ?? ''
-  form.sexeassu = row.sexe ?? ''; form.employeuractuel = row.numemployeur ?? ''
-  form.dateExamen1 = row.dateexamen1 ?? ''; form.dateExamen2 = row.dateexamen2 ?? ''
-  form.nbreenfantsviables = row.nbreenfvia ?? 0; form.nbreenfantssouscontr = row.nbreviabsoucont ?? 0
-  form.nbrejoursij = row.nbreij ?? 0; form.nbrejourscouches = row.nbrejrcouche ?? 0
-  form.salnetreconstitue = row.salreconstitue !== 'null' ? (row.salreconstitue ?? 0) : 0
-  form.matinterne = row.matriculeinterne ?? ''
-  form.ap1 = row.ap1 === 'OUI'; form.montap1 = form.ap1 ? 8100 : 0
-  form.fm1 = row.fm1 === 'OUI'; form.montfm1 = form.fm1 ? 200 : 0
-  form.ap2 = row.ap2 === 'OUI'; form.montap2 = form.ap2 ? 8100 : 0
-  form.fm2 = row.fm2 === 'OUI'; form.montfm2 = form.fm2 ? 200 : 0
-  form.acc = row.acc === 'OUI'; form.montacc = form.acc ? 21600 * (parseInt(String(row.nbreenfvia)) || 1) : 0
-  form.fraisMedicauxAcc = row.fmacc === 'OUI'; form.montfmacc = form.fraisMedicauxAcc ? 1400 : 0
-  form.ij = row.ij === 'OUI'; form.accpremature = row.accprema === 'OUI'
-  form.mode25 = row.basecal === '25'; form.mode30 = !form.mode25
+  form.txtsaisienumdoss = row.numdoss ?? ''
+  form.txtsaisienumassu = row.numassu ?? ''
+  form.txtsaisiedatedemande = row.datedemande ?? ''
+  form.txtsaisienatupres = row.natupres ?? ''
+  form.txtsaisietextenomassu = row.nomassu ?? ''
+  form.txtsaisietexteprenomassu = row.prenomassu ?? ''
+  form.txtSaisieDatepreacc = row.datepreacc ?? ''
+  form.txtSaisieDateeffacc = row.dateeffacc ?? ''
+  form.txtSaisieDateDebConges = row.datedebconges ?? ''
+  form.txtSaisiefinconges = row.datefinconge ?? ''
+  form.txtSaisieCessationActivite = row.datecessaactivite ?? ''
+  form.txtSaisieProbablejouissance = row.dateprobjouiss ?? ''
+  form.txtSaisierepriseactivite = row.datereprise ?? ''
+  form.txtSaisieDateDebCessationPaiement = row.datedebcesspaie ?? ''
+  form.txtSaisieFinCessationPaiement = row.datefincesspaie ?? ''
+  form.txtSaisieProbablefinconges = row.dateprevfincong ?? ''
+  form.txtsaisiesexeassu = row.sexe ?? ''
+  form.txtSaisieemployeuractuel = row.numemployeur ?? ''
+  form.txtSaisieDateExamen1 = row.dateexamen1 ?? ''
+  form.txtSaisieDateExamen2 = row.dateexamen2 ?? ''
+  form.txtsaisienbreenfantsviables = row.nbreenfvia ?? 0
+  form.txtsaisienbreenfantssouscontr = row.nbreviabsoucont ?? 0
+  form.txtsaisienbrejoursij = row.nbreij ?? 0
+  form.txtsaisienbrejoursijpayer = row.nbreij ?? 0
+  form.txtsaisienbrejourscouches = row.nbrejrcouche ?? 0
+  form.txtsaisiesalnetreconstitue = row.salreconstitue !== 'null' ? (row.salreconstitue ?? 0) : 0
+  form.txtsaisiematinterne = row.matriculeinterne ?? ''
+  form.chsaisieAP1 = row.ap1 === 'OUI'
+  form.txtsaisiemontap1 = form.chsaisieAP1 ? 8100 : 0
+  form.chsaisieFM1 = row.fm1 === 'OUI'
+  form.txtsaisiemontfm1 = form.chsaisieFM1 ? 200 : 0
+  form.chsaisieAP2 = row.ap2 === 'OUI'
+  form.txtsaisiemontap2 = form.chsaisieAP2 ? 8100 : 0
+  form.chsaisieFM2 = row.fm2 === 'OUI'
+  form.txtsaisiemontfm2 = form.chsaisieFM2 ? 200 : 0
+  form.chsaisieAcc = row.acc === 'OUI'
+  form.txtsaisiemontacc = form.chsaisieAcc ? 21600 * (parseInt(String(row.nbreenfvia), 10) || 1) : 0
+  form.chsaisieFraisMedicauxAcc = row.fmacc === 'OUI'
+  form.txtsaisiemontfmacc = form.chsaisieFraisMedicauxAcc ? 1400 : 0
+  form.chsaisieIj = row.ij === 'OUI'
+  form.chsaisieaccpremature = row.accprema === 'OUI'
+  form.chsaisiemode25 = row.basecal === '25'
+  form.chsaisiemode30 = !form.chsaisiemode25
+  mode30Disabled.value = form.chsaisiemode25
+  mode25Disabled.value = form.chsaisiemode30
   showDialog.value = true
   $q.notify({ type: 'positive', message: `Dossier ${row.numdoss} chargé`, position: 'top', timeout: 1500 })
 }
 function validateForm() {
-  if (!form.numdoss) { $q.notify({ type: 'negative', message: 'Veuillez sélectionner un dossier dans la liste SVP', position: 'top' }); return false }
-  if (form.acc && !form.dateeffacc) { $q.notify({ type: 'negative', message: "Veuillez saisir la date d'accouchement SVP", position: 'top' }); return false }
-  if (form.ap1 && !form.dateExamen1) { $q.notify({ type: 'negative', message: 'Veuillez saisir la date du Premier Examen Prénatal SVP', position: 'top' }); return false }
-  if (form.ap2 && !form.dateExamen2) { $q.notify({ type: 'negative', message: 'Veuillez saisir la date du Deuxième Examen Prénatal SVP', position: 'top' }); return false }
-  if (form.ij && !form.datedebconges) { $q.notify({ type: 'negative', message: 'Veuillez saisir la date du Début Congés de Maternité SVP', position: 'top' }); return false }
-  if (form.ij && !form.matinterne) { $q.notify({ type: 'negative', message: 'La saisie du matricule interne est obligatoire SVP', position: 'top' }); return false }
+  if (!form.txtsaisienumdoss) {
+    $q.notify({ type: 'negative', message: 'Veuillez Selectionner un dossier dans la liste SVP', position: 'top' })
+    return false
+  }
+  if (form.chsaisieAcc && !form.txtSaisieDateeffacc) {
+    $q.notify({ type: 'negative', message: "Veuillez Saisir la date d'accouchement SVP", position: 'top' })
+    return false
+  }
+  if (form.chsaisieAP1 && !form.txtSaisieDateExamen1) {
+    $q.notify({ type: 'negative', message: 'Veuillez Saisir la date du Premier Examen Prenatal SVP', position: 'top' })
+    return false
+  }
+  if (form.chsaisieAP2 && !form.txtSaisieDateExamen2) {
+    $q.notify({ type: 'negative', message: 'Veuillez Saisir la date du Deuxieme Examen Prenatal SVP', position: 'top' })
+    return false
+  }
+  if (form.chsaisieIj && !form.txtSaisieDateDebConges) {
+    $q.notify({ type: 'negative', message: 'Veuillez Saisir la date du Debut Conges de Maternite SVP', position: 'top' })
+    return false
+  }
+  if (form.chsaisieIj && !form.txtsaisiematinterne) {
+    $q.notify({ type: 'negative', message: 'La saisie du matricule interne est obligatoire SVP', position: 'top' })
+    return false
+  }
   return true
 }
 async function submitForm() {
   const ok = await saisieFormRef.value?.validate()
   if (!ok) return
   if (!validateForm()) return
+  if (form.txtSaisiefinconges && form.txtSaisieDateDebConges) {
+    calculerNombrejoursIJPayes()
+  }
   submitting.value = true
   try {
-    await pfStore.submitLiquidation({ ...form })
+    await pfStore.submitLiquidation(form)
     $q.notify({ type: 'positive', message: 'Éléments de liquidation enregistrés avec succès !', position: 'top', icon: 'check_circle' })
     showDialog.value = false; resetForm()
   } catch {
     $q.notify({ type: 'negative', message: "Erreur lors de l'enregistrement", position: 'top' })
   } finally { submitting.value = false }
 }
-function resetForm() { Object.assign(form, { ...FORM_INITIAL }); saisieFormRef.value?.resetValidation() }
+function resetForm() {
+  Object.assign(form, { ...FORM_INITIAL })
+  mode30Disabled.value = false
+  mode25Disabled.value = false
+  saisieFormRef.value?.resetValidation()
+}
 async function searchDossiers() {
   loading.value = true
   errorMsg.value = ''
   try {
-    dossiers.value = await pfStore.searchDossiers({
-      criteria: searchCriteria.value,
-      start: searchStartValue.value,
-      end: searchEndValue.value,
+    let list = await pfStore.searchDossiers({
+      criteria: cbxcritere.value,
+      start: txtvaleurdeb.value,
     })
+    if (!list.length) {
+      list = filterMockDossiers()
+    }
+    dossiers.value = list
     $q.notify({
       type: dossiers.value.length ? 'positive' : 'info',
       message: dossiers.value.length
         ? `${dossiers.value.length} dossier(s) trouvé(s)`
         : 'Recherche effectuée — aucun résultat',
       position: 'top',
+      timeout: 1500,
     })
   } catch {
-    dossiers.value = []
+    dossiers.value = filterMockDossiers()
   } finally {
     loading.value = false
   }
 }
-function resetSearch() { searchCriteria.value = 'fnumdoss'; searchStartValue.value = '000-'; searchEndValue.value = ''; dossiers.value = []; errorMsg.value = '' }
+function resetSearch() {
+  cbxcritere.value = 'fnumdoss'
+  txtvaleurdeb.value = '000-'
+  errorMsg.value = ''
+  dossiers.value = [...MOCK_DOSSIERS]
+}
+
+onMounted(() => { dossiers.value = [...MOCK_DOSSIERS] })
 function formatMoney(v) { return new Intl.NumberFormat('fr-FR').format(Number(v) || 0) }
 function getStatusColor(s) {
   if (!s) return 'grey-5'
@@ -689,9 +1052,67 @@ function getStatusColor(s) {
 
 <style scoped>
 .elements-liquidation-pf { max-width: 1400px; margin: 0 auto; }
-.card-elevated { border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
-.card-header-rounded { border-radius: 15px 15px 0 0; }
-.dialog-form-card { display: flex; flex-direction: column; height: 100vh; }
+.pf-legacy-form { background: #f0f0f0; padding: 12px 14px; border-radius: 6px; }
+.pf-form-row { margin-bottom: 0; padding: 8px 6px; align-items: stretch; }
+.pf-form-row--alt { background: #f5f5f5; }
+.pf-legacy-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  min-height: 42px;
+}
+.pf-legacy-cell--base { align-items: flex-start; }
+.pf-legacy-cell--question { flex-direction: column; align-items: center; justify-content: center; padding: 8px 12px; }
+.pf-legacy-label {
+  flex: 0 0 auto;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.3;
+  max-width: 44%;
+}
+.pf-legacy-input { flex: 1 1 140px; min-width: 0; }
+.pf-legacy-input--narrow { flex: 0 1 88px; max-width: 104px; }
+.pf-legacy-input--matricule { flex: 0 1 168px; max-width: 200px; }
+.pf-legacy-input--date { flex: 1 1 200px; }
+.pf-base-calcul { display: flex; flex-direction: column; gap: 4px; }
+.pf-six-mois-text { font-size: 0.875rem; margin: 0; color: #333; line-height: 1.4; }
+.pf-six-mois-checks { display: flex; gap: 20px; justify-content: center; }
+.pf-legacy-btn { min-width: 120px; min-height: 36px; font-size: 0.9rem; border-radius: 4px; }
+.pf-legacy-form :deep(.q-field__control) { min-height: 34px; height: 34px; background: #fff; }
+.pf-legacy-form :deep(.q-field--outlined .q-field__control:before) { border-color: #bdbdbd; }
+.pf-legacy-form :deep(.q-field__native),
+.pf-legacy-form :deep(.q-field__input) { font-size: 0.9rem; padding: 0 8px; }
+.pf-legacy-form :deep(.q-checkbox__label) { font-size: 0.9rem; }
+.pf-legacy-form :deep(.q-checkbox__inner) { font-size: 36px; }
+@media (max-width: 1023px) {
+  .pf-legacy-label { max-width: 100%; flex: 1 1 100%; }
+  .pf-legacy-input,
+  .pf-legacy-input--date,
+  .pf-legacy-input--narrow,
+  .pf-legacy-input--matricule { flex: 1 1 100%; max-width: 100%; }
+}
+.dialog-form-card { display: flex; flex-direction: column; min-height: 0; }
+.dialog-form-card:not(.dialog-form-card--desktop) { height: 100vh; }
+.dialog-form-card--desktop {
+  width: min(94vw, 1280px);
+  max-width: 1280px;
+  min-width: min(94vw, 1000px);
+  max-height: 94vh;
+  height: auto;
+  border-radius: 12px;
+}
+@media (min-width: 1280px) {
+  .dialog-form-card--desktop {
+    width: 1280px;
+    min-width: 1100px;
+  }
+}
+.dialog-bar { min-height: 52px; }
+.dialog-bar__title { font-size: 1rem; }
+.dialog-bar__title { flex: 1; min-width: 0; }
+.dialog-actions { justify-content: center; }
 .dialog-body { flex: 1; overflow-y: auto; }
 .sep { font-size: 0.72rem; font-weight: 700; color: #1976d2; text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid #1976d2; padding: 2px 0 2px 8px; background: linear-gradient(to right, rgba(25,118,210,0.06), transparent); border-radius: 0 4px 4px 0; }
 .inline-check { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 4px 0; }
@@ -700,8 +1121,10 @@ function getStatusColor(s) {
 .chip-purple { color: #6a1b9a; background: rgba(106,27,154,0.12); }
 .chip-orange { color: #e65100; background: rgba(230,81,0,0.12); }
 .recap-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; background: rgba(25,118,210,0.05); border-radius: 8px; padding: 6px 10px; border: 1px solid rgba(25,118,210,0.15); }
-.dossier-link { color: #1976d2; text-decoration: none; font-weight: 600; font-size: 0.85rem; transition: color 0.2s; }
-.dossier-link:hover { color: #0d47a1; text-decoration: underline; }
-.pf-dossier-table { border-radius: 0 0 15px 15px; }
-.pf-dossier-table :deep(.q-table__bottom) { background: #fafafa; border-radius: 0 0 15px 15px; }
+@media (max-width: 599px) {
+  .elements-liquidation-pf { max-width: 100%; }
+  .toolbar-title-text { font-size: 0.95rem; }
+  .recap-bar { flex-direction: column; align-items: flex-start; }
+  .inline-check { align-items: flex-start; }
+}
 </style>

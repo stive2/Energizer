@@ -41,17 +41,17 @@
         bg-color="blue-grey-1"
       />
       <q-input
-        v-model="store.common.Adresse"
+        v-model="store.common.addrAssuText"
         :label="t('inputassu.adresse_assure')"
         outlined
         dense
-        @update:model-value="(v) => (store.common.Adresse = String(v || '').toUpperCase())"
+        @update:model-value="(v) => (store.common.addrAssuText = String(v || '').toUpperCase())"
       />
     </div>
 
     <div class="depot-pf-form-grid-3">
       <q-input
-        v-model="store.common.EMAIL_PERS"
+        v-model="store.common.emailAssuText"
         :label="t('inputassu.email')"
         type="email"
         outlined
@@ -63,7 +63,7 @@
         </template>
       </q-input>
       <q-input
-        v-model="store.common.TEL_PERS"
+        v-model="store.common.telAssuText"
         :label="t('inputassu.phone')"
         outlined
         dense
@@ -72,18 +72,18 @@
         :rules="[required]"
       />
       <q-input
-        v-model="store.common.mat_interne"
+        v-model="store.common.matrInteText"
         :label="t('inputassu.matricule_interne_assure')"
         outlined
         dense
         :rules="[required]"
-        @update:model-value="(v) => (store.common.mat_interne = String(v || '').toUpperCase())"
+        @update:model-value="(v) => (store.common.matrInteText = String(v || '').toUpperCase())"
       />
     </div>
 
     <div class="depot-pf-form-grid-1-2">
       <q-input
-        v-model="store.common.mat_employeur"
+        v-model="store.common.matEmployeur"
         :label="t('inputassu.employer_cnps_registration_number')"
         outlined
         dense
@@ -107,7 +107,7 @@
         </template>
       </q-input>
       <q-input
-        v-model="store.common.raisonsociale"
+        v-model="store.common.RAISON_SOCIALE"
         :label="t('inputassu.legal_name')"
         outlined
         dense
@@ -118,12 +118,13 @@
       />
     </div>
 
-    <div class="depot-pf-section-heading">
-      {{ t('modules.assure.depotPf.sectionPrestation') }}
-    </div>
+    <template v-if="!hideCentre">
+      <div class="depot-pf-section-heading">
+        {{ t('modules.assure.depotPf.sectionPrestation') }}
+      </div>
 
-    <q-select
-      v-model="store.common.CODE_CENTRECNPSC"
+      <q-select
+        v-model="store.common.CODE_CENTRECNPSC"
       :label="t('inputassu.centreCNPS')"
       :options="centresFiltered"
       option-label="LIB_CENTRE"
@@ -136,11 +137,16 @@
       input-debounce="0"
       :rules="[required]"
       @filter="filterCentres"
-    />
+      />
+    </template>
   </div>
 </template>
 
 <script setup>
+defineProps({
+  hideCentre: { type: Boolean, default: false },
+})
+
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { centres as rawCentres } from 'src/data/Centres.js'
@@ -183,21 +189,21 @@ function filterCentres(val, update) {
 }
 
 function onMatriculeChange(val) {
-  store.common.mat_employeur = normalizeMatriculeEmployeur(val)
-  if (!store.common.mat_employeur) {
-    store.common.raisonsociale = ''
+  store.common.matEmployeur = normalizeMatriculeEmployeur(val)
+  if (!store.common.matEmployeur) {
+    store.common.RAISON_SOCIALE = ''
   }
 }
 
 function onMatriculeFieldActivate() {
-  if (store.common.mat_employeur?.trim()) {
+  if (store.common.matEmployeur?.trim()) {
     onSearchEmployeur()
   }
 }
 
 async function onSearchEmployeur() {
-  const matricule = normalizeMatriculeEmployeur(store.common.mat_employeur)
-  store.common.mat_employeur = matricule
+  const matricule = normalizeMatriculeEmployeur(store.common.matEmployeur)
+  store.common.matEmployeur = matricule
   if (!matricule) {
     notifyError(t('modules.assure.depotPf.matriculeRequis'))
     return
@@ -212,7 +218,7 @@ async function onSearchEmployeur() {
     await store.fetchEmployeur()
     notifySuccess(t('modules.assure.depotPf.employeurTrouve'))
   } catch (e) {
-    store.common.raisonsociale = ''
+    store.common.RAISON_SOCIALE = ''
     if (e?.message === 'matricule_required') {
       notifyError(t('modules.assure.depotPf.matriculeRequis'))
     } else {

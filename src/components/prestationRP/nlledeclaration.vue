@@ -90,8 +90,10 @@
                 label="Numéro Employeur *"
                 outlined dense
                 bg-color="yellow-1"
-                hint="Appuyez sur Entrée pour charger"
+                hint="Saisissez le matricule puis Entrée, clic sur le champ ou recherche"
                 @keydown.enter.prevent="fetchEmployeur"
+                @click="onEmployeurFieldActivate"
+                @blur="onEmployeurFieldActivate"
                 :loading="loadingEmployeur"
               >
                 <template v-slot:prepend><q-icon name="business" color="amber-8" size="xs" /></template>
@@ -710,24 +712,43 @@ function onDossierSelect(numdossier) {
   $q.notify({ type: 'positive', message: `Dossier ${numdossier} chargé`, position: 'top', timeout: 1500 })
 }
 
-// ─── Chargement employeur (ENTRÉE) ──────────────────────────────
+function onEmployeurFieldActivate() {
+  if (form.numemployeur?.trim()) {
+    fetchEmployeur()
+  }
+}
+
+// ─── Chargement employeur (ENTRÉE / clic / recherche) ───────────
 async function fetchEmployeur() {
-  if (!form.numemployeur) {
+  const mat = (form.numemployeur || '').trim()
+  if (!mat) {
+    form.nomemployeur = ''
     $q.notify({ type: 'warning', message: 'Saisissez un numéro employeur', position: 'top' })
     return
   }
+  form.numemployeur = mat
   loadingEmployeur.value = true
   try {
-    const data = await rpStore.fetchEmployeur(form.numemployeur)
+    const data = await rpStore.fetchEmployeur(mat)
     const rs = data?.nomemployeur ?? data?.raison_sociale
     if (rs) {
       form.nomemployeur = rs
       $q.notify({ type: 'positive', message: `Employeur : ${rs}`, position: 'top', timeout: 1500 })
     } else {
-      $q.notify({ type: 'negative', message: 'Appuyez sur ENTRÉE une fois de plus !!! — Vérifiez que ce matricule employeur est correct', position: 'top' })
+      form.nomemployeur = ''
+      $q.notify({
+        type: 'negative',
+        message: 'Aucun employeur trouvé pour ce matricule. Vérifiez le numéro saisi.',
+        position: 'top',
+      })
     }
   } catch {
-    $q.notify({ type: 'negative', message: 'Appuyez sur ENTRÉE une fois de plus !!! — Vérifiez que ce matricule employeur est correct', position: 'top' })
+    form.nomemployeur = ''
+    $q.notify({
+      type: 'negative',
+      message: 'Aucun employeur trouvé pour ce matricule. Vérifiez le numéro saisi.',
+      position: 'top',
+    })
   } finally {
     loadingEmployeur.value = false
   }
@@ -752,7 +773,7 @@ async function submitForm() {
 
   submitting.value = true
   try {
-    await rpStore.submitDeclaration({ ...form })
+    await rpStore.submitDeclaration(form)
     $q.notify({
       type: 'positive',
       message: 'Modification du dossier accomplie avec succès !',

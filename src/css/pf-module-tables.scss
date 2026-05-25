@@ -1,0 +1,176 @@
+/* Tableaux modules Prestation PF — style commun (Apériodique, AF, Reprises, PMD, Périodes, Stats) */
+
+.card-elevated {
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.table-toolbar {
+  border-radius: 15px 15px 0 0;
+  background: #fafafa;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.toolbar-title-row {
+  flex-shrink: 0;
+}
+
+.toolbar-search-form {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.toolbar-field--critere {
+  min-width: 160px;
+  width: 180px;
+  flex: 0 1 180px;
+}
+
+.toolbar-field--valeur {
+  min-width: 160px;
+  width: 200px;
+  flex: 0 1 220px;
+}
+
+.toolbar-btn {
+  border-radius: 8px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.toolbar-hint {
+  line-height: 1.35;
+}
+
+.table-toolbar :deep(.q-field__label) {
+  color: var(--q-primary, #1976d2) !important;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.table-toolbar :deep(.q-field__native),
+.table-toolbar :deep(.q-field__input) {
+  color: var(--q-primary, #1976d2) !important;
+  font-size: 0.85rem;
+}
+
+.table-toolbar :deep(.q-field__control) {
+  min-height: 34px;
+  height: 34px;
+}
+
+.table-toolbar :deep(.q-field--dense .q-field__control) {
+  min-height: 34px;
+}
+
+.table-toolbar :deep(.q-select__dropdown-icon) {
+  color: var(--q-primary, #1976d2) !important;
+}
+
+.pf-table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pf-module-table {
+  border-radius: 0 0 15px 15px;
+}
+
+.pf-module-table :deep(.q-table__bottom) {
+  background: #fafafa;
+  border-radius: 0 0 15px 15px;
+}
+
+.pf-module-table :deep(thead tr:first-child th) {
+  font-size: 0.82rem;
+  background-color: var(--q-primary, #1976d2) !important;
+  color: #fff !important;
+  border-bottom: none;
+}
+
+.pf-module-table :deep(thead th .pf-col-header__label) {
+  color: #fff !important;
+  font-size: 0.82rem;
+  letter-spacing: 0.02em;
+}
+
+.pf-module-table :deep(thead th.sortable:hover) {
+  background-color: #1565c0 !important;
+}
+
+.pf-module-table :deep(thead th .q-table__sort-icon) {
+  color: #fff !important;
+  opacity: 0.95;
+}
+
+.pf-module-table :deep(.q-table__top) {
+  background: #fafafa;
+  border-bottom: 1px solid #e8e8e8;
+  padding: 8px 12px;
+}
+
+.dossier-link {
+  color: #1976d2;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+
+.dossier-link:hover {
+  color: #0d47a1;
+  text-decoration: underline;
+}
+
+.pf-grid-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  background: #fff;
+  cursor: pointer;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.pf-grid-card:hover {
+  border-color: var(--q-primary, #1976d2);
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
+}
+
+.toolbar-actions {
+  justify-content: flex-start;
+}
+
+@media (min-width: 1024px) {
+  .toolbar-search-form .toolbar-field--critere,
+  .toolbar-search-form .toolbar-field--valeur {
+    width: 180px;
+    max-width: 220px;
+  }
+
+  .toolbar-actions {
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+  }
+}
+
+@media (max-width: 1023px) {
+  .toolbar-title-row {
+    margin-bottom: 4px;
+  }
+}
+
+@media (max-width: 599px) {
+  .toolbar-field--critere,
+  .toolbar-field--valeur {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .toolbar-btn {
+    width: 100%;
+  }
+
+  .pf-module-table :deep(.q-table__container) {
+    min-width: 520px;
+  }
+}

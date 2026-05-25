@@ -320,7 +320,7 @@ const selectedDossier = ref(null)
 // ─── Sections ────────────────────────────────────────────────────
 const sections = reactive({ deces: true })
 
-// ─── Données de test (même store que newcertificat.vue) ──────────
+// ─── Données de test (même store que NewCertificatMedical.vue) ──────────
 const MOCK_DOSSIERS = [
   {
     numdossier:    'R2026-001',
@@ -504,7 +504,7 @@ async function submitForm() {
 
   submitting.value = true
   try {
-    await rpStore.submitCertificatDeces({ ...form })
+    await rpStore.submitCertificatDeces(form)
     $q.notify({
       type: 'positive',
       message: 'Ajout du certificat de décès accompli avec succès !',

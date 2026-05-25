@@ -2,8 +2,14 @@
   <AuthenticatedLayout
     :menu-items="energizerMenu"
     :session-config="energizerSessionConfig"
-    toolbar-title-key="title"
-    drawer-title-key="layout.sidebar.navTitleEnergizer"
+    toolbar-title-key="layout.energizer.toolbarTitle"
+    toolbar-title-mobile-key="layout.energizer.toolbarTitleMobile"
+    :show-drawer-brand="false"
+    show-profile-menu
+    footer-simple
+    aura-sidebar
+    :show-sidebar-brand="false"
+    :show-sidebar-user="false"
   >
     <router-view />
   </AuthenticatedLayout>

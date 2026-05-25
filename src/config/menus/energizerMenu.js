@@ -9,14 +9,15 @@ export const energizerMenu = [
   },
   {
     type: 'group',
-    labelKey: 'layout.sidebar.dossiers',
-    icon: 'folder_shared',
+    labelKey: 'layout.sidebar.nouveauxDossiers',
+    icon: 'folder',
     defaultOpened: true,
     children: [
       {
+        type: 'item',
         labelKey: 'layout.sidebar.receptionStd',
         icon: 'inbox',
-        to: { name: 'reception-nouveau-dossier' },
+        to: { name: 'energizer-reception-nouveau-dossier' },
       },
     ],
   },
@@ -72,5 +73,8 @@ export const energizerSessionConfig = {
   logoutRoute: { name: 'energizer-login' },
   clearSessionKeys: ['energizer-portal-sim-profile', 'energizer-portal-sim-display-name'],
   localTokenKey: 'auth_token',
+  localUserInfoKey: 'user_info',
+  simPasswordKey: 'energizer-sim-password',
+  defaultSimPassword: 'Agent2026!',
   clearLocalKeys: ['auth_token', 'user_info'],
 }

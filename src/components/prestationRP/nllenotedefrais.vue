@@ -454,7 +454,7 @@ async function submitForm() {
 
   submitting.value = true
   try {
-    await rpStore.submitNoteFrais({ ...form })
+    await rpStore.submitNoteFrais(form)
     $q.notify({
       type: 'positive',
       message: 'Note de frais enregistrée avec succès !',

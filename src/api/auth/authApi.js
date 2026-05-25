@@ -4,7 +4,7 @@
 
  *
 
- * Par défaut : simulation locale uniquement (`simPortalAuth.js`), sans requête HTTP.
+ * Par défaut : simulation locale uniquement (`api/auth/simPortalAuth.js`), sans requête HTTP.
 
  * Quand l'API sera disponible : `VITE_CNPS_USE_REAL_AUTH=true` dans `.env`.
 
@@ -28,7 +28,7 @@ import {
 
   validateSimPortalCredentials,
 
-} from 'src/constants/simPortalAuth.js'
+} from 'src/api/auth/simPortalAuth.js'
 
 
 

@@ -36,19 +36,19 @@ export const useLiquidationPfStore = defineStore('energizer-liquidation-pf', {
       }
     },
 
-    async submitLiquidation(payload) {
+    async submitLiquidation(form) {
       this.submitting = true
       try {
-        return await savePfLiquidation(payload)
+        return await savePfLiquidation(form)
       } finally {
         this.submitting = false
       }
     },
 
-    async submitAllocationFamiliale(payload) {
+    async submitAllocationFamiliale(form) {
       this.submitting = true
       try {
-        return await savePfAllocationFamiliale(payload)
+        return await savePfAllocationFamiliale(form)
       } finally {
         this.submitting = false
       }
@@ -64,17 +64,17 @@ export const useLiquidationPfStore = defineStore('energizer-liquidation-pf', {
       }
     },
 
-    async submitReprise(payload) {
+    async submitReprise(form) {
       this.submitting = true
       try {
-        return await saveReprise(payload)
+        return await saveReprise(form)
       } finally {
         this.submitting = false
       }
     },
 
-    async removeReprise(id) {
-      return deleteReprise(id)
+    async removeReprise(form) {
+      return deleteReprise(form)
     },
 
     async loadPeriodes(params) {
@@ -87,10 +87,10 @@ export const useLiquidationPfStore = defineStore('energizer-liquidation-pf', {
       }
     },
 
-    async submitPeriode(payload) {
+    async submitPeriode(form) {
       this.submitting = true
       try {
-        return await savePeriodeActivite(payload)
+        return await savePeriodeActivite(form)
       } finally {
         this.submitting = false
       }
@@ -106,17 +106,17 @@ export const useLiquidationPfStore = defineStore('energizer-liquidation-pf', {
       }
     },
 
-    async submitPmd(payload) {
+    async submitPmd(form) {
       this.submitting = true
       try {
-        return await savePieceMaintienDroit(payload)
+        return await savePieceMaintienDroit(form)
       } finally {
         this.submitting = false
       }
     },
 
-    async removePmd(id) {
-      return deletePieceMaintienDroit(id)
+    async removePmd(form) {
+      return deletePieceMaintienDroit(form)
     },
 
     async searchStatistiques(filters) {

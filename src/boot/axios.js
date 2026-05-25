@@ -1,6 +1,6 @@
 import { defineBoot } from '#q-app/wrappers'
 import axios from 'axios'
-import { Notify } from 'quasar'
+import { notifyNegative } from 'src/utils/appNotify.js'
 import {
   CNPS_AUTH_TOKEN_KEY,
   getCnpsApiBaseUrl,
@@ -35,12 +35,7 @@ api.interceptors.response.use(
   (error) => {
     const skipNotify = error.config?.skipErrorNotify === true
     if (!skipNotify && typeof window !== 'undefined') {
-      Notify.create({
-        type: 'negative',
-        message: getApiErrorMessage(error),
-        timeout: 5000,
-        position: 'top',
-      })
+      notifyNegative(getApiErrorMessage(error), { timeout: 5000 })
     }
     return Promise.reject(error)
   },

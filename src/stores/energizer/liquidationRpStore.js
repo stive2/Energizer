@@ -36,37 +36,37 @@ export const useLiquidationRpStore = defineStore('energizer-liquidation-rp', {
       return fetchRpEmployeur(matricule)
     },
 
-    async submitDeclaration(payload) {
+    async submitDeclaration(form) {
       this.submitting = true
       try {
-        return await saveRpDeclaration(payload)
+        return await saveRpDeclaration(form)
       } finally {
         this.submitting = false
       }
     },
 
-    async submitCertificatInit(payload) {
+    async submitCertificatInit(form) {
       this.submitting = true
       try {
-        return await saveCertificatInit(payload)
+        return await saveCertificatInit(form)
       } finally {
         this.submitting = false
       }
     },
 
-    async submitCertificatDeces(payload) {
+    async submitCertificatDeces(form) {
       this.submitting = true
       try {
-        return await saveCertificatDeces(payload)
+        return await saveCertificatDeces(form)
       } finally {
         this.submitting = false
       }
     },
 
-    async submitNoteFrais(payload) {
+    async submitNoteFrais(form) {
       this.submitting = true
       try {
-        return await saveNoteFrais(payload)
+        return await saveNoteFrais(form)
       } finally {
         this.submitting = false
       }

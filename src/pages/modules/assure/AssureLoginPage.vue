@@ -35,7 +35,10 @@ const router = useRouter()
 const route = useRoute()
 
 function onAuth(payload) {
-  persistInsuredSession(payload)
+  persistInsuredSession({
+    ...payload,
+    num_assu: payload.num_assu || payload.login,
+  })
   const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : null
   if (redirect && redirect.startsWith('/')) {
     router.replace(redirect)
@@ -79,7 +82,7 @@ function onAuth(payload) {
 .login-form-side {
   flex: 0 0 28%;
   width: 28%;
-  min-width: 0;
+  min-width: 280px;
   max-width: 420px;
   display: flex;
   flex-direction: column;
@@ -107,31 +110,51 @@ function onAuth(payload) {
   overflow: hidden;
 }
 
-.login-form-side :deep(.portal-sim-login--embedded.portal-sim-login--insured .portal-sim-login__title) {
-  color: #3949ab;
-}
-
 @media (max-width: 900px) {
-  .login-form-side :deep(.portal-sim-login--embedded) {
+  .login-page {
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
-}
 
-@media (max-width: 900px) {
   .login-layout {
     flex-direction: column;
+    min-height: min(100dvh, 100vh);
   }
 
   .login-image-side {
-    flex: 0 0 42%;
+    flex: 0 0 min(38vh, 280px);
     width: 100%;
     max-width: none;
+    min-height: 160px;
   }
 
   .login-form-side {
     flex: 1 1 auto;
     width: 100%;
+    min-width: 0;
     max-width: none;
+    overflow-y: auto;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .login-form-side :deep(.portal-sim-login--embedded) {
+    overflow: visible;
+    min-height: min-content;
+  }
+
+  .login-form-side :deep(.portal-sim-login--embedded .portal-sim-login__panel) {
+    margin-bottom: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .login-image-side {
+    flex: 0 0 32vh;
+    min-height: 140px;
+  }
+
+  .login-form-top {
+    padding: 0.35rem 0.5rem 0;
   }
 }
 </style>

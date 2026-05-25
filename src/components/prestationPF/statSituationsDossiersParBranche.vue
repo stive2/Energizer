@@ -18,7 +18,8 @@
             <!-- Centre -->
             <div class="col-12 col-sm-3">
               <q-select
-                v-model="filters.centre"
+                v-model="filters.cbxcentre"
+                name="cbxcentre"
                 :options="centreOptions"
                 label="Centre"
                 outlined dense emit-value map-options color="primary"
@@ -29,7 +30,8 @@
             <!-- Branche -->
             <div class="col-12 col-sm-2">
               <q-select
-                v-model="filters.branche"
+                v-model="filters.cbxbranche"
+                name="cbxbranche"
                 :options="brancheOptions"
                 label="Branche"
                 outlined dense emit-value map-options color="primary"
@@ -39,7 +41,8 @@
             <!-- Période début -->
             <div class="col-12 col-sm-2">
               <q-input
-                v-model="filters.periodeDebut"
+                v-model="filters.txtvaleurdeb"
+                name="txtvaleurdeb"
                 label="Période de Début"
                 outlined dense
                 bg-color="yellow-1"
@@ -48,7 +51,7 @@
                 <template v-slot:append>
                   <q-icon name="edit_calendar" class="cursor-pointer" color="amber-8" size="xs">
                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="filters.periodeDebut" mask="DD/MM/YYYY" today-btn color="primary">
+                      <q-date v-model="filters.txtvaleurdeb" mask="DD/MM/YYYY" today-btn color="primary">
                         <div class="row items-center justify-end">
                           <q-btn v-close-popup label="OK" color="primary" flat dense />
                         </div>
@@ -62,7 +65,8 @@
             <!-- Période fin -->
             <div class="col-12 col-sm-2">
               <q-input
-                v-model="filters.periodeFin"
+                v-model="filters.txtvaleurfin"
+                name="txtvaleurfin"
                 label="Période de Fin"
                 outlined dense
                 bg-color="yellow-1"
@@ -71,7 +75,7 @@
                 <template v-slot:append>
                   <q-icon name="edit_calendar" class="cursor-pointer" color="amber-8" size="xs">
                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="filters.periodeFin" mask="DD/MM/YYYY" today-btn color="primary">
+                      <q-date v-model="filters.txtvaleurfin" mask="DD/MM/YYYY" today-btn color="primary">
                         <div class="row items-center justify-end">
                           <q-btn v-close-popup label="OK" color="primary" flat dense />
                         </div>
@@ -175,43 +179,58 @@
       </div>
     </div>
 
-    <!-- Titre résultat -->
-    <div v-if="dossiers.length > 0" class="result-header q-mb-sm">
-      <div class="row items-center q-gutter-xs">
-        <q-icon name="bar_chart" color="primary" size="sm" />
-        <span class="text-subtitle2 text-primary text-weight-bold">
-          Situations des Dossiers — {{ libelleBranche }} — {{ libellePeriode }}
-        </span>
-        <q-badge color="primary" :label="`${dossiers.length} dossier(s)`" />
-      </div>
-    </div>
-
     <!-- ═══════════════════════════════════════════════════════
          TABLE DES DOSSIERS
     ═══════════════════════════════════════════════════════ -->
     <q-card class="card-elevated">
-      <q-card-section class="q-pa-none">
-        <q-table
-          :rows="dossiers"
-          :columns="tableColumns"
-          row-key="numdossier"
-          :loading="loading"
-          dense flat
-          :rows-per-page-options="[20, 50, 100]"
-          :filter="tableFilter"
-          no-data-label="Aucun dossier — renseignez les filtres et cliquez sur Rechercher"
-          class="stat-table"
-        >
-          <!-- Barre supérieure : filtre rapide -->
-          <template v-slot:top-right>
+      <q-card-section class="table-toolbar q-py-sm q-px-sm q-px-md">
+        <div class="row items-center justify-between q-col-gutter-sm">
+          <div class="col-12 col-md row items-center no-wrap q-gutter-xs toolbar-title-row">
+            <q-icon name="bar_chart" size="sm" color="primary" />
+            <span class="text-body2 text-weight-bold text-primary ellipsis">
+              Situations des Dossiers
+              <template v-if="dossiers.length"> — {{ libelleBranche }} — {{ libellePeriode }}</template>
+            </span>
+            <q-badge v-if="dossiers.length" outline color="primary" :label="`${dossiers.length}`" />
+          </div>
+          <div class="col-12 col-md-auto">
             <q-input
               v-model="tableFilter"
-              placeholder="Filtrer…"
-              dense outlined
-              style="min-width: 180px"
+              placeholder="Filtrer dans le tableau…"
+              label-color="primary"
+              outlined dense color="primary"
+              class="toolbar-field full-width"
+              hide-bottom-space
+              clearable
             >
-              <template v-slot:append><q-icon name="filter_list" size="xs" /></template>
+              <template v-slot:prepend><q-icon name="filter_list" size="xs" color="primary" /></template>
             </q-input>
+          </div>
+        </div>
+        <div v-if="!dossiers.length" class="text-caption text-primary toolbar-hint row items-center q-mt-xs">
+          <q-icon name="info" size="xs" class="q-mr-xs flex-shrink-0" />
+          <span>Sélectionnez une branche et une période puis cliquez sur Rechercher</span>
+        </div>
+      </q-card-section>
+
+      <q-card-section class="q-pa-none pf-table-responsive">
+        <q-table
+          :rows="dossiers"
+          :columns="visibleTableColumns"
+          row-key="numdossier"
+          :grid="tableGrid"
+          :loading="loading"
+          dense flat
+          :rows-per-page-options="tableRowsPerPageOptions"
+          :pagination="{ rowsPerPage: tableDefaultRowsPerPage }"
+          :filter="tableFilter"
+          no-data-label="Aucun dossier — renseignez les filtres et cliquez sur Rechercher"
+          class="pf-module-table"
+        >
+          <template v-slot:header-cell="props">
+            <q-th :props="props" class="pf-col-header bg-primary text-white">
+              <span class="pf-col-header__label text-weight-bold">{{ props.col.label }}</span>
+            </q-th>
           </template>
 
           <template v-slot:body-cell-index="props">
@@ -220,10 +239,19 @@
 
           <template v-slot:body-cell-numdossier="props">
             <q-td :props="props">
-              <span class="text-primary text-weight-bold" style="font-size:0.8rem">
-                {{ props.row.numdossier }}
-              </span>
+              <span class="dossier-link" style="cursor:default">{{ props.row.numdossier }}</span>
             </q-td>
+          </template>
+
+          <template v-slot:item="props">
+            <div class="pf-grid-card q-pa-sm q-mb-sm">
+              <div class="row items-center justify-between q-mb-xs">
+                <span class="dossier-link text-body2">{{ props.row.numdossier }}</span>
+                <q-badge :color="getSituColor(props.row.situation)" :label="props.row.situation || '—'" dense />
+              </div>
+              <div class="text-caption text-grey-8">{{ props.row.requerant }}</div>
+              <div class="text-caption text-grey-6">{{ props.row.objet }} · {{ props.row.datedemande }}</div>
+            </div>
           </template>
 
           <template v-slot:body-cell-situation="props">
@@ -260,6 +288,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useLiquidationPfStore } from 'src/stores/energizer/liquidationPfStore.js'
+import { usePfModuleTable } from 'src/composables/usePfModuleTable.js'
 
 defineOptions({ name: 'StatSituationsDossiersParBranche' })
 
@@ -273,10 +302,10 @@ const tableFilter = ref('')
 
 // ─── Filtres ─────────────────────────────────────────────────────
 const filters = reactive({
-  centre:      '',
-  branche:     'F',
-  periodeDebut: '',
-  periodeFin:  '',
+  cbxcentre:    '',
+  cbxbranche:   'F',
+  txtvaleurdeb: '',
+  txtvaleurfin: '',
 })
 
 // ─── Options des selects ─────────────────────────────────────────
@@ -312,6 +341,11 @@ const tableColumns = [
   { name: 'raisonsoc',    label: 'Raison Sociale', field: 'raisonsoc',    align: 'left', sortable: true },
   { name: 'datecessation',label: 'Date Cessation', field: 'datecessation',align: 'left', sortable: true },
 ]
+const { visibleTableColumns, tableGrid, tableRowsPerPageOptions, tableDefaultRowsPerPage } = usePfModuleTable(tableColumns, {
+  mobileCols: ['index', 'numdossier', 'requerant', 'situation'],
+  tabletHidden: ['localisation', 'initiateur', 'dateenreg', 'numempl', 'raisonsoc', 'datecessation'],
+  rowsPerPageDesktop: [20, 50, 100],
+})
 
 // ─── Données de test ─────────────────────────────────────────────
 const MOCK_DOSSIERS = [
@@ -338,15 +372,15 @@ onMounted(async () => {
 
 // ─── Computed ─────────────────────────────────────────────────────
 const libelleBranche = computed(() => {
-  const opt = brancheOptions.find(o => o.value === filters.branche)
+  const opt = brancheOptions.find(o => o.value === filters.cbxbranche)
   return opt ? opt.label : '—'
 })
 
 const libellePeriode = computed(() => {
-  if (filters.periodeDebut && filters.periodeFin) {
-    return `du ${filters.periodeDebut} au ${filters.periodeFin}`
+  if (filters.txtvaleurdeb && filters.txtvaleurfin) {
+    return `du ${filters.txtvaleurdeb} au ${filters.txtvaleurfin}`
   }
-  if (filters.periodeDebut) return `depuis le ${filters.periodeDebut}`
+  if (filters.txtvaleurdeb) return `depuis le ${filters.txtvaleurdeb}`
   return 'Toute période'
 })
 
@@ -386,7 +420,7 @@ async function searchStats() {
     }
   } catch {
     dossiers.value = MOCK_DOSSIERS.filter(d =>
-      !filters.branche || d.numdossier.startsWith(filters.branche),
+      !filters.cbxbranche || d.numdossier.startsWith(filters.cbxbranche),
     )
   } finally {
     loading.value = false
@@ -394,10 +428,10 @@ async function searchStats() {
 }
 
 function resetSearch() {
-  filters.centre       = ''
-  filters.branche      = 'F'
-  filters.periodeDebut = ''
-  filters.periodeFin   = ''
+  filters.cbxcentre       = ''
+  filters.cbxbranche      = 'F'
+  filters.txtvaleurdeb = ''
+  filters.txtvaleurfin   = ''
   tableFilter.value    = ''
   dossiers.value = MOCK_DOSSIERS
 }
@@ -414,7 +448,7 @@ function exportCsv() {
   const url  = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href     = url
-  link.download = `stat_dossiers_${filters.branche}_${Date.now()}.csv`
+  link.download = `stat_dossiers_${filters.cbxbranche}_${Date.now()}.csv`
   link.click()
   URL.revokeObjectURL(url)
   $q.notify({ type: 'positive', message: 'Export CSV généré', position: 'top', timeout: 1500 })
@@ -470,27 +504,6 @@ function exportCsv() {
   letter-spacing: 0.3px;
 }
 
-/* ── Titre résultat ─────────────────────────────────────── */
-.result-header {
-  background: linear-gradient(to right, rgba(25, 118, 210, 0.06), transparent);
-  border-left: 4px solid #1976d2;
-  padding: 6px 12px;
-  border-radius: 0 8px 8px 0;
-}
-
-/* ── Table stats ─────────────────────────────────────────── */
-.stat-table { border-radius: 15px; }
-
-.stat-table :deep(.q-table__top) {
-  padding: 8px 16px;
-  background: #fafafa;
-  border-radius: 15px 15px 0 0;
-}
-
-.stat-table :deep(.q-table__bottom) {
-  background: #fafafa;
-  border-radius: 0 0 15px 15px;
-}
 
 .stat-table :deep(thead tr th) {
   font-size: 0.72rem;

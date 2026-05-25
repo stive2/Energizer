@@ -2,39 +2,40 @@
   <!-- fFf : footer pleine largeur (pas de « l » en 1re pos. = pas de marge drawer, comme hHh pour le header) -->
   <q-layout view="hHh Lpr fFf" class="authenticated-layout">
     <q-header elevated class="bg-primary text-white">
-      <q-toolbar class="text-white">
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          color="white"
-          class="q-mr-sm"
-          @click="leftDrawerOpen = !leftDrawerOpen"
-        />
+      <q-toolbar class="text-white authenticated-toolbar">
+        <div class="authenticated-toolbar__side authenticated-toolbar__side--left">
+          <q-btn
+            flat
+            dense
+            round
+            icon="menu"
+            aria-label="Menu"
+            color="white"
+            class="q-mr-sm"
+            @click="leftDrawerOpen = !leftDrawerOpen"
+          />
 
-        <div v-if="$q.screen.gt.xs" class="q-mr-sm">
-          <q-img src="icons/logo.jpg" style="width: 140px" alt="CNPS" />
+          <div v-if="$q.screen.gt.xs" class="q-mr-sm">
+            <q-img src="icons/logo.jpg" style="width: 140px" alt="CNPS" />
+          </div>
         </div>
 
-        <q-toolbar-title class="text-bold text-center">
+        <div class="authenticated-toolbar__title text-bold">
           {{ toolbarTitle }}
-        </q-toolbar-title>
+        </div>
 
-        <q-space />
-
-        <q-btn
-          dense
-          flat
-          icon="language"
-          :label="currentLangLabel"
-          no-caps
-          color="white"
-          class="q-mr-sm"
-          style="background-color: rgba(255, 255, 255, 0.18)"
-          rounded
-        >
+        <div class="authenticated-toolbar__side authenticated-toolbar__side--right">
+          <q-btn
+            dense
+            flat
+            icon="language"
+            :label="currentLangLabel"
+            no-caps
+            color="white"
+            class="q-mr-sm authenticated-toolbar__lang-btn"
+            style="background-color: rgba(255, 255, 255, 0.18)"
+            rounded
+          >
           <q-menu>
             <q-list style="min-width: 100px">
               <q-item clickable v-close-popup @click="changeLang('fr')">
@@ -53,30 +54,31 @@
           </q-menu>
         </q-btn>
 
-        <div class="row items-center no-wrap q-mr-sm">
-          <q-avatar size="36px" color="white" text-color="primary" class="text-weight-bold">
-            {{ userInitials }}
-            <q-tooltip>{{ displayName || t('layout.userUnknown') }}</q-tooltip>
-          </q-avatar>
-          <span
-            v-if="$q.screen.gt.sm && displayName"
-            class="text-caption text-white q-ml-sm text-weight-medium user-name-ellipsis"
-          >
-            {{ displayName }}
-          </span>
-        </div>
+          <UserProfileMenu
+            v-if="showProfileMenu"
+            :display-name="displayName"
+            :user-initials="userInitials"
+            :user-profile="userProfile"
+            :persist-user-profile="persistUserProfile"
+            :change-sim-password="changeSimPassword"
+            class="q-mr-sm"
+          />
 
-        <q-btn
-          flat
-          dense
-          round
-          icon="logout"
-          color="white"
-          :aria-label="t('logout')"
-          @click="logout"
-        >
-          <q-tooltip>{{ t('logout') }}</q-tooltip>
-        </q-btn>
+          <div v-else class="row items-center no-wrap q-mr-sm">
+            <q-avatar size="36px" color="white" text-color="primary" class="text-weight-bold">
+              {{ userInitials }}
+              <q-tooltip>{{ displayName || t('layout.userUnknown') }}</q-tooltip>
+            </q-avatar>
+            <span
+              v-if="$q.screen.gt.sm && displayName"
+              class="text-caption text-white q-ml-sm text-weight-medium user-name-ellipsis"
+            >
+              {{ displayName }}
+            </span>
+          </div>
+
+          <LogoutMenuButton @confirm="performLogout" />
+        </div>
       </q-toolbar>
     </q-header>
 
@@ -85,15 +87,41 @@
       show-if-above
       side="left"
       bordered
-      :width="drawerWidth"
+      :width="drawerComputedWidth"
+      :mini-width="auraSidebar ? 64 : undefined"
       :breakpoint="drawerBreakpoint"
-      :mini="drawerMini ? miniState : false"
-      :class="drawerClassList"
-      :content-class="drawerContentClass"
+      :mini="drawerComputedMini"
+      :overlay="!isDrawerDesktop"
+      :class="drawerComputedClass"
+      :content-class="auraSidebar ? '' : drawerContentClass"
       @mouseover="onDrawerMouseOver"
       @mouseout="onDrawerMouseOut"
     >
-      <q-scroll-area class="fit authenticated-drawer__scroll">
+      <AuraSidebarShell
+        v-if="auraSidebar"
+        v-model:mini-mode="miniMode"
+        :brand-title="auraBrandTitle"
+        :brand-caption="auraBrandCaption"
+        :brand-icon="auraBrandIcon"
+        :sidebar-title="sidebarTitle"
+        :user-initials="userInitials"
+        :user-name="sidebarUserName"
+        :user-email="sidebarUserEmail"
+        :show-brand-block="showSidebarBrand"
+        :show-user-block="showSidebarUser"
+        :show-collapse-button="isDrawerDesktop"
+      >
+        <slot v-if="$slots.sidebar" name="sidebar" />
+        <AppSidebarNav
+          v-else-if="menuItems.length"
+          :items="menuItems"
+          :mini-mode="miniMode"
+          :nav-section-label="t('layout.sidebar.navSectionPrincipal')"
+          @navigate="closeDrawerOnMobile"
+        />
+      </AuraSidebarShell>
+
+      <q-scroll-area v-else class="fit authenticated-drawer__scroll">
         <div v-if="showDrawerBrand" class="authenticated-drawer__brand">
           <div class="authenticated-drawer__brand-title">{{ drawerTitle }}</div>
         </div>
@@ -101,7 +129,7 @@
         <AppSidebarNav
           v-else-if="menuItems.length"
           :items="menuItems"
-          :compact-top="!showDrawerBrand"
+          @navigate="closeDrawerOnMobile"
         />
       </q-scroll-area>
     </q-drawer>
@@ -113,8 +141,13 @@
     <q-footer reveal elevated class="bg-primary text-white authenticated-footer">
       <q-toolbar>
         <q-toolbar-title class="text-bold text-center" style="font-size: 15px">
-          Copyright © 2021-{{ new Date().getFullYear() }} {{ t('footer.rights') }} <br />
-          "{{ t('footer.message') }}"
+          <template v-if="footerSimple">
+            Copyright © {{ new Date().getFullYear() }} {{ t('footer.rights') }}
+          </template>
+          <template v-else>
+            Copyright © 2021-{{ new Date().getFullYear() }} {{ t('footer.rights') }} <br />
+            "{{ t('footer.message') }}"
+          </template>
         </q-toolbar-title>
       </q-toolbar>
     </q-footer>
@@ -122,11 +155,18 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted, provide } from 'vue'
+import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import AppSidebarNav from 'components/layout/AppSidebarNav.vue'
+import AuraSidebarShell from 'components/layout/AuraSidebarShell.vue'
+import UserProfileMenu from 'components/layout/UserProfileMenu.vue'
+import LogoutMenuButton from 'components/layout/LogoutMenuButton.vue'
 import { useAuthenticatedSession } from 'src/composables/useAuthenticatedSession.js'
+import { formatUserDisplayName } from 'src/utils/userDisplay.js'
+
+const AURA_DRAWER_WIDTH = 260
 
 const props = defineProps({
   menuItems: {
@@ -140,6 +180,10 @@ const props = defineProps({
   toolbarTitleKey: {
     type: String,
     default: 'title',
+  },
+  toolbarTitleMobileKey: {
+    type: String,
+    default: '',
   },
   drawerTitleKey: {
     type: String,
@@ -169,32 +213,145 @@ const props = defineProps({
     type: String,
     default: 'authenticated-drawer',
   },
+  showProfileMenu: {
+    type: Boolean,
+    default: false,
+  },
+  footerSimple: {
+    type: Boolean,
+    default: false,
+  },
+  auraSidebar: {
+    type: Boolean,
+    default: false,
+  },
+  auraBrandTitleKey: {
+    type: String,
+    default: 'layout.energizer.toolbarTitle',
+  },
+  auraBrandCaptionKey: {
+    type: String,
+    default: 'layout.sidebar.auraBrandCaption',
+  },
+  auraBrandIcon: {
+    type: String,
+    default: 'bolt',
+  },
+  showSidebarUser: {
+    type: Boolean,
+    default: true,
+  },
+  showSidebarBrand: {
+    type: Boolean,
+    default: true,
+  },
+  sidebarTitleKey: {
+    type: String,
+    default: '',
+  },
 })
 
 const $q = useQuasar()
+const route = useRoute()
 const { locale, t } = useI18n()
 
-const leftDrawerOpen = ref(true)
+const leftDrawerOpen = ref(false)
 const miniState = ref(true)
+const miniMode = ref(false)
 
-const drawerClassList = computed(() => props.drawerClass)
+const isDrawerDesktop = computed(() => $q.screen.width >= props.drawerBreakpoint)
 
-const { displayName, userInitials, logout } = useAuthenticatedSession(props.sessionConfig)
+const authSession = useAuthenticatedSession(props.sessionConfig)
+
+const displayName = authSession.displayName
+const userInitials = authSession.userInitials
+const userProfile = authSession.userProfile
+const persistUserProfile = authSession.persistUserProfile
+const changeSimPassword = authSession.changeSimPassword
+const performLogout = authSession.performLogout
+
+const effectiveDrawerWidth = computed(() => {
+  const max = props.drawerWidth
+  const w = $q.screen.width
+  if (w < 360) return Math.min(max, w - 40)
+  if (w < props.drawerBreakpoint) return Math.min(max, Math.round(w * 0.86))
+  return max
+})
+
+const drawerComputedWidth = computed(() => {
+  if (props.auraSidebar && isDrawerDesktop.value) return AURA_DRAWER_WIDTH
+  return effectiveDrawerWidth.value
+})
+
+const drawerComputedMini = computed(() => {
+  if (props.auraSidebar && isDrawerDesktop.value) return miniMode.value
+  if (props.drawerMini && isDrawerDesktop.value) return miniState.value
+  return false
+})
+
+const drawerComputedClass = computed(() => {
+  if (props.auraSidebar) {
+    return ['aura-drawer', { 'aura-drawer--overlay': !isDrawerDesktop.value }]
+  }
+  return [props.drawerClass, { 'authenticated-drawer--overlay': !isDrawerDesktop.value }]
+})
+
+const auraBrandTitle = computed(() => {
+  const translated = t(props.auraBrandTitleKey)
+  return translated === props.auraBrandTitleKey ? props.auraBrandTitleKey : translated
+})
+
+const auraBrandCaption = computed(() => {
+  const translated = t(props.auraBrandCaptionKey)
+  return translated === props.auraBrandCaptionKey ? props.auraBrandCaptionKey : translated
+})
+
+const sidebarTitle = computed(() => {
+  if (!props.sidebarTitleKey) return ''
+  const translated = t(props.sidebarTitleKey)
+  return translated === props.sidebarTitleKey ? props.sidebarTitleKey : translated
+})
+
+const sidebarUserName = computed(() =>
+  formatUserDisplayName(userProfile.value, displayName.value) || t('layout.userUnknown'),
+)
+
+const sidebarUserEmail = computed(
+  () => userProfile.value?.email || userProfile.value?.login || '—',
+)
 
 function onDrawerMouseOver() {
-  if (props.drawerMini) {
+  if (!props.auraSidebar && props.drawerMini && isDrawerDesktop.value) {
     miniState.value = false
   }
 }
 
 function onDrawerMouseOut() {
-  if (props.drawerMini) {
+  if (!props.auraSidebar && props.drawerMini && isDrawerDesktop.value) {
     miniState.value = true
   }
 }
 
+function syncDrawerForViewport() {
+  leftDrawerOpen.value = isDrawerDesktop.value
+}
+
+function closeDrawerOnMobile() {
+  if (!isDrawerDesktop.value) {
+    leftDrawerOpen.value = false
+  }
+}
+
+onMounted(() => {
+  syncDrawerForViewport()
+})
+
+provide('closeSidebarOnMobile', closeDrawerOnMobile)
+provide('auraSidebarMiniMode', miniMode)
+
 const toolbarTitle = computed(() => {
-  const key = props.toolbarTitleKey
+  const useMobile = props.toolbarTitleMobileKey && $q.screen.lt.sm
+  const key = useMobile ? props.toolbarTitleMobileKey : props.toolbarTitleKey
   const translated = t(key)
   return translated === key ? key : translated
 })
@@ -204,13 +361,20 @@ const drawerTitle = computed(() => t(props.drawerTitleKey))
 const currentLangLabel = computed(() => (locale.value === 'fr' ? 'FR' : 'EN'))
 
 watch(
-  () => $q.screen.gt.md,
-  (isDesktop) => {
-    if (isDesktop) {
-      leftDrawerOpen.value = true
+  () => $q.screen.width,
+  () => {
+    syncDrawerForViewport()
+    if (!isDrawerDesktop.value) {
+      miniMode.value = false
     }
   },
-  { immediate: true },
+)
+
+watch(
+  () => route.fullPath,
+  () => {
+    closeDrawerOnMobile()
+  },
 )
 
 function changeLang(lang) {
@@ -232,6 +396,55 @@ function changeLang(lang) {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.authenticated-toolbar {
+  position: relative;
+  min-height: 56px;
+}
+
+.authenticated-toolbar__side {
+  display: flex;
+  align-items: center;
+  z-index: 1;
+}
+
+.authenticated-toolbar__side--left {
+  flex: 1;
+  min-width: 0;
+}
+
+.authenticated-toolbar__side--right {
+  flex: 1;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.authenticated-toolbar__title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+  max-width: min(52vw, 420px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 599px) {
+  .authenticated-toolbar__title {
+    font-size: 0.82rem;
+    max-width: 42vw;
+    padding-right: 6px;
+    transform: translateX(calc(-50% - 10px));
+  }
+
+  .authenticated-toolbar__lang-btn {
+    margin-left: 12px;
+  }
 }
 </style>
 
@@ -284,7 +497,12 @@ function changeLang(lang) {
 }
 
 /* Footer fixe (F) au-dessus du drawer au scroll reveal */
-.authenticated-layout .q-drawer.authenticated-drawer {
+.authenticated-drawer--overlay {
+  box-shadow: 8px 0 36px rgba(15, 23, 42, 0.24) !important;
+}
+
+.authenticated-layout .q-drawer.authenticated-drawer,
+.authenticated-layout .q-drawer.aura-drawer {
   z-index: 2000;
 }
 

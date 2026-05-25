@@ -1,4 +1,4 @@
-import { getSimAccountByProfile } from 'src/constants/simPortalAuth.js'
+import { getSimAccountByProfile } from 'src/api/auth/simPortalAuth.js'
 
 const TOKEN_KEY = 'auth_token'
 const USER_KEY = 'user_info'
@@ -45,9 +45,15 @@ export function isInsuredSessionActive() {
  */
 export function persistAgentSession(payload) {
   const spec = getSimAccountByProfile('internal')
+  const displayName = payload.displayName || spec.displayName
+  const prenom = payload.prenom || spec.prenom
+  const nom = payload.nom || spec.nom
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.setItem(AGENT_PROFILE_KEY, 'internal')
-    sessionStorage.setItem(AGENT_NAME_KEY, payload.displayName || spec.displayName)
+    sessionStorage.setItem(
+      AGENT_NAME_KEY,
+      prenom && nom ? `${prenom} ${nom}` : displayName,
+    )
   }
   if (typeof localStorage !== 'undefined') {
     localStorage.setItem(TOKEN_KEY, payload.token || `sim-token-internal`)
@@ -56,7 +62,9 @@ export function persistAgentSession(payload) {
       JSON.stringify({
         profile: 'internal',
         login: payload.login || spec.login,
-        nom: payload.displayName || spec.displayName,
+        prenom,
+        nom,
+        displayName,
         email: payload.login || spec.login,
         matricule: 'AGT-DEMO-001',
         agence: 'Direction générale (démo)',
@@ -70,6 +78,7 @@ export function persistAgentSession(payload) {
  */
 export function persistInsuredSession(payload) {
   const spec = getSimAccountByProfile('external')
+  const numAssu = payload.num_assu || payload.login || spec.num_assu || spec.login
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.setItem(ASSURE_PROFILE_KEY, 'external')
     sessionStorage.setItem(ASSURE_NAME_KEY, payload.displayName || spec.displayName)
@@ -81,11 +90,12 @@ export function persistInsuredSession(payload) {
       JSON.stringify({
         profile: 'external',
         login: payload.login || spec.login,
+        num_assu: numAssu,
         nom: payload.displayName || spec.displayName,
         email: payload.login || spec.login,
         telephone: '+237677123456',
         adresse: 'YAOUNDE, CAMEROUN',
-        numeroAssure: '321-1234567-0',
+        numeroAssure: numAssu,
         sexe: 'F',
         mat_interne: 'EMP-2024-001',
       }),

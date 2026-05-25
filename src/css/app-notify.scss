@@ -1,0 +1,44 @@
+/* Notifications : toujours en haut, au-dessus des modales, bien lisibles */
+.q-notifications {
+  z-index: 99999 !important;
+  pointer-events: none;
+}
+
+.q-notifications__list--top {
+  top: 16px;
+  left: 0;
+  right: 0;
+  padding: 0 12px;
+}
+
+.q-notification.app-notify {
+  pointer-events: all;
+  max-width: min(560px, 94vw);
+  margin-left: auto;
+  margin-right: auto;
+  min-height: 52px;
+  padding: 14px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+  border-radius: 10px;
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, 0.28),
+    0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+.q-notification.app-notify .q-notification__message {
+  padding: 0;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.q-notification.app-notify .q-notification__actions {
+  padding-left: 8px;
+}
+
+.q-notification.app-notify .q-notification__progress {
+  opacity: 0.85;
+  height: 3px;
+}

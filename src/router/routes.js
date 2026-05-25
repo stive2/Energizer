@@ -36,12 +36,11 @@ const routes = [
       },
       {
         path: 'reception/nouveau-dossier',
-        name: 'reception-nouveau-dossier',
-        component: () => import('pages/reception/ReceptionNouveauDossierPage.vue'),
+        name: 'energizer-reception-nouveau-dossier',
+        component: () => import('pages/energizer/NouveauDossierReceptionPage.vue'),
       },
     ],
   },
-
 
   /* 3 — Assuré */
   {

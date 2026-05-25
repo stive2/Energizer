@@ -4,72 +4,73 @@ import {
   loadAssureDepotPfContexte,
   submitDepotPrestationPf,
 } from 'src/api/assure/depotPrestationPfApi.js'
-import { DEPOT_PF_TYPE_CODES } from 'src/constants/assure/depotPrestationPfTypes.js'
+import { DEPOT_PF_TYPE_CODES } from 'src/data/assure/depotPrestationPfTypes.js'
 import { normalizeMatriculeEmployeur } from 'src/api/assure/depotPrestationPfUtils.js'
+import { PF_PIECE } from 'src/data/assure/depotPrestationPfLegacyFields.js'
+import {
+  acteNaissanceKey,
+  parseNombreEnfantsAllocations,
+  parseNombreEnfantsSousControleAccouchement,
+  syncAllocationsPieces,
+} from 'src/utils/depotPrestationPfAccouchement.js'
 
+/** Champs communs (tele_prestation_pf.js / initInfoField). */
 function createCommonForm() {
   return {
-    mat_employeur: '',
-    raisonsociale: '',
-    mat_interne: '',
-    EMAIL_PERS: '',
-    TEL_PERS: '',
-    Adresse: '',
+    matEmployeur: '',
+    RAISON_SOCIALE: '',
+    matrInteText: '',
+    emailAssuText: '',
+    telAssuText: '',
+    addrAssuText: '',
     CODE_CENTRECNPSC: null,
+    CODE_CENTRECNPS: null,
     typeSubmission: 'definitive',
   }
 }
 
 function createExamensPrenatauxForm() {
   return {
-    demandePremierExamen: false,
-    demandeDeuxiemeExamen: false,
-    datePremierExamen: '',
-    dateDeuxiemeExamen: '',
-    dateProbableAccouchement: '',
-    allocations1: false,
-    fraisMedicaux1: false,
-    allocations2: false,
-    fraisMedicaux2: false,
-    certificatPremier: null,
-    fraisMedicauxPremier: null,
-    certificatDeuxieme: null,
-    fraisMedicauxDeuxieme: null,
+    dateExam1Date: '',
+    dateExam2: '',
+    dateAccoProb: '',
+    AP1ChBo: false,
+    FM1ChBo: false,
+    AP2ChBo: false,
+    FM2ChBo: false,
+    [PF_PIECE.CERT_AP1]: null,
+    [PF_PIECE.FRAIS_AP1]: null,
+    [PF_PIECE.CERT_AP2]: null,
+    [PF_PIECE.FRAIS_AP2]: null,
   }
 }
 
 function createAccouchementForm() {
   return {
-    dateAccouchement: '',
-    nombreEnfantsViables: 1,
-    nombreEnfantsSousControle: null,
-    fraisAccouchement: false,
-    fraisMedicaux: false,
-    certificatMedical: null,
-    acteNaissanceEnfant1: null,
-    acteNaissanceEnfant2: null,
-    acteNaissanceEnfant3: null,
-    acteNaissanceEnfant4: null,
-    acteNaissanceEnfant5: null,
+    dateAccoEffe: '',
+    nombEnfaViab: 1,
+    nombEnfaContMedi: null,
+    FAChBo: false,
+    FMAChBo: false,
+    [PF_PIECE.CERT_ACCOUCHEMENT]: null,
   }
 }
 
 function createCongesMaterniteForm() {
   return {
-    showIndemnites: true,
-    accouchementPremature: false,
-    nombreJoursCouches: 0,
-    debutConges: '',
-    finConges: '',
-    dateRepriseActivite: '',
-    debutPeriodeNonSalaire: '',
-    finPeriodeNonSalaire: '',
-    nombreEnfantsViables: 1,
-    nombreEnfantsSousControle: 1,
-    certificatMedical: null,
-    actesNaissance: [null],
-    bulletinPaie: null,
-    attestationCessation: null,
+    ijcmChBo: true,
+    accoPremChBo: false,
+    nombJourSupp: 0,
+    dateDebuCongEffe: '',
+    dateFinCongEffe: '',
+    dateDebuNonSala: '',
+    dateFinNonSala: '',
+    dateReprActi: '',
+    nombEnfaViab: 1,
+    nombEnfaContMedi: null,
+    [PF_PIECE.CERT_ACCOUCHEMENT]: null,
+    [PF_PIECE.BULLETIN_PAIE]: null,
+    [PF_PIECE.ATTESTATION_CESSATION]: null,
   }
 }
 
@@ -97,16 +98,23 @@ function readContexteFromLocalStorage() {
 
 function createAllocationsForm() {
   return {
-    dateSignatureDossier: '',
-    dateEmbauche: '',
-    heuresTravaillees: '',
-    nombreEnfantsMoins6: 0,
-    nombreEnfantsPlus6: 0,
-    nombreEnfantsReconnus: 0,
-    attestationNonPerceptionAF: null,
-    acteMariageCertifie: null,
-    originalActeMariage: null,
-    actesNaissanceSupplementaires: {},
+    dateSignEmpl: '',
+    dateEmba: '',
+    nbreHeurEmba: '',
+    nombEnfaMoin6: 0,
+    nombEnfaPlus6: 0,
+    nombEnfaReco: 0,
+    [PF_PIECE.ATTESTATION_AF]: null,
+    [PF_PIECE.ACTE_MARIAGE]: null,
+    [PF_PIECE.ORIGINAL_ACTE_MARIAGE]: null,
+  }
+}
+
+function appendFormFiles(fd, form) {
+  for (const [key, val] of Object.entries(form)) {
+    if (val instanceof File) {
+      fd.append(key, val)
+    }
   }
 }
 
@@ -114,6 +122,10 @@ export const useDepotPrestationPfStore = defineStore('assure-depot-prestation-pf
   state: () => ({
     contexte: null,
     selectedTypeCode: null,
+    /** Données communes validées à l’étape « Continuer » (fusionnées à la soumission). */
+    dossierTemporaire: null,
+    /** Choix examens prénataux : premier | deuxieme | both */
+    examensPrenatauxChoice: null,
     common: createCommonForm(),
     examensPrenataux: createExamensPrenatauxForm(),
     accouchement: createAccouchementForm(),
@@ -178,39 +190,75 @@ export const useDepotPrestationPfStore = defineStore('assure-depot-prestation-pf
       const ctx = this.contexte
       if (!ctx) return
 
-      const email = ctx.EMAIL_PERS || ctx.email || ''
-      const tel = ctx.TEL_PERS || ctx.telephone || ctx.tel || ''
-      const adresse = ctx.Adresse || ctx.adresse || ''
-      const matInterne = ctx.mat_interne || ctx.matriculeInterne || ''
+      const email = ctx.emailAssuText || ctx.EMAIL_PERS || ctx.email || ''
+      const tel = ctx.telAssuText || ctx.TEL_PERS || ctx.telephone || ctx.tel || ''
+      const adresse = ctx.addrAssuText || ctx.Adresse || ctx.adresse || ''
+      const matInterne = ctx.matrInteText || ctx.mat_interne || ctx.matriculeInterne || ''
 
-      if (email) this.common.EMAIL_PERS = email
-      if (tel) this.common.TEL_PERS = tel
-      if (adresse) this.common.Adresse = String(adresse).toUpperCase()
-      if (matInterne) this.common.mat_interne = String(matInterne).toUpperCase()
+      if (email) this.common.emailAssuText = email
+      if (tel) this.common.telAssuText = tel
+      if (adresse) this.common.addrAssuText = String(adresse).toUpperCase()
+      if (matInterne) this.common.matrInteText = String(matInterne).toUpperCase()
     },
 
     setSelectedType(code) {
       this.selectedTypeCode = code
+      if (code !== DEPOT_PF_TYPE_CODES.EXAMENS_PRENATAUX) {
+        this.examensPrenatauxChoice = null
+      }
+    },
+
+    /**
+     * Enregistre les coordonnées / employeur dans la variable temporaire (étape 2).
+     */
+    saveCoordonneesTemporaires() {
+      this.dossierTemporaire = {
+        common: { ...this.common },
+        savedAt: Date.now(),
+      }
+    },
+
+    getCommonForSubmit() {
+      return this.dossierTemporaire?.common
+        ? { ...this.dossierTemporaire.common, ...this.common }
+        : { ...this.common }
+    },
+
+    resetWizard() {
+      this.dossierTemporaire = null
+      this.examensPrenatauxChoice = null
+    },
+
+    /**
+     * Après un dépôt réussi : réinitialise le formulaire métier courant
+     * mais conserve les coordonnées validées (`dossierTemporaire`).
+     */
+    prepareForAnotherDepotType() {
+      this.selectedTypeCode = null
+      this.examensPrenatauxChoice = null
+      this.resetTypeForms()
+      if (this.dossierTemporaire?.common) {
+        const saved = { ...this.dossierTemporaire.common }
+        saved.CODE_CENTRECNPSC = null
+        Object.assign(this.common, saved)
+      }
     },
 
     async fetchEmployeur() {
-      const matricule = normalizeMatriculeEmployeur(this.common.mat_employeur)
+      const matricule = normalizeMatriculeEmployeur(this.common.matEmployeur)
       if (!matricule) {
         throw new Error('matricule_required')
       }
-      this.common.mat_employeur = matricule
+      this.common.matEmployeur = matricule
       this.loadingEmployeur = true
       try {
         const employer = await fetchEmployeurDepotPf(matricule)
-        this.common.raisonsociale =
+        this.common.RAISON_SOCIALE =
+          employer.RAISON_SOCIALE ||
           employer.raisonsociale ||
           employer.NOM_COMMERCIAL ||
           employer.denominationSociale ||
           ''
-        this.common.NOM_COMMERCIAL = employer.NOM_COMMERCIAL || this.common.raisonsociale
-        this.common.ADRESSE_EMPLOYEUR = employer.ADRESSE_EMPLOYEUR || ''
-        this.common.DATE_EMB_PREM_TRAV = employer.DATE_EMB_PREM_TRAV || ''
-        this.common.EFFECTIF_APPROX = employer.EFFECTIF_APPROX ?? ''
         return employer
       } finally {
         this.loadingEmployeur = false
@@ -229,45 +277,69 @@ export const useDepotPrestationPfStore = defineStore('assure-depot-prestation-pf
       this.resetTypeForms()
       this.selectedTypeCode = null
       this.lastSubmitResult = null
+      this.resetWizard()
+      if (this.contexte) {
+        this.applyCoordonneesFromContexte()
+      }
     },
 
     validateTypeSpecific(typeCode) {
       const errors = []
       if (typeCode === DEPOT_PF_TYPE_CODES.EXAMENS_PRENATAUX) {
         const f = this.examensPrenataux
+        const choice = this.examensPrenatauxChoice || 'both'
         const hasDate = (val) => String(val || '').replace(/\D/g, '').length >= 8
         const premierActif =
-          hasDate(f.datePremierExamen) || f.allocations1 || f.fraisMedicaux1
+          choice !== 'deuxieme' &&
+          (hasDate(f.dateExam1Date) || f.AP1ChBo || f.FM1ChBo)
         const deuxiemeActif =
-          hasDate(f.dateDeuxiemeExamen) ||
-          hasDate(f.dateProbableAccouchement) ||
-          f.allocations2 ||
-          f.fraisMedicaux2
-        f.demandePremierExamen = premierActif
-        f.demandeDeuxiemeExamen = deuxiemeActif
+          choice !== 'premier' &&
+          (hasDate(f.dateExam2) || hasDate(f.dateAccoProb) || f.AP2ChBo || f.FM2ChBo)
         if (!premierActif && !deuxiemeActif) {
           errors.push('examens_prenataux_aucune_demande')
         }
-        if (premierActif && !f.allocations1 && !f.fraisMedicaux1) {
+        if (premierActif && !f.AP1ChBo && !f.FM1ChBo) {
           errors.push('examens_prenataux_premier_checkbox')
         }
-        if (deuxiemeActif && !f.allocations2 && !f.fraisMedicaux2) {
+        if (deuxiemeActif && !f.AP2ChBo && !f.FM2ChBo) {
           errors.push('examens_prenataux_deuxieme_checkbox')
         }
       }
       if (typeCode === DEPOT_PF_TYPE_CODES.ACCOUCHEMENT) {
         const f = this.accouchement
-        if (!f.fraisAccouchement && !f.fraisMedicaux) {
+        if (!f.FAChBo && !f.FMAChBo) {
           errors.push('accouchement_option_requise')
         }
-        const raw = f.nombreEnfantsSousControle
+        const raw = f.nombEnfaContMedi
         const n = parseInt(raw, 10)
         if (raw === null || raw === undefined || raw === '' || !Number.isFinite(n) || n <= 0) {
           errors.push('accouchement_nombre_enfants_sous_controle_requis')
+        } else if (n > 99) {
+          errors.push('accouchement_nombre_enfants_max')
         } else {
-          const count = Math.min(5, n)
+          const count = parseNombreEnfantsSousControleAccouchement(n)
           for (let i = 1; i <= count; i += 1) {
-            if (!f[`acteNaissanceEnfant${i}`]) {
+            if (!f[acteNaissanceKey(i)]) {
+              errors.push(`accouchement_acte_naissance_${i}`)
+            }
+          }
+        }
+      }
+      if (typeCode === DEPOT_PF_TYPE_CODES.CONGES_MATERNITE) {
+        if (!this.isFemale) {
+          errors.push('maternite_femme_uniquement')
+        }
+        const f = this.congesMaternite
+        const raw = f.nombEnfaContMedi
+        const n = parseInt(raw, 10)
+        if (raw === null || raw === undefined || raw === '' || !Number.isFinite(n) || n <= 0) {
+          errors.push('accouchement_nombre_enfants_sous_controle_requis')
+        } else if (n > 99) {
+          errors.push('accouchement_nombre_enfants_max')
+        } else {
+          const count = parseNombreEnfantsSousControleAccouchement(n)
+          for (let i = 1; i <= count; i += 1) {
+            if (!f[acteNaissanceKey(i)]) {
               errors.push(`accouchement_acte_naissance_${i}`)
             }
           }
@@ -275,23 +347,38 @@ export const useDepotPrestationPfStore = defineStore('assure-depot-prestation-pf
       }
       if (typeCode === DEPOT_PF_TYPE_CODES.ALLOCATIONS_FAMILIALES) {
         const f = this.allocations
-        if (
-          parseInt(f.nombreEnfantsMoins6 || 0, 10) === 0 &&
-          parseInt(f.nombreEnfantsPlus6 || 0, 10) === 0 &&
-          parseInt(f.nombreEnfantsReconnus || 0, 10) === 0
-        ) {
+        syncAllocationsPieces(f)
+        const m6 = parseNombreEnfantsAllocations(f.nombEnfaMoin6)
+        const p6 = parseNombreEnfantsAllocations(f.nombEnfaPlus6)
+        const reco = parseNombreEnfantsAllocations(f.nombEnfaReco)
+        const sumMp = Math.min(99, m6 + p6)
+        if (m6 + p6 + reco <= 0) {
           errors.push('allocations_enfant_requis')
+        }
+        for (let i = 1; i <= m6; i += 1) {
+          if (!f[`25_${i}`]) errors.push(`allocations_certificat_vie_${i}`)
+        }
+        for (let i = 1; i <= sumMp; i += 1) {
+          if (!f[`28_${i}`]) errors.push(`allocations_certificat_scolarite_${i}`)
+          if (!f[`33_${i}`]) errors.push(`accouchement_acte_naissance_${i}`)
+        }
+        for (let i = 1; i <= reco; i += 1) {
+          if (!f[`23_${i}`]) errors.push(`allocations_declaration_reconnaissance_${i}`)
         }
       }
       return errors
     },
 
     buildSubmitPayload(typeCode) {
+      const commonPayload = this.getCommonForSubmit()
       const fd = new FormData()
       fd.append('numAssu', this.numAssu)
       fd.append('typeDepotPf', typeCode)
-      fd.append('typeSubmission', this.common.typeSubmission)
-      fd.append('common', JSON.stringify(this.common))
+      fd.append('typeSubmission', commonPayload.typeSubmission)
+      fd.append('common', JSON.stringify(commonPayload))
+      if (this.dossierTemporaire) {
+        fd.append('dossierTemporaire', JSON.stringify(this.dossierTemporaire))
+      }
 
       let specific = {}
       if (typeCode === DEPOT_PF_TYPE_CODES.EXAMENS_PRENATAUX) {
@@ -305,39 +392,15 @@ export const useDepotPrestationPfStore = defineStore('assure-depot-prestation-pf
       }
       fd.append('specific', JSON.stringify(specific))
 
-      const appendFile = (key, file) => {
-        if (file instanceof File) {
-          fd.append(key, file)
-        }
-      }
-
       if (typeCode === DEPOT_PF_TYPE_CODES.EXAMENS_PRENATAUX) {
-        appendFile('certificatPremier', this.examensPrenataux.certificatPremier)
-        appendFile('fraisMedicauxPremier', this.examensPrenataux.fraisMedicauxPremier)
-        appendFile('certificatDeuxieme', this.examensPrenataux.certificatDeuxieme)
-        appendFile('fraisMedicauxDeuxieme', this.examensPrenataux.fraisMedicauxDeuxieme)
-      }
-      if (typeCode === DEPOT_PF_TYPE_CODES.ACCOUCHEMENT) {
-        appendFile('certificatMedical', this.accouchement.certificatMedical)
-        for (let i = 1; i <= 5; i += 1) {
-          appendFile(`acteNaissanceEnfant${i}`, this.accouchement[`acteNaissanceEnfant${i}`])
-        }
-      }
-      if (typeCode === DEPOT_PF_TYPE_CODES.CONGES_MATERNITE) {
-        appendFile('certificatMedical', this.congesMaternite.certificatMedical)
-        appendFile('bulletinPaie', this.congesMaternite.bulletinPaie)
-        appendFile('attestationCessation', this.congesMaternite.attestationCessation)
-        this.congesMaternite.actesNaissance.forEach((file, idx) => {
-          appendFile(`acteNaissance_${idx}`, file)
-        })
-      }
-      if (typeCode === DEPOT_PF_TYPE_CODES.ALLOCATIONS_FAMILIALES) {
-        appendFile('attestationNonPerceptionAF', this.allocations.attestationNonPerceptionAF)
-        appendFile('acteMariageCertifie', this.allocations.acteMariageCertifie)
-        appendFile('originalActeMariage', this.allocations.originalActeMariage)
-        Object.entries(this.allocations.actesNaissanceSupplementaires).forEach(([key, file]) => {
-          appendFile(key, file)
-        })
+        appendFormFiles(fd, this.examensPrenataux)
+      } else if (typeCode === DEPOT_PF_TYPE_CODES.ACCOUCHEMENT) {
+        appendFormFiles(fd, this.accouchement)
+      } else if (typeCode === DEPOT_PF_TYPE_CODES.CONGES_MATERNITE) {
+        appendFormFiles(fd, this.congesMaternite)
+      } else if (typeCode === DEPOT_PF_TYPE_CODES.ALLOCATIONS_FAMILIALES) {
+        syncAllocationsPieces(this.allocations)
+        appendFormFiles(fd, this.allocations)
       }
 
       return fd

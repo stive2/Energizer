@@ -1,13 +1,7 @@
 <template>
   <q-page class="q-pa-md saisie-elements-page">
 
-    <!-- Fil d'Ariane -->
-    <q-breadcrumbs class="q-mb-md" active-color="primary" separator-icon="chevron_right">
-      <q-breadcrumbs-el :label="t('layout.sidebar.stats')" :to="{ name: 'energizer-home' }" />
-      <q-breadcrumbs-el :label="t('layout.sidebar.liquidations')" />
-      <q-breadcrumbs-el :label="t('layout.sidebar.prestationPf')" />
-      <q-breadcrumbs-el :label="t('layout.sidebar.saisieElementsLiquidation')" />
-    </q-breadcrumbs>
+    <AppBreadcrumbs :menu-items="energizerMenu" class="q-mb-md" />
 
     <!-- ════════════════════════════════════════════════
          LANDING : grille de cartes (aucun panel actif)
@@ -156,6 +150,8 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import ElementsLiquidationPF from 'components/prestationPF/elementsLiquidationPF.vue'
+import AppBreadcrumbs from 'components/layout/AppBreadcrumbs.vue'
+import { energizerMenu } from 'src/config/menus/energizerMenu.js'
 import GestionDesReprises from 'components/prestationPF/gestionDesReprises.vue'
 import ElementsLiquidationAF from 'components/prestationPF/elementsLiquidationAF.vue'
 import PeriodeActivite from 'components/prestationPF/periodeActivite.vue'

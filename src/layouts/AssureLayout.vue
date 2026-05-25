@@ -1,13 +1,15 @@
 <template>
   <AuthenticatedLayout
     :session-config="assureSessionConfig"
-    toolbar-title-key="title"
-    :show-drawer-brand="false"
-    :drawer-width="250"
-    :drawer-breakpoint="500"
-    drawer-mini
-    drawer-content-class="assure-drawer-panel bg-blue-2"
-    drawer-class="authenticated-drawer assure-drawer"
+    toolbar-title-key="layout.assure.toolbarTitle"
+    toolbar-title-mobile-key="layout.assure.toolbarTitleMobile"
+    sidebar-title-key="layout.assure.sidebarTitle"
+    show-profile-menu
+    footer-simple
+    aura-sidebar
+    :show-sidebar-brand="false"
+    :show-sidebar-user="false"
+    :drawer-breakpoint="1024"
   >
     <template #sidebar>
       <AssureSidebarNav />
@@ -30,15 +32,3 @@ onMounted(() => {
   depotPfStore.loadContexte()
 })
 </script>
-
-<style>
-.assure-drawer.authenticated-drawer {
-  background: #bbdefb !important;
-  border-right: 1px solid #90caf9 !important;
-  box-shadow: 4px 0 20px rgba(13, 71, 161, 0.12);
-}
-
-.assure-drawer-panel {
-  background: #bbdefb !important;
-}
-</style>
