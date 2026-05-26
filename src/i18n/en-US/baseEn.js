@@ -525,6 +525,7 @@ export default {
     max_size_hint: 'Max size accepted : 3 Mo',
     requis: 'Required',
     emailInvalide: 'Invalid e-mail address',
+    invalidPhone: 'Invalid phone number',
     risque: 'Risk group',
     raisonSociale: 'Company name *',
     nomCommercial: 'Trade name *',

@@ -1,4 +1,4 @@
-import { isAgentSessionActive, isInsuredSessionActive } from 'src/utils/portalSimAuthSession.js'
+import { isAgentSessionActive, isInsuredSessionActive } from 'src/modules/shared/utils/portalSimAuthSession.js'
 
 export function setupAuthGuards(router) {
   router.beforeEach((to, _from, next) => {

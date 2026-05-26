@@ -1,12 +1,12 @@
 import { defineBoot } from '#q-app/wrappers'
 import axios from 'axios'
-import { notifyNegative } from 'src/utils/appNotify.js'
+import { notifyNegative } from 'src/modules/shared/utils/appNotify.js'
 import {
   CNPS_AUTH_TOKEN_KEY,
   getCnpsApiBaseUrl,
   getCnpsApiTimeout,
-} from 'src/config/api.js'
-import { getApiErrorMessage } from 'src/services/http/apiError.js'
+} from 'src/modules/shared/config/api.js'
+import { getApiErrorMessage } from 'src/modules/shared/services/http/apiError.js'
 
 const api = axios.create({
   baseURL: getCnpsApiBaseUrl(),

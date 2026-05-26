@@ -1,17 +1,21 @@
-{
-  "extends": "./.quasar/tsconfig.json",
-  "compilerOptions": {
-    "paths": {
-      "src/*": ["./src/*"],
-      "app/*": ["./*"],
-      "components/*": ["./src/components/*"],
-      "layouts/*": ["./src/layouts/*"],
-      "pages/*": ["./src/pages/*"],
-      "assets/*": ["./src/assets/*"],
-      "boot/*": ["./src/boot/*"],
-      "stores/*": ["./src/stores/*"],
-      "vue$": ["./node_modules/vue/dist/vue.runtime.esm-bundler.js"]
-    }
-  },
-  "exclude": ["dist", ".quasar", "node_modules"]
-}
+{
+  "extends": "./.quasar/tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "src/*": ["./src/*"],
+      "app/*": ["./*"],
+      "@shared/*": ["./src/modules/shared/*"],
+      "@energizer/*": ["./src/modules/energizer/*"],
+      "@assure/*": ["./src/modules/assure/*"],
+      "@immatriculations/*": ["./src/modules/immatriculations/*"],
+      "components/*": ["./src/modules/shared/components/*"],
+      "layouts/*": ["./src/modules/shared/layouts/*"],
+      "pages/*": ["./src/pages/*"],
+      "assets/*": ["./src/assets/*"],
+      "boot/*": ["./src/boot/*"],
+      "stores/*": ["./src/stores/*"],
+      "vue$": ["./node_modules/vue/dist/vue.runtime.esm-bundler.js"]
+    }
+  },
+  "exclude": ["dist", ".quasar", "node_modules"]
+}

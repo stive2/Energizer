@@ -550,6 +550,7 @@ export default {
     max_size_hint: 'Taille maximun accepté : 3 Mo',
     requis: 'Obligatoire',
     emailInvalide: 'Adresse e-mail invalide',
+    invalidPhone: 'Numéro de téléphone invalide',
     risque: 'Risque',
     raisonSociale: 'Raison sociale *',
     nomCommercial: 'Nom commercial *',
