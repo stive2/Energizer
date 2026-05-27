@@ -2621,9 +2621,9 @@ const onMontantRevAnnuelChange = () => {
   updateAssietteCotisationVol(form.value)
 }
 
-const onFileSelected = (field, index) => {
+/* const onFileSelected = (field, index) => {
   // hook pour traitement futur si nécessaire
-}
+} */
 
 const resetFileField = (field) => {
   form.value[field] = ['file504', 'file507', 'pieceIdentite', 'declarationHonneur'].includes(field)
