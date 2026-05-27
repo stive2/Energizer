@@ -1,0 +1,854 @@
+/* Dépôt prestations familiales — design formulaires (logique inchangée) */
+$depot-pf-field-width: 500px;
+$depot-pf-gap: 16px;
+$depot-pf-gap-half: $depot-pf-gap * 0.5;
+$depot-pf-stack-width: $depot-pf-field-width * 2 + $depot-pf-gap;
+$depot-pf-primary: #1565c0;
+$depot-pf-primary-soft: #e3f2fd;
+$depot-pf-surface: #ffffff;
+$depot-pf-page-bg: #f1f5f9;
+$depot-pf-border: #dbe4ef;
+$depot-pf-text: #1e293b;
+$depot-pf-muted: #64748b;
+$depot-pf-radius: 12px;
+$depot-pf-radius-sm: 10px;
+$depot-pf-exam-date-width: 220px;
+$depot-pf-accouchement-field-width: 380px;
+$depot-pf-accouchement-date-width: 400px;
+
+.depot-pf-page {
+  width: 100%;
+  max-width: 1120px;
+  margin-left: auto;
+  margin-right: auto;
+  background: transparent;
+}
+
+.depot-pf-shell {
+  border-radius: $depot-pf-radius;
+  border: 1px solid $depot-pf-border;
+  background: $depot-pf-surface;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 12px 32px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.depot-pf-shell__header {
+  padding: 1.25rem 1.5rem;
+  background: linear-gradient(135deg, #e8f4fd 0%, #f8fbff 55%, #ffffff 100%);
+  border-bottom: 1px solid $depot-pf-border;
+}
+
+.depot-pf-shell__title-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.depot-pf-shell__title-icon {
+  color: $depot-pf-primary;
+  background: $depot-pf-surface;
+  border-radius: 10px;
+  padding: 6px;
+  box-shadow: 0 2px 8px rgba(21, 101, 192, 0.12);
+}
+
+.depot-pf-shell__title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0d47a1;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.depot-pf-shell__subtitle {
+  margin-top: 0.2rem;
+  font-size: 0.8125rem;
+  color: $depot-pf-muted;
+  line-height: 1.45;
+  max-width: 52rem;
+}
+
+.depot-pf-form-body {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 1.25rem 1.5rem 1.75rem;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #fafbfd 0%, #ffffff 100%);
+}
+
+.depot-pf-form-stack {
+  width: 100%;
+  max-width: $depot-pf-stack-width;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.depot-pf-type-card {
+  padding: 1rem 1.1rem;
+  border-radius: $depot-pf-radius-sm;
+  border: 1px solid $depot-pf-border;
+  background: $depot-pf-surface;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+
+.depot-pf-form-stack--active {
+  padding-top: 0.25rem;
+}
+
+/* Champs Quasar */
+.depot-pf-form-stack .q-field,
+.depot-pf-form-stack .q-select,
+.depot-pf-form-stack .q-file {
+  width: 100%;
+}
+
+.depot-pf-form-stack .q-field--outlined .q-field__control {
+  border-radius: $depot-pf-radius-sm;
+  background: $depot-pf-surface;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.depot-pf-form-stack .q-field--outlined:hover .q-field__control {
+  border-color: #93c5fd;
+}
+
+.depot-pf-form-stack .q-field--focused .q-field__control {
+  box-shadow: 0 0 0 3px rgba(21, 101, 192, 0.12);
+}
+
+.depot-pf-form-stack .q-field--outlined.q-field--readonly .q-field__control,
+.depot-pf-form-stack .q-field.bg-blue-grey-1 .q-field__control {
+  background: #f1f5f9 !important;
+}
+
+.depot-pf-form-stack .q-field .q-icon {
+  color: $depot-pf-primary;
+}
+
+.depot-pf-select-type .q-field__control {
+  min-height: 52px;
+  background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+}
+
+.depot-pf-select-type .q-field__native,
+.depot-pf-select-type .q-field__label {
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+/* Sections formulaire */
+.depot-pf-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  width: 100%;
+  padding: 1.1rem 1.15rem;
+  border-radius: $depot-pf-radius-sm;
+  border: 1px solid $depot-pf-border;
+  background: $depot-pf-surface;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+}
+
+.depot-pf-instruction-banner {
+  width: 100%;
+  border-radius: $depot-pf-radius-sm !important;
+  border: 1px solid #bfdbfe !important;
+  background: linear-gradient(90deg, #eff6ff 0%, #f0f9ff 100%) !important;
+  color: #1e3a5f !important;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.depot-pf-section-heading {
+  width: 100%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: $depot-pf-primary;
+  text-transform: uppercase;
+  padding: 0.5rem 0.65rem;
+  margin-top: 0.15rem;
+  border-radius: 8px;
+  background: $depot-pf-primary-soft;
+  border-left: 3px solid $depot-pf-primary;
+}
+
+.depot-pf-form-section > .text-subtitle1,
+.depot-pf-form-section > .text-subtitle2 {
+  width: 100%;
+  margin: 0.35rem 0 0.15rem;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem !important;
+  font-weight: 700 !important;
+  color: #0d47a1 !important;
+  letter-spacing: -0.01em;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e8eef5;
+}
+
+.depot-pf-form-section > .text-subtitle2 {
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: $depot-pf-muted !important;
+  background: transparent;
+  border: none;
+  padding-left: 0;
+}
+
+.depot-pf-separator {
+  width: 100%;
+  opacity: 0.7;
+  margin: 0.35rem 0;
+}
+
+/* Blocs examens / accouchement */
+.depot-pf-examens-groupe {
+  width: 100%;
+  border: 1px solid #bfdbfe;
+  border-radius: $depot-pf-radius-sm;
+  padding: 1rem 1.1rem 1.15rem;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #fafcff 0%, #ffffff 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.depot-pf-examens-groupe__title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: $depot-pf-primary;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px dashed #cbd5e1;
+}
+
+.depot-pf-examens-groupe__title--center {
+  text-align: center;
+}
+
+.depot-pf-examens-groupe--centred {
+  .depot-pf-row-examen-premier,
+  .depot-pf-row-examen-deuxieme,
+  .depot-pf-examens-fichiers {
+    justify-content: center;
+  }
+
+  .depot-pf-checkbox-inline {
+    justify-content: center;
+  }
+}
+
+.depot-pf-centre-cnps-select-wrap {
+  width: 100%;
+  max-width: min(100%, 520px);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.depot-pf-centre-cnps--centered .depot-pf-centre-cnps-select-wrap {
+  max-width: min(100%, 520px);
+}
+
+.depot-pf-form-section.depot-pf-examens-form {
+  gap: 0.4rem;
+}
+
+.depot-pf-examens-form {
+  .depot-pf-form-main-title {
+    margin-bottom: 0.65rem;
+  }
+
+  .depot-pf-examens-groupe {
+    margin-bottom: 0.4rem;
+    padding: 0.75rem 1rem 0.8rem;
+
+    &:last-of-type {
+      margin-bottom: 0.25rem;
+    }
+  }
+
+  .depot-pf-examens-groupe__title {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .depot-pf-examens-zone-commune {
+    margin-top: 0.25rem;
+    padding-top: 0.45rem;
+  }
+}
+
+.depot-pf-examens-zone-commune {
+  width: 100%;
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 0.45rem;
+}
+
+.depot-pf-examens-choice {
+  text-align: center;
+  padding-top: 0.25rem;
+}
+
+.depot-pf-examens-choice__lead {
+  margin: 0 0 1.25rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: $depot-pf-muted;
+  font-weight: 500;
+}
+
+.depot-pf-examens-choice__options {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  margin: 0 auto;
+}
+
+.depot-pf-form-main-title {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-bottom: 1rem;
+}
+
+.depot-pf-form-main-title--center {
+  text-align: center;
+}
+
+.depot-pf-dialog-toolbar-title--center {
+  flex: 1 1 auto;
+  text-align: center;
+  padding-right: 2.5rem;
+}
+
+.depot-pf-form-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $depot-pf-gap;
+  width: 100%;
+}
+
+.depot-pf-form-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: $depot-pf-gap;
+  width: 100%;
+}
+
+.depot-pf-form-grid-1-2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: $depot-pf-gap;
+  width: 100%;
+}
+
+.depot-pf-row-examen-premier,
+.depot-pf-row-examen-deuxieme {
+  width: 100%;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.depot-pf-examens-groupe .depot-pf-field-date-compact,
+.depot-pf-row-examen-deuxieme .depot-pf-field-date-deuxieme {
+  flex: 0 0 $depot-pf-exam-date-width;
+  width: $depot-pf-exam-date-width;
+  min-width: $depot-pf-exam-date-width;
+  max-width: $depot-pf-exam-date-width;
+}
+
+.depot-pf-field-date-compact {
+  width: 100%;
+  min-width: 0;
+}
+
+.depot-pf-examens-groupe .depot-pf-field-date-compact .q-field__label,
+.depot-pf-examens-groupe .depot-pf-field-date-deuxieme .q-field__label {
+  font-size: 0.72rem;
+  line-height: 1.2;
+  white-space: normal;
+}
+
+.depot-pf-field-date-compact.q-field--dense .q-field__control {
+  min-height: 40px;
+}
+
+.depot-pf-field-date-compact .q-field__native,
+.depot-pf-field-date-compact .q-field__input {
+  font-size: 0.85rem;
+}
+
+.depot-pf-row-examen-deuxieme__checks {
+  min-height: 36px;
+  padding-top: 2px;
+
+  @media (min-width: 768px) {
+    flex-wrap: nowrap;
+    align-self: center;
+    padding-top: 0;
+  }
+}
+
+.depot-pf-examens-fichiers {
+  width: 100%;
+  gap: $depot-pf-gap;
+  flex-wrap: wrap;
+
+  > * {
+    flex: 1 1 calc(50% - #{$depot-pf-gap-half});
+    min-width: min(100%, 320px);
+    max-width: calc(50% - #{$depot-pf-gap-half});
+  }
+
+  .q-field__control {
+    min-height: 48px;
+  }
+
+  .q-field__label {
+    font-size: 0.85rem;
+    line-height: 1.3;
+    white-space: normal;
+  }
+}
+
+.depot-pf-checkbox-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  min-height: 40px;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.depot-pf-checkbox-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  justify-content: center;
+  min-height: 40px;
+}
+
+.depot-pf-form-grid-2 .q-field,
+.depot-pf-form-grid-2 .q-select,
+.depot-pf-form-grid-2 .q-file,
+.depot-pf-form-grid-3 .q-field,
+.depot-pf-form-grid-3 .q-select,
+.depot-pf-form-grid-3 .q-file {
+  width: 100%;
+  min-width: 0;
+}
+
+.depot-pf-acte-naissance-cell {
+  position: relative;
+  min-width: 0;
+
+  &__remove {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1;
+  }
+}
+
+.depot-pf-checkbox-row {
+  align-items: center;
+}
+
+.depot-pf-form-stack .q-banner:not(.depot-pf-instruction-banner) {
+  width: 100%;
+  border-radius: $depot-pf-radius-sm;
+}
+
+/* Soumission */
+.depot-pf-submit-card {
+  width: 100%;
+  padding: 1rem 1.15rem;
+  border-radius: $depot-pf-radius-sm;
+  border: 1px solid $depot-pf-border;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.depot-pf-submit-card__title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #0d47a1;
+}
+
+.depot-pf-submit-card__options {
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  background: $depot-pf-surface;
+  border: 1px solid #e8eef5;
+}
+
+.depot-pf-form-stack .q-option-group {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 0.5rem 1.25rem;
+}
+
+.depot-pf-form-actions {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.65rem;
+  padding-top: 0.25rem;
+}
+
+.depot-pf-form-actions .q-btn {
+  min-width: 180px;
+  border-radius: 10px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.depot-pf-form-actions .q-btn--unelevated {
+  box-shadow: 0 4px 12px rgba(21, 101, 192, 0.22);
+}
+
+/* Accouchement */
+.depot-pf-form-section.depot-pf-accouchement-form {
+  gap: 0.5rem;
+}
+
+.depot-pf-accouchement-groupe {
+  width: 100%;
+  max-width: min(100%, $depot-pf-stack-width);
+  margin-left: auto;
+  margin-right: auto;
+  border: 1px solid #bfdbfe;
+  border-radius: $depot-pf-radius-sm;
+  padding: 0.85rem 1rem 1rem;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #fafcff 0%, #ffffff 100%);
+
+  .depot-pf-examens-groupe__title {
+    margin-bottom: 0.65rem;
+  }
+}
+
+.depot-pf-accouchement-champs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: min(100%, $depot-pf-accouchement-date-width);
+  margin: 0 auto;
+}
+
+.depot-pf-accouchement-champ {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+
+  .q-field {
+    width: 100%;
+  }
+
+  .q-field__label {
+    line-height: 1.3;
+  }
+}
+
+.depot-pf-accouchement-champ--uniform .q-field {
+  width: 100%;
+  max-width: $depot-pf-accouchement-field-width;
+  min-width: 0;
+}
+
+.depot-pf-accouchement-champ--date .q-field {
+  max-width: $depot-pf-accouchement-date-width;
+  min-width: min(100%, $depot-pf-accouchement-date-width);
+}
+
+.depot-pf-accouchement-champ--date .q-field__label {
+  white-space: nowrap;
+  font-size: 0.78rem;
+}
+
+.depot-pf-accouchement-champ.depot-pf-accouchement-remboursement {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  max-width: min(100%, $depot-pf-accouchement-date-width);
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e8eef5;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.depot-pf-accouchement-remboursement__label {
+  font-weight: 700;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  text-align: center;
+  width: 100%;
+  max-width: 100%;
+  padding: 0 0.25rem;
+  overflow: visible;
+  text-overflow: unset;
+  white-space: normal;
+  word-wrap: normal;
+  overflow-wrap: normal;
+  hyphens: manual;
+}
+
+.depot-pf-accouchement-remboursement__checks {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 1.25rem;
+  width: 100%;
+  max-width: 100%;
+}
+
+.depot-pf-accouchement-remboursement__checks .q-checkbox {
+  margin: 0;
+  max-width: 100%;
+}
+
+.depot-pf-accouchement-remboursement__checks .q-checkbox__label {
+  line-height: 1.3;
+  white-space: normal;
+}
+
+.depot-pf-accouchement-champ .depot-pf-fichier-piece,
+.depot-pf-accouchement-champ .q-field {
+  width: 100%;
+}
+
+.depot-pf-accouchement-champ .q-field__control {
+  min-height: 48px;
+}
+
+.depot-pf-accouchement-zone-centre {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding-top: 0.65rem;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.depot-pf-accouchement-actes {
+  width: 100%;
+  margin: 0.75rem auto 0;
+  padding-top: 0.65rem;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.depot-pf-accouchement-actes__title {
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: $depot-pf-primary;
+  margin-bottom: 0.65rem;
+}
+
+.depot-pf-accouchement-actes__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: $depot-pf-gap;
+  width: 100%;
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 0.25rem;
+  align-content: start;
+}
+
+.depot-pf-accouchement-actes__cell .q-field {
+  width: 100%;
+}
+
+.depot-pf-accouchement-actes__cell .q-field__control {
+  min-height: 48px;
+}
+
+.depot-pf-accouchement-actes__cell .q-field__label {
+  font-size: 0.78rem;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+.depot-pf-accouchement-form .depot-pf-field-compact .q-field__label {
+  font-size: 0.72rem;
+  line-height: 1.25;
+  white-space: normal;
+}
+
+.depot-pf-accouchement-form .depot-pf-field-compact.q-field--dense .q-field__control {
+  min-height: 40px;
+}
+
+.depot-pf-allocations-pieces {
+  width: 100%;
+  margin-top: 0.65rem;
+  padding-top: 0.65rem;
+  border-top: 1px dashed #cbd5e1;
+}
+
+.depot-pf-maternite-indemnites,
+.depot-pf-maternite-option {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  max-width: min(100%, $depot-pf-accouchement-date-width);
+  padding: 0.45rem 0.5rem;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e8eef5;
+  box-sizing: border-box;
+
+  .q-checkbox {
+    max-width: 100%;
+  }
+
+  .q-checkbox__label {
+    line-height: 1.35;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 900px) {
+  .depot-pf-form-body {
+    padding: 1rem;
+  }
+
+  .depot-pf-form-grid-2,
+  .depot-pf-form-grid-3,
+  .depot-pf-form-grid-1-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .depot-pf-row-examen-premier,
+  .depot-pf-row-examen-deuxieme {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+  }
+
+  .depot-pf-examens-groupe .depot-pf-field-date-compact,
+  .depot-pf-row-examen-deuxieme .depot-pf-field-date-deuxieme {
+    flex: 1 1 100%;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+  }
+
+  .depot-pf-examens-fichiers > * {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+
+  .depot-pf-accouchement-actes__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .depot-pf-accouchement-champ--uniform .q-field,
+  .depot-pf-accouchement-champ--date .q-field {
+    max-width: 100%;
+    min-width: 0;
+  }
+
+  .depot-pf-accouchement-champ--date .q-field__label {
+    white-space: normal;
+  }
+
+  .depot-pf-accouchement-champ.depot-pf-accouchement-remboursement {
+    max-width: 100%;
+    padding: 0.6rem 0.5rem;
+  }
+
+  .depot-pf-accouchement-remboursement__checks {
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0.35rem;
+  }
+
+  .depot-pf-accouchement-remboursement__checks .q-checkbox {
+    width: 100%;
+    justify-content: flex-start;
+    padding: 0.2rem 0;
+  }
+
+  .depot-pf-form-actions .q-btn {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .depot-pf-wizard-actions .q-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+.depot-pf-welcome__banner {
+  margin-bottom: 0.75rem;
+}
+
+.depot-pf-welcome__hint {
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+@media (max-width: 600px) {
+  .depot-pf-shell__header {
+    padding: 1rem;
+  }
+
+  .depot-pf-form-body {
+    padding: 0.75rem !important;
+  }
+
+  .depot-pf-form-grid-3,
+  .depot-pf-form-grid-1-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .depot-pf-accouchement-champs {
+    max-width: 100%;
+    padding: 0 0.15rem;
+  }
+
+  .depot-pf-accouchement-groupe {
+    padding: 0.75rem 0.5rem 0.85rem;
+  }
+
+  .depot-pf-accouchement-remboursement__label {
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .depot-pf-accouchement-remboursement__checks {
+    flex-direction: row;
+    justify-content: center;
+  }
+}

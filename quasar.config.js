@@ -2,7 +2,10 @@
 // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file
 
 import { defineConfig } from '#q-app/wrappers'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig((ctx) => {
   return {
@@ -12,7 +15,7 @@ export default defineConfig((ctx) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['i18n', 'axios'],
+    boot: ['i18n', 'notify', 'axios'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: ['app.scss'],
@@ -47,14 +50,34 @@ export default defineConfig((ctx) => {
 
       // publicPath: '/',
       // analyze: true,
-      // env: {},
+      env: {
+        VITE_CNPS_API_BASE_URL: process.env.VITE_CNPS_API_BASE_URL || 'http://172.17.15.121:8020',
+        VITE_CNPS_API_TIMEOUT: process.env.VITE_CNPS_API_TIMEOUT || '30000',
+        VITE_CNPS_API_USE_PROXY: process.env.VITE_CNPS_API_USE_PROXY || '',
+        VITE_CNPS_API_FALLBACK_MOCK: process.env.VITE_CNPS_API_FALLBACK_MOCK || 'true',
+        VITE_CNPS_USE_REAL_AUTH: process.env.VITE_CNPS_USE_REAL_AUTH || '',
+      },
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,
       // polyfillModulePreload: true,
       // distDir
 
-      // extendViteConf (viteConf) {},
+      extendViteConf(viteConf) {
+        const alias = viteConf.resolve.alias
+        const setAlias = (key, relPath) => {
+          const target = path.join(__dirname, relPath)
+          if (Array.isArray(alias)) {
+            const entry = alias.find((a) => a.find === key)
+            if (entry) entry.replacement = target
+            else alias.push({ find: key, replacement: target })
+          } else {
+            alias[key] = target
+          }
+        }
+        setAlias('layouts', 'src/modules/shared/layouts')
+        setAlias('components', 'src/modules/shared/components')
+      },
       // viteVuePluginOptions: {},
 
       vitePlugins: [
@@ -92,11 +115,25 @@ export default defineConfig((ctx) => {
     devServer: {
       // https: true,
       open: true, // opens browser window automatically
+      proxy: {
+        '/api-cnps': {
+          target: process.env.VITE_CNPS_API_BASE_URL || 'http://172.17.15.121:8020',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/api-cnps/, ''),
+        },
+      },
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
     framework: {
-      config: {},
+      config: {
+        notify: {
+          position: 'top',
+          timeout: 4000,
+          progress: true,
+        },
+      },
 
       // iconSet: 'material-icons', // Quasar icon set
       lang: 'fr', // Quasar language pack

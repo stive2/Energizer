@@ -1,136 +1,163 @@
 const routes = [
+  /* Portail multi-modules (sans authentification) */
   {
     path: '/',
-    component: () => import('layouts/MainLayout.vue'),
-    children: [{ path: '', component: () => import('pages/IndexPage.vue') }],
-  },
-
-  // Routes pour la gestion des contrôleurs
-  {
-    path: '/gestion-controleurs',
-    component: () => import('layouts/MainLayout.vue'),
+    component: () => import('src/modules/shared/layouts/PortalLayout.vue'),
     children: [
       {
-        path: 'mise-demeure',
-        name: 'gestion-mise-demeure',
-        component: () => import('pages/gestionControleurs/gestionMiseDemeure.vue'),
+        path: '',
+        name: 'module-portal',
+        component: () => import('src/modules/shared/pages/portal/ModulePortalPage.vue'),
+      },
+      /* Logins modules : QPage doit être sous QLayout (PortalLayout) */
+      {
+        path: 'energizer/login',
+        name: 'energizer-login',
+        component: () => import('src/modules/energizer/pages/EnergizerLoginPage.vue'),
       },
       {
-        path: 'resultat-controle',
-        name: 'gestion-resultat-controle',
-        component: () => import('pages/gestionControleurs/gestionResultatControle.vue'),
+        path: 'assure/login',
+        name: 'assure-login',
+        component: () => import('src/modules/assure/pages/AssureLoginPage.vue'),
       },
     ],
   },
 
-  // Routes pour les liquidations
+  /* 1 — Energizer (agent CNPS) */
+  {
+    path: '/energizer',
+    component: () => import('src/modules/shared/layouts/MainLayout.vue'),
+    meta: { authProfile: 'internal' },
+    children: [
+      {
+        path: '',
+        name: 'energizer-home',
+        component: () => import('src/modules/energizer/pages/EnergizerHomePage.vue'),
+      },
+      {
+        path: 'reception/nouveau-dossier',
+        name: 'energizer-reception-nouveau-dossier',
+        component: () => import('src/modules/energizer/pages/NouveauDossierReceptionPage.vue'),
+      },
+    ],
+  },
+
+  /* 3 — Assuré */
+  {
+    path: '/assure',
+    component: () => import('src/modules/shared/layouts/AssureLayout.vue'),
+    meta: { authProfile: 'external' },
+    children: [
+      {
+        path: '',
+        name: 'assure-home',
+        component: () => import('src/modules/assure/pages/AssureHomePage.vue'),
+      },
+      {
+        path: 'dashboard',
+        name: 'assure-dashboard',
+        component: () => import('src/modules/shared/pages/dashboard.vue'),
+      },
+      {
+        path: 'depot-dossier',
+        name: 'depot-dossier',
+        component: () => import('src/modules/assure/pages/prestations/dossiers.vue'),
+      },
+      {
+        path: 'prestations-familiales',
+        name: 'assure-prestations-familiales',
+        component: () => import('src/modules/assure/pages/Prestations_Familiales.vue'),
+      },
+      {
+        path: 'prestation-pension',
+        name: 'assure-prestation-pension',
+        component: () => import('src/modules/assure/pages/Prestation_pension.vue'),
+      },
+      {
+        path: 'prestation-prise-at-mp',
+        name: 'assure-prestation-prise-at-mp',
+        component: () => import('src/modules/assure/pages/Prestation_prise_AT_MP.vue'),
+      },
+    ],
+  },
+
+  /* Ancienne URL espace assuré → module Assuré */
+  {
+    path: '/user',
+    redirect: '/assure',
+  },
+
+  /* 4 — Déclarations / immatriculations (sans authentification) */
+  {
+    path: '/declarations',
+    component: () => import('src/modules/shared/layouts/DeclarationsLayout.vue'),
+    children: [
+      {
+        path: '',
+        name: 'declarations-home',
+        component: () => import('src/modules/immatriculations/pages/DeclarationsHomePage.vue'),
+      },
+    ],
+  },
+
   {
     path: '/liquidations',
-    component: () => import('layouts/MainLayout.vue'),
+    component: () => import('src/modules/shared/layouts/MainLayout.vue'),
     children: [
       {
         path: 'liquidationRP/gestionLiquidationRP',
         name: 'gestion-liquidation-rp',
-        component: () => import('pages/liquidations/liquidationRP/gestionLiquidationRP.vue'),
+        component: () => import('src/modules/energizer/pages/liquidations/liquidationRP/gestionLiquidationRP.vue'),
+      },
+      {
+        path: 'liquidationRP/saisie-dossier-rp',
+        name: 'prestation-rp-saisie-dossier',
+        component: () => import('src/modules/energizer/pages/liquidations/liquidationRP/saisieDossierRP.vue'),
+      },
+      {
+        path: 'liquidationRP/saisie-elements-rp',
+        name: 'prestation-rp-saisie-elements',
+        component: () => import('src/modules/energizer/pages/liquidations/liquidationRP/saisieElementsRP.vue'),
       },
       {
         path: 'liquidationPF/liquidationPF',
-        name: 'liquidation-pf-home',
-        component: () => import('pages/liquidations/liquidationPF/liquidationPF.vue'),
+        redirect: { name: 'prestation-pf-saisie-elements' },
+      },
+      {
+        path: 'liquidationPF/saisie-elements',
+        name: 'prestation-pf-saisie-elements',
+        component: () => import('src/modules/energizer/pages/liquidations/liquidationPF/saisieElementsLiquidation.vue'),
       },
       {
         path: 'liquidationPF/allocationsFamiliales',
-        name: 'liquidation-pf-alloc-fam',
-        component: () => import('pages/liquidations/liquidationPF/allocationsFamiliales.vue'),
+        redirect: { name: 'prestation-pf-saisie-elements', query: { panel: 'allocations' } },
       },
       {
         path: 'liquidationPF/aperiodique',
-        name: 'liquidation-pf-aperiodique',
-        component: () => import('pages/liquidations/liquidationPF/aperiodique.vue'),
+        redirect: { name: 'prestation-pf-saisie-elements', query: { panel: 'aperiodique' } },
       },
       {
         path: 'liquidationPF/saisieReprises',
-        name: 'liquidation-pf-saisie-reprises',
-        component: () => import('pages/liquidations/liquidationPF/saisieReprises.vue'),
+        redirect: { name: 'prestation-pf-saisie-elements', query: { panel: 'reprises' } },
       },
       {
         path: 'liquidationPF/periodeActive',
-        name: 'liquidation-pf-periode-active',
-        component: () => import('pages/liquidations/liquidationPF/periodeActive.vue'),
+        redirect: { name: 'prestation-pf-saisie-elements', query: { panel: 'periodeActivite' } },
       },
       {
         path: 'liquidationPF/pieceMaintienDroit',
-        name: 'liquidation-pf-piece-maintien-droit',
-        component: () => import('pages/liquidations/liquidationPF/pieceMaintienDroit.vue'),
+        redirect: { name: 'prestation-pf-saisie-elements', query: { panel: 'pieceMaintien' } },
       },
       {
         path: 'liquidationPF/statistiques',
-        name: 'liquidation-pf-statistiques',
-        component: () => import('pages/liquidations/liquidationPF/statistiques.vue'),
+        redirect: { name: 'prestation-pf-saisie-elements', query: { panel: 'statistiques' } },
       },
     ],
   },
 
-  // Routes pour la tenue des comptes
-  {
-    path: '/tenu-comptes',
-    component: () => import('layouts/MainLayout.vue'),
-    children: [
-      {
-        path: 'gestionTenuCmpt',
-        name: 'gestion-tenu-comptes',
-        component: () => import('pages/gestionTenuCmpt.vue'),
-      },
-    ],
-  },
-
-  // Configuration de routing corrigée
-  {
-    path: '/user',
-    component: () => import('layouts/AssureLayout.vue'),
-    children: [
-      // CORRECTION: Utiliser des chemins relatifs (sans /) dans les children
-      {
-        path: 'dashboard', // Au lieu de '/dashboard'
-        name: 'dashboard',
-        component: () => import('pages/dashboard.vue'), // Correction: bashboard -> dashboard
-      },
-      {
-        path: 'depot-dossier', // Au lieu de '/depot-dossier'
-        name: 'depot-dossier',
-        component: () => import('pages/prestations/dossiers.vue'),
-      },
-      // Route par défaut pour rediriger vers dashboard
-      {
-        path: '',
-        redirect: 'dashboard',
-      },
-    ],
-  },
-
-  // Configuration de routing corrigée
-  {
-    path: '/rp',
-    component: () => import('layouts/RPLayout.vue'),
-    children: [
-      {
-        path: 'saisie-dossier', // Au lieu de '/saisie-dossier'
-        name: 'saisie-dossier',
-        component: () => import('pages/rp/saisieDossier.vue'),
-      },
-      // Route par défaut pour rediriger vers dashboard
-      {
-        path: '',
-        redirect: 'dashboard',
-      },
-    ],
-  },
-
-  // Always leave this as last one,
-  // but you can also remove it
   {
     path: '/:catchAll(.*)*',
-    component: () => import('pages/ErrorNotFound.vue'),
+    component: () => import('src/modules/shared/pages/ErrorNotFound.vue'),
   },
 ]
 

@@ -1,1 +1,12 @@
 // app global css in SCSS form
+
+@import 'depot-prestation-pf-form.scss';
+@import 'nouveau-dossier-pieces.scss';
+@import 'aura-sidebar.scss';
+@import 'app-notify.scss';
+@import 'pf-module-tables.scss';
+@import 'pf-legacy-form.scss';
+
+.app-page-shell {
+  background-color: #e3f2fd;
+}

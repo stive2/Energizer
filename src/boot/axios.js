@@ -1,24 +1,53 @@
 import { defineBoot } from '#q-app/wrappers'
 import axios from 'axios'
+import { notifyNegative } from 'src/modules/shared/utils/appNotify.js'
+import {
+  CNPS_AUTH_TOKEN_KEY,
+  getCnpsApiBaseUrl,
+  getCnpsApiTimeout,
+} from 'src/modules/shared/config/api.js'
+import { getApiErrorMessage } from 'src/modules/shared/services/http/apiError.js'
 
-// Be careful when using SSR for cross-request state pollution
-// due to creating a Singleton instance here;
-// If any client changes this (global) instance, it might be a
-// good idea to move this instance creation inside of the
-// "export default () => {}" function below (which runs individually
-// for each client)
-const api = axios.create({ baseURL: 'https://api.example.com' })
-
-export default defineBoot(({ app }) => {
-  // for use inside Vue files (Options API) through this.$axios and this.$api
-
-  app.config.globalProperties.$axios = axios
-  // ^ ^ ^ this will allow you to use this.$axios (for Vue Options API form)
-  //       so you won't necessarily have to import axios in each vue file
-
-  app.config.globalProperties.$api = api
-  // ^ ^ ^ this will allow you to use this.$api (for Vue Options API form)
-  //       so you can easily perform requests against your app's API
+const api = axios.create({
+  baseURL: getCnpsApiBaseUrl(),
+  timeout: getCnpsApiTimeout(),
+  headers: {
+    Accept: 'application/json',
+    'Content-Type': 'application/json',
+  },
 })
 
-export { api }
+api.interceptors.request.use(
+  (config) => {
+    if (typeof localStorage !== 'undefined') {
+      const token = localStorage.getItem(CNPS_AUTH_TOKEN_KEY)
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+      }
+    }
+    return config
+  },
+  (error) => Promise.reject(error),
+)
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const skipNotify = error.config?.skipErrorNotify === true
+    if (!skipNotify && typeof window !== 'undefined') {
+      notifyNegative(getApiErrorMessage(error), { timeout: 5000 })
+    }
+    return Promise.reject(error)
+  },
+)
+
+if (import.meta.env.DEV) {
+  console.info('[CNPS API] baseURL:', getCnpsApiBaseUrl(), '| timeout:', getCnpsApiTimeout(), 'ms')
+}
+
+export default defineBoot(({ app }) => {
+  app.config.globalProperties.$axios = axios
+  app.config.globalProperties.$api = api
+})
+
+export { api, axios }
