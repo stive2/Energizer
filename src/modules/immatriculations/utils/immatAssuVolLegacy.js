@@ -5,9 +5,72 @@ import {
   compareDates,
   monthsBetween,
   syncLegacyHiddenFields,
-  validateImmatPersonRules,
   isLegacyImageFile,
+  legacyPhoneDigits,
 } from './immatAssuTrvLegacy.js'
+
+/** 2e argument de to_number(TAUX, taux)/100 côté servlet GererAssure (masque Oracle, pas le taux %). */
+export const GERER_ASSURE_TAUX_ORACLE_FORMAT = '9.99'
+
+/** Erreurs communes assuré / parents — voir immatAssuTrvLegacy.collectImmatPersonValidationErrors */
+function collectImmatPersonFieldErrors(form, step, push) {
+  const checkAll = step === null || step === 7
+  const check2 = step === null || step === 2
+  const check3 = step === null || step === 3
+  const check4 = step === null || step === 4
+  const check6 = step === null || step === 6
+
+  syncLegacyHiddenFields(form)
+
+  if (check2 || checkAll) {
+    if (!form.LieuNaiss) {
+      push('LieuNaiss', "L'arrondissement de naissance de l'assuré est obligatoire.")
+    }
+    if (form.NUM_TYPEPIECE && !form.pieceIdentite) {
+      push('pieceIdentite', "La pièce d'identité est obligatoire.")
+    }
+    if (form.NUM_TYPEPIECE && form.NUM_TYPEPIECE !== '99' && !form.declarationHonneur) {
+      push('declarationHonneur', "La déclaration sur l'honneur est obligatoire.")
+    }
+    const refDate = form.DATE_DEMANDE || formatDateFr()
+    if (monthsBetween(refDate, form.DATE_NAISS_PERS) < 12 * 14) {
+      push('DATE_NAISS_PERS', 'Vous avez moins de 14 ans à ce jour.')
+    }
+    if (form.pieceIdentite && !isLegacyImageFile(form.pieceIdentite)) {
+      push('pieceIdentite', "La pièce d'identité doit être une image (gif, jpeg, jpg, png).")
+    }
+    if (
+      form.NUM_TYPEPIECE &&
+      form.NUM_TYPEPIECE !== '99' &&
+      form.declarationHonneur &&
+      !isLegacyImageFile(form.declarationHonneur)
+    ) {
+      push('declarationHonneur', "La déclaration sur l'honneur doit être une image (gif, jpeg, jpg, png).")
+    }
+  }
+
+  if (check3 || check4 || checkAll) {
+    if (form.DATE_NAISS_PERSM && compareDates(form.DATE_NAISS_PERSM, form.DATE_NAISS_PERS) === 1) {
+      push('DATE_NAISS_PERSM', "Date de naissance de l'assuré antérieure à celle de sa mère.")
+    }
+    const pere = (form.NOM_PERE || '').trim()
+    if (pere && pere.length > 0 && pere !== 'PND') {
+      if (form.DATE_NAISS_PERSP && compareDates(form.DATE_NAISS_PERSP, form.DATE_NAISS_PERS) === 1) {
+        push('DATE_NAISS_PERSP', "Date de naissance de l'assuré antérieure à celle de son père.")
+      }
+    } else if (form.LOCALITE_NAISS_PERE || form.DATE_NAISS_PERSP) {
+      push('NOM_PERE', 'Saisissez à nouveau les informations du père ou bien laissez les vides.')
+    }
+  }
+
+  if (check6 || checkAll) {
+    if (form.SEXE_PERS === 'FEMININ' && Number(form.nombConj) > 1) {
+      push('nombConj', "Une assurée ne peut avoir qu'un seul conjoint déclaré.")
+    }
+  }
+}
+import { selectSmig } from './selectSmig.js'
+import { normalizeSessionAssureInitRow } from '../adapters/legacyJsonAdapter.js'
 
 export const REGIME_VOLONTAIRE = '1'
 
@@ -82,14 +145,38 @@ export const LEGACY_VOL_TEXT_FIELDS = [
   'etatM',
 ]
 
-function firstDayOfMonth(date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1)
+function parseLegacyNumber(val) {
+  if (val == null || val === '') return NaN
+  return Number(String(val).replace(',', '.').replace(/\s/g, ''))
 }
 
-function addMonths(date, n) {
-  const d = new Date(date)
-  d.setMonth(d.getMonth() + n)
-  return d
+function formatVolNumericDisplay(val) {
+  if (val === null || val === undefined || val === '') return ''
+  const n = typeof val === 'number' ? val : parseLegacyNumber(val)
+  if (Number.isNaN(n)) return ''
+  return String(n)
+}
+
+/** Port traitementFm1.js — addNMonthToDate(date, n). */
+function addNMonthToDateLegacy(dateFr, n) {
+  const today = parseLegacyDate(dateFr)
+  if (!today) return null
+  const shifted = new Date(today.getFullYear(), today.getMonth() + (n + 1), 0)
+  shifted.setDate(Math.min(today.getDate(), shifted.getDate()))
+  return shifted
+}
+
+/** Port traitementFm1.js — takeCarDate(date, p) ; p === '1' → 1er du mois. */
+function takeCarDateLegacy(date, firstOfMonth = false) {
+  if (!date) return ''
+  const year = date.getFullYear()
+  let month = String(date.getMonth() + 1)
+  let day = String(date.getDate())
+  if (month.length === 1) month = `0${month}`
+  const monthYear = `${month}/${year}`
+  if (firstOfMonth) return `01/${monthYear}`
+  if (day.length === 1) day = `0${day}`
+  return `${day}/${monthYear}`
 }
 
 function origineLabel(val) {
@@ -106,45 +193,123 @@ function syncOrigineHidden(form) {
   }
 }
 
-/** Dates d'affiliation régime 1 (beforerender imma_assure.js). */
+/**
+ * Dates d'affiliation régime 1 — beforerender imma_assure.js (regime === '1').
+ * DATE_DEBUT_AFFI = date_effet ou min_date_effet si date_effet antérieure.
+ * MIN_DATE_DEBUT_AFFI = 1er jour du mois de addNMonthToDate(DATE_DEBUT_AFFI, -6).
+ */
 export function computeAffiliationDatesVol(session = {}) {
-  const dateEffet = parseLegacyDate(session.date_effet)
-  const minDateEffet = parseLegacyDate(session.min_date_effet)
-  let dateDebutAffi = dateEffet || new Date()
-  if (dateEffet && minDateEffet && compareDates(dateEffet, minDateEffet) < 0) {
-    dateDebutAffi = minDateEffet
+  const s = normalizeSessionAssureInitRow(session)
+  const dateEffetStr = s.date_effet || ''
+  const minDateEffetStr = s.min_date_effet || ''
+  let dateDebutAffiStr = dateEffetStr
+  if (dateEffetStr && minDateEffetStr && compareDates(dateEffetStr, minDateEffetStr) < 0) {
+    dateDebutAffiStr = minDateEffetStr
   }
-  const last6 = addMonths(firstDayOfMonth(dateDebutAffi), -6)
-  const minDebutAffi = firstDayOfMonth(last6)
+  if (!dateDebutAffiStr) {
+    dateDebutAffiStr = formatDateFr()
+  }
+  const last6 = addNMonthToDateLegacy(dateDebutAffiStr, -6)
+  const minDebutAffiStr = last6 ? takeCarDateLegacy(last6, true) : ''
   return {
-    DATE_DEBUT_AFFI: formatDateFr(dateDebutAffi),
-    MIN_DATE_DEBUT_AFFI: formatDateFr(minDebutAffi),
+    DATE_DEBUT_AFFI: dateDebutAffiStr,
+    MIN_DATE_DEBUT_AFFI: minDebutAffiStr,
+  }
+}
+
+function isGererAssureTauxOracleMask(value) {
+  const n = parseLegacyNumber(value)
+  if (Number.isNaN(n)) return false
+  return n === 9.99 || n === 0.99
+}
+
+function formatTauxPercentForGererAssure(percent) {
+  const n = parseLegacyNumber(percent)
+  if (Number.isNaN(n)) return ''
+  return n.toFixed(2)
+}
+
+/**
+ * Taux de cotisation en % (ex. 8.4) — ignore le masque Oracle 9.99/0.99 du champ caché JSP `taux`.
+ */
+export function resolveVolTauxPercent(source = {}, fallback = '') {
+  const candidates = [
+    source.TAUX,
+    source.TAUX_COTISATION,
+    source.taux,
+    fallback,
+  ]
+  for (const raw of candidates) {
+    if (raw == null || raw === '') continue
+    if (isGererAssureTauxOracleMask(raw)) continue
+    const n = parseLegacyNumber(raw)
+    if (Number.isNaN(n) || n <= 0) continue
+    if (n > 0 && n < 1) return n * 100
+    return n
+  }
+  return ''
+}
+
+/** Taux de cotisation figé — JTAUX_COTISATION via tele_imma_assure.jsp (#formAssu). */
+export function resolveVolTauxCotisation(session = {}, fallback = '') {
+  const p = resolveVolTauxPercent(session, fallback)
+  return p === '' ? '' : p
+}
+
+/** TAUX = taux % ; taux = masque Oracle — aligné POST GererAssure / tele_imma_assure.jsp. */
+export function syncGererAssureTauxVolFields(form) {
+  const percent = resolveVolTauxPercent(form)
+  form.taux = GERER_ASSURE_TAUX_ORACLE_FORMAT
+  if (percent !== '') {
+    form.TAUX = formatTauxPercentForGererAssure(percent)
+  }
+}
+
+/** Applique les paramètres serveur (session) + bornes dates d'affiliation. */
+export function applyVolSessionParams(form, session = {}) {
+  const s = normalizeSessionAssureInitRow(session)
+  const today = formatDateFr()
+  const tauxVal = resolveVolTauxCotisation(s, form.TAUX)
+  const affDates = computeAffiliationDatesVol(s)
+  const maxCot = parseLegacyNumber(s.max_cotisation_annuel)
+
+  form.DATE_DEMANDE = s.date_demande || s.DATE_DEMANDE || today
+  form.date_effet = s.date_effet || form.date_effet || ''
+  form.min_date_effet = s.min_date_effet || form.min_date_effet || ''
+  form.smig_annuel = s.smig_annuel ?? form.smig_annuel ?? ''
+  form.max_cotisation_annuel = s.max_cotisation_annuel ?? form.max_cotisation_annuel ?? ''
+  if (tauxVal !== '' && tauxVal != null) {
+    form.TAUX = formatVolNumericDisplay(tauxVal)
+  }
+  syncGererAssureTauxVolFields(form)
+  form.DATE_DEBUT_AFFI = affDates.DATE_DEBUT_AFFI
+  form.MIN_DATE_DEBUT_AFFI = affDates.MIN_DATE_DEBUT_AFFI
+
+  if (!Number.isNaN(maxCot) && maxCot > 0) {
+    form._maxCotisationMensuelle = Math.floor(maxCot / 12)
   }
 }
 
 export function initImmatAssuVolRegime1(form, session = {}) {
+  const s = normalizeSessionAssureInitRow(session)
   const today = formatDateFr()
-  const affDates = computeAffiliationDatesVol(session)
-  const taux = session.taux != null && session.taux !== '' ? Number(session.taux) : null
-  const smigAnnuel = session.smig_annuel != null && session.smig_annuel !== '' ? Number(session.smig_annuel) : null
-  const maxCot = session.max_cotisation_annuel != null && session.max_cotisation_annuel !== '' ? Number(session.max_cotisation_annuel) : null
 
   Object.assign(form, {
     regime: REGIME_VOLONTAIRE,
     regimeAffi: REGIME_VOLONTAIRE,
     regimeAffiC: 'Volontaire',
-    DATE_DEMANDE: session.date_demande || session.DATE_DEMANDE || today,
-    date_effet: session.date_effet || '',
-    taux: session.taux ?? '',
-    min_date_effet: session.min_date_effet || '',
-    smig_annuel: session.smig_annuel ?? '',
-    max_cotisation_annuel: session.max_cotisation_annuel ?? '',
-    TAUX: taux != null && !Number.isNaN(taux) ? taux : form.TAUX,
-    DATE_DEBUT_AFFI: affDates.DATE_DEBUT_AFFI,
-    MIN_DATE_DEBUT_AFFI: affDates.MIN_DATE_DEBUT_AFFI,
-    code_tele: session.code_tele || session.codeTele || '',
-    code_secret: session.code_secret || session.codeSecret || '',
-    Dest: session.Dest || '',
+    DATE_DEMANDE: s.date_demande || s.DATE_DEMANDE || today,
+    date_effet: s.date_effet || '',
+    taux: GERER_ASSURE_TAUX_ORACLE_FORMAT,
+    min_date_effet: s.min_date_effet || '',
+    smig_annuel: s.smig_annuel ?? '',
+    max_cotisation_annuel: s.max_cotisation_annuel ?? '',
+    TAUX: formatVolNumericDisplay(resolveVolTauxCotisation(s, form.TAUX)),
+    DATE_DEBUT_AFFI: '',
+    MIN_DATE_DEBUT_AFFI: '',
+    code_tele: s.code_tele || s.codeTele || '',
+    code_secret: s.code_secret || s.codeSecret || '',
+    Dest: s.Dest || '',
     laction: 'Créer',
     valider: 'OUI',
     CODE_ORIGINEREV: '',
@@ -170,98 +335,206 @@ export function initImmatAssuVolRegime1(form, session = {}) {
     file507: form.file507 ?? null,
   })
 
-  if (smigAnnuel != null && !Number.isNaN(smigAnnuel)) {
-    form.SMIG_VALUE = Math.floor(smigAnnuel / 12)
-  }
-  if (maxCot != null && !Number.isNaN(maxCot)) {
-    form._maxCotisationMensuelle = Math.floor(maxCot / 12)
-  }
+  applyVolSessionParams(form, s)
 }
 
-export function updateSmigFromAffiliationDate(form, dateStr) {
+/** SMIG applicable — selectSmig(lesSmig.jsp) + date d’affiliation sollicitée. */
+export function applyVolSmigForAffiliationDate(form, smigLines, dateStr) {
+  if (!smigLines?.length || !dateStr) return
+  const smig = selectSmig(smigLines, dateStr)
+  if (smig) form.SMIG_VALUE = smig
+}
+
+/** Repli si lesSmig.jsp indisponible (comportement historique simplifié). */
+export function updateSmigFromAffiliationDateFallback(form, dateStr) {
   const d = parseLegacyDate(dateStr)
   if (!d) return
   form.SMIG_VALUE = d.getFullYear() >= 2014 ? 36270 : 28182
 }
 
-/** Calcul assiette / cotisation (blur MONTANT_REV_ANNUEL — info_regime_assure.js). */
+/**
+ * Calcul assiette / cotisation — blur MONTANT_REV_ANNUEL (info_regime_assure.js).
+ * assiette = floor(revenu/12), plafonnée au max mensuel, plancher SMIG si besoin.
+ * montant = ceil(assiette * TAUX / 100).
+ */
 export function updateAssietteCotisationVol(form) {
-  const revenu = Number(form.MONTANT_REV_ANNUEL)
-  const taux = Number(form.TAUX)
-  const smig = Number(form.SMIG_VALUE)
+  const revenu = parseLegacyNumber(form.MONTANT_REV_ANNUEL)
+  const taux = parseLegacyNumber(form.TAUX)
+  const smig = parseLegacyNumber(form.SMIG_VALUE)
+  const maxAnnuel = parseLegacyNumber(form.max_cotisation_annuel)
   const maxMensuel =
     form._maxCotisationMensuelle ??
-    (form.max_cotisation_annuel ? Math.floor(Number(form.max_cotisation_annuel) / 12) : null)
+    (!Number.isNaN(maxAnnuel) && maxAnnuel > 0 ? Math.floor(maxAnnuel / 12) : null)
 
-  if (!revenu || Number.isNaN(revenu) || !taux || Number.isNaN(taux)) return
+  if (!revenu || Number.isNaN(revenu) || !taux || Number.isNaN(taux)) {
+    form.ASSIETTE_COTISATION = ''
+    form.MONTANT_COTISATION = ''
+    return
+  }
 
-  let assiette = revenu / 12
-  if (maxMensuel != null && !Number.isNaN(maxMensuel) && assiette - maxMensuel >= 0) {
-    assiette = maxMensuel
+  const as = revenu / 12
+  let assiette
+  if (maxMensuel != null && !Number.isNaN(maxMensuel) && as - maxMensuel >= 0) {
+    assiette = Math.floor(maxMensuel)
   } else {
-    assiette = Math.floor(assiette)
-    if (!Number.isNaN(smig) && assiette - smig > 0) {
-      // borne max = assiette calculée (legacy)
-    } else if (!Number.isNaN(smig) && assiette < smig) {
+    assiette = Math.floor(as)
+    if (!Number.isNaN(smig) && smig > 0 && assiette < smig) {
       assiette = smig
     }
   }
-  form.ASSIETTE_COTISATION = Math.floor(assiette)
-  form.MONTANT_COTISATION = Math.ceil((form.ASSIETTE_COTISATION * taux) / 100)
+
+  form.ASSIETTE_COTISATION = formatVolNumericDisplay(assiette)
+  form.MONTANT_COTISATION = formatVolNumericDisplay(Math.ceil((assiette * taux) / 100))
 }
 
-export function validateRegime1Business(form, step = null) {
-  syncOrigineHidden(form)
-  const personErr = validateImmatPersonRules(form, step)
-  if (personErr) return personErr
+/** Recalcule le montant — blur ASSIETTE_COTISATION (info_regime_assure.js). */
+export function updateMontantCotisationFromAssietteVol(form) {
+  const assiette = parseLegacyNumber(form.ASSIETTE_COTISATION)
+  const taux = parseLegacyNumber(form.TAUX)
+  if (!assiette || Number.isNaN(assiette) || !taux || Number.isNaN(taux)) {
+    form.MONTANT_COTISATION = ''
+    return
+  }
+  form.MONTANT_COTISATION = formatVolNumericDisplay(Math.ceil((assiette * taux) / 100))
+}
 
-  syncLegacyHiddenFields(form)
+/**
+ * Bornes assiette — min SMIG, max plafond mensuel ou floor(revenu/12) si revenu < plafond.
+ * @returns {{ min: number|null, max: number|null }}
+ */
+export function getAssietteCotisationBounds(form = {}) {
+  const smig = parseLegacyNumber(form.SMIG_VALUE)
+  const min = !Number.isNaN(smig) && smig > 0 ? smig : null
+
+  const maxAnnuel = parseLegacyNumber(form.max_cotisation_annuel)
+  const maxMensuelPlafond =
+    form._maxCotisationMensuelle ??
+    (!Number.isNaN(maxAnnuel) && maxAnnuel > 0 ? Math.floor(maxAnnuel / 12) : null)
+
+  const revenu = parseLegacyNumber(form.MONTANT_REV_ANNUEL)
+  let max = maxMensuelPlafond
+
+  if (revenu && !Number.isNaN(revenu)) {
+    const as = revenu / 12
+    if (
+      maxMensuelPlafond != null &&
+      !Number.isNaN(maxMensuelPlafond) &&
+      as - maxMensuelPlafond >= 0
+    ) {
+      max = Math.floor(maxMensuelPlafond)
+    } else {
+      const floorAs = Math.floor(as)
+      if (min != null && floorAs > min) {
+        max = floorAs
+      } else if (max == null && floorAs > 0) {
+        max = floorAs
+      }
+    }
+  }
+
+  return { min, max }
+}
+
+/** Normalise une date q-date (YYYY/MM/DD) vers jj/mm/aaaa pour compareDates. */
+export function normalizeQDateForLegacyCompare(dateStr) {
+  if (!dateStr) return dateStr
+  const parts = String(dateStr).split('/')
+  if (parts.length === 3 && parts[0].length === 4) {
+    return `${parts[2]}/${parts[1]}/${parts[0]}`
+  }
+  return dateStr
+}
+
+/**
+ * Validations métier régime 1 — erreurs par nom de champ (affichage immédiat).
+ * @returns {{ field: string, message: string }[]}
+ */
+export function collectRegime1ValidationErrors(form, step = null) {
+  const errors = []
+  const push = (field, message) => errors.push({ field, message })
+
+  syncOrigineHidden(form)
+  collectImmatPersonFieldErrors(form, step, push)
 
   const checkAll = step === null || step === 7
   const check1 = step === null || step === 1
 
   if (check1 || checkAll) {
     if (!form.CODE_ORIGINEREV) {
-      return "Veuillez choisir l'origine des revenus."
+      push('ORIGINE_REVENU', "Veuillez choisir l'origine des revenus.")
+    }
+    if (!String(form.DETAILS_ORIGINEREV || '').trim()) {
+      push('DETAILS_ORIGINEREV', "Veuillez préciser les détails sur l'origine des revenus.")
     }
     if (!form.DATE_DEBUT_AFFI_SOLL) {
-      return "La date d'affiliation sollicitée est obligatoire."
-    }
-    if (form.MIN_DATE_DEBUT_AFFI && form.DATE_DEBUT_AFFI) {
+      push('DATE_DEBUT_AFFI_SOLL', "La date d'affiliation sollicitée est obligatoire.")
+    } else if (form.MIN_DATE_DEBUT_AFFI && form.DATE_DEBUT_AFFI) {
       if (compareDates(form.DATE_DEBUT_AFFI_SOLL, form.MIN_DATE_DEBUT_AFFI) < 0) {
-        return "La date d'affiliation sollicitée est antérieure à la date minimum autorisée."
+        push(
+          'DATE_DEBUT_AFFI_SOLL',
+          "La date d'affiliation sollicitée est antérieure à la date minimum autorisée.",
+        )
+      } else if (compareDates(form.DATE_DEBUT_AFFI_SOLL, form.DATE_DEBUT_AFFI) > 0) {
+        push(
+          'DATE_DEBUT_AFFI_SOLL',
+          "La date d'affiliation sollicitée est postérieure à la date d'affiliation normale.",
+        )
       }
-      if (compareDates(form.DATE_DEBUT_AFFI_SOLL, form.DATE_DEBUT_AFFI) > 0) {
-        return "La date d'affiliation sollicitée est postérieure à la date d'affiliation normale."
+    }
+    const rev = String(form.MONTANT_REV_ANNUEL ?? '').trim()
+    if (!rev) {
+      push('MONTANT_REV_ANNUEL', 'Le revenu annuel est obligatoire.')
+    } else if (!REVENU_REGEX.test(rev)) {
+      push('MONTANT_REV_ANNUEL', 'Le revenu annuel doit comporter entre 5 et 10 chiffres.')
+    }
+    const assietteStr = String(form.ASSIETTE_COTISATION ?? '').trim()
+    if (!assietteStr) {
+      push('ASSIETTE_COTISATION', "L'assiette de cotisation est obligatoire.")
+    } else if (!REVENU_REGEX.test(assietteStr)) {
+      push('ASSIETTE_COTISATION', "L'assiette de cotisation doit comporter entre 5 et 10 chiffres.")
+    } else {
+      const assiette = Number(form.ASSIETTE_COTISATION)
+      const { min, max } = getAssietteCotisationBounds(form)
+      if (!Number.isNaN(assiette) && min != null && assiette < min) {
+        push('ASSIETTE_COTISATION', `L'assiette de cotisation est inférieure au SMIG (${min} F CFA).`)
+      } else if (!Number.isNaN(assiette) && max != null && assiette > max) {
+        push('ASSIETTE_COTISATION', "L'assiette de cotisation est supérieure au maximum autorisé.")
       }
-    }
-    const rev = String(form.MONTANT_REV_ANNUEL ?? '')
-    if (!REVENU_REGEX.test(rev)) {
-      return 'Le revenu annuel doit comporter entre 5 et 10 chiffres.'
-    }
-    const assiette = Number(form.ASSIETTE_COTISATION)
-    const smig = Number(form.SMIG_VALUE)
-    if (!Number.isNaN(assiette) && !Number.isNaN(smig) && assiette < smig) {
-      return `L'assiette de cotisation est inférieure au SMIG (${smig} F CFA).`
-    }
-    if (form.file504 && !isLegacyImageFile(form.file504)) {
-      return 'La déclaration annuelle de revenu doit être une image (gif, jpeg, jpg, png).'
-    }
-    if (form.file507 && !isLegacyImageFile(form.file507)) {
-      return 'La déclaration sur l\'honneur doit être une image (gif, jpeg, jpg, png).'
     }
     if (!form.file504) {
-      return 'La déclaration annuelle de revenu est obligatoire.'
+      push('file504', 'La déclaration annuelle de revenu est obligatoire.')
+    } else if (!isLegacyImageFile(form.file504)) {
+      push('file504', 'La déclaration annuelle de revenu doit être une image (gif, jpeg, jpg, png).')
     }
     if (!form.file507) {
-      return 'La déclaration sur l\'honneur (non salarié) est obligatoire.'
+      push('file507', "La déclaration sur l'honneur (non salarié) est obligatoire.")
+    } else if (!isLegacyImageFile(form.file507)) {
+      push('file507', "La déclaration sur l'honneur doit être une image (gif, jpeg, jpg, png).")
     }
-    if (form.DATE_DEBUT_AFFI && form.DATE_NAISS_PERS && monthsBetween(form.DATE_DEBUT_AFFI, form.DATE_NAISS_PERS) < 12 * 14) {
-      return 'Vous avez moins de 14 ans à la date début affiliation.'
+    if (
+      form.DATE_DEBUT_AFFI &&
+      form.DATE_NAISS_PERS &&
+      monthsBetween(form.DATE_DEBUT_AFFI, form.DATE_NAISS_PERS) < 12 * 14
+    ) {
+      push('DATE_DEBUT_AFFI_SOLL', 'Vous avez moins de 14 ans à la date début affiliation.')
     }
   }
 
-  return null
+  return errors
+}
+
+/** @returns {Record<string, string>} */
+export function validateRegime1BusinessFieldMap(form, step = null) {
+  const map = {}
+  for (const { field, message } of collectRegime1ValidationErrors(form, step)) {
+    if (!map[field]) map[field] = message
+  }
+  return map
+}
+
+export function validateRegime1Business(form, step = null) {
+  const errors = collectRegime1ValidationErrors(form, step)
+  return errors[0]?.message ?? null
 }
 
 function appendScalar(fd, key, value) {
@@ -273,6 +546,7 @@ function appendScalar(fd, key, value) {
 export function buildLegacyFormDataVol(form, options = {}) {
   syncOrigineHidden(form)
   syncLegacyHiddenFields(form)
+  syncGererAssureTauxVolFields(form)
 
   const fd = new FormData()
   const f = { ...form }
@@ -292,13 +566,20 @@ export function buildLegacyFormDataVol(form, options = {}) {
   f.CODE_VILLEC = arr(f.CODE_VILLEC)
   f.NATIONALITEC =
     typeof f.NATIONALITEC === 'object' && f.NATIONALITEC?.nationalite ? f.NATIONALITEC.nationalite : f.NATIONALITEC
-  f.CODE_CENTRECNPSC =
-    f.CODE_CENTRECNPSC && typeof f.CODE_CENTRECNPSC === 'object' ? f.CODE_CENTRECNPSC.LIB_CENTRE : ''
+  const centreObj =
+    f.CODE_CENTRECNPSC && typeof f.CODE_CENTRECNPSC === 'object' ? f.CODE_CENTRECNPSC : null
+  const centreCodeVal = centreObj?.CODE_CENTRE || f.CODE_CENTRECNPS || ''
+  f.codeCentrePrefText = centreCodeVal
+  f.CODE_CENTRECNPS = centreCodeVal
+  f.CODE_CENTRECNPSC = centreObj?.LIB_CENTRE || ''
+  f.TEL_PERS = legacyPhoneDigits(f.TEL_PERS)
+  f.FAX_PERS = legacyPhoneDigits(f.FAX_PERS)
 
   if (options.submissionType === 'temporary') f.valider = 'NON'
   else if (options.submissionType === 'definitive') f.valider = 'OUI'
 
   LEGACY_VOL_TEXT_FIELDS.forEach((key) => appendScalar(fd, key, f[key]))
+  appendScalar(fd, 'codeCentrePrefText', f.codeCentrePrefText)
 
   if (f.file504) fd.append('504', f.file504, f.file504.name)
   if (f.file507) fd.append('507', f.file507, f.file507.name)

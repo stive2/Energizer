@@ -1,6 +1,6 @@
 import { Notify } from 'quasar'
 
-const DEFAULT_TIMEOUT = 5000
+const DEFAULT_TIMEOUT = 7500
 const NOTIFY_POSITION = 'top'
 
 /**

@@ -1,0 +1,255 @@
+<template>
+  <q-card class="controle-card column no-wrap">
+    <q-card-section class="controle-toolbar q-py-xs q-px-md">
+      <div class="row items-center no-wrap">
+        <q-space />
+        <q-btn
+          flat
+          dense
+          color="primary"
+          icon="print"
+          :label="$t('immat.controle.print')"
+          class="q-mr-sm"
+          :disable="!iframeReady"
+          @click="printControle"
+        />
+        <q-btn
+          v-if="showPreview"
+          flat
+          dense
+          color="secondary"
+          icon="visibility"
+          :label="$t('form.preview')"
+          class="q-mr-sm"
+          @click="$emit('preview')"
+        />
+        <q-btn flat dense round icon="close" @click="$emit('close')" />
+      </div>
+    </q-card-section>
+
+    <q-card-section v-if="error" class="col">
+      <q-banner rounded class="bg-negative text-white">
+        <template #avatar><q-icon name="error" /></template>
+        {{ error }}
+      </q-banner>
+      <div class="q-mt-md text-center">
+        <q-btn color="primary" :label="$t('form.retry')" @click="reloadControle" />
+      </div>
+    </q-card-section>
+
+    <q-card-section v-else class="col column no-wrap q-pa-none controle-iframe-wrap">
+      <div v-if="iframeLoading" class="col flex flex-center">
+        <q-spinner-dots color="primary" size="48px" />
+        <div class="text-body2 text-grey-7 q-mt-md">{{ $t('immat.controle.loading') }}</div>
+      </div>
+      <iframe
+        v-show="controleUrl && !iframeLoading"
+        ref="controleIframe"
+        :key="iframeKey"
+        :src="controleUrl"
+        class="controle-iframe col"
+        title="Fiche de pré-immatriculation"
+        @load="onIframeLoad"
+        @error="onIframeError"
+      />
+    </q-card-section>
+  </q-card>
+</template>
+
+<script setup>
+import { onBeforeUnmount, ref, watch } from 'vue'
+import { buildEtatControleAssureUrl } from 'src/modules/immatriculations/api/teleImmatAssureApi.js'
+
+const props = defineProps({
+  codeTele: { type: String, required: true },
+  codeSecret: { type: String, default: '' },
+  showPreview: { type: Boolean, default: false },
+  /** Incrémenter pour recharger l’iframe après modification Quasar. */
+  reloadToken: { type: Number, default: 0 },
+})
+
+const emit = defineEmits(['close', 'edit', 'validated', 'preview'])
+
+const error = ref(null)
+const controleUrl = ref('')
+const iframeKey = ref(0)
+const iframeLoading = ref(true)
+const iframeReady = ref(false)
+const controleIframe = ref(null)
+
+/** Styles injectés dans l’iframe (même origine via proxy Vite). */
+const LEGACY_HIDE_CSS = `
+  a[href*="index.jsp"],
+  a[href="../index.jsp"],
+  a[href*="index.jsp?Page"] {
+    display: none !important;
+  }
+`
+
+let iframeClickHandler = null
+
+function parseTeleImmatLink(href, baseUrl) {
+  try {
+    return new URL(href, baseUrl)
+  } catch {
+    return null
+  }
+}
+
+function isTeleImmaAssureLink(url) {
+  return /tele_imma_assure\.jsp/i.test(url.pathname)
+}
+
+function isLegacyNavigationToBlock(url) {
+  if (/index\.jsp/i.test(url.pathname)) return true
+  if (/tele_imma_assure\.jsp/i.test(url.pathname)) return false
+  if (/etat_controle_assure\.jsp/i.test(url.pathname)) return false
+  return false
+}
+
+function detectValidatedFromDocument(doc) {
+  const html = doc.body?.innerHTML || ''
+  const pending = html.includes(
+    'CLIQUER SUR LE LIEN CI-DESSOUS POUR PROCEDER A LA CORRECTION',
+  )
+  const validated = html.includes('VOTRE DOSSIER VALIDE SERA EXPLOITE')
+  return validated && !pending
+}
+
+function patchIframeDocument(doc) {
+  if (!doc?.head || doc.getElementById('energizer-controle-patch')) return
+
+  const style = doc.createElement('style')
+  style.id = 'energizer-controle-patch'
+  style.textContent = LEGACY_HIDE_CSS
+  doc.head.appendChild(style)
+
+  if (iframeClickHandler) {
+    doc.removeEventListener('click', iframeClickHandler, true)
+  }
+
+  iframeClickHandler = (event) => {
+    const anchor = event.target.closest?.('a')
+    if (!anchor?.href) return
+
+    const url = parseTeleImmatLink(anchor.href, doc.location?.href || window.location.href)
+    if (!url) return
+
+    if (isTeleImmaAssureLink(url)) {
+      event.preventDefault()
+      event.stopPropagation()
+      emit('edit', {
+        codeTele: url.searchParams.get('codeTele') || props.codeTele,
+        codeSecret: url.searchParams.get('codeSecret') || props.codeSecret,
+      })
+      return
+    }
+
+    if (isLegacyNavigationToBlock(url)) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+  }
+
+  doc.addEventListener('click', iframeClickHandler, true)
+
+  if (detectValidatedFromDocument(doc)) {
+    emit('validated')
+  }
+}
+
+function teardownIframeDocument(doc) {
+  if (doc && iframeClickHandler) {
+    doc.removeEventListener('click', iframeClickHandler, true)
+  }
+  iframeClickHandler = null
+}
+
+function reloadControle() {
+  error.value = null
+  iframeLoading.value = true
+  iframeReady.value = false
+  try {
+    controleUrl.value = buildEtatControleAssureUrl(props.codeTele, props.codeSecret)
+    iframeKey.value += 1
+  } catch (e) {
+    error.value = e?.message || String(e)
+    controleUrl.value = ''
+    iframeLoading.value = false
+  }
+}
+
+function onIframeLoad() {
+  iframeLoading.value = false
+  iframeReady.value = true
+
+  try {
+    const doc = controleIframe.value?.contentDocument
+    if (doc) {
+      patchIframeDocument(doc)
+    }
+  } catch {
+    /* Origine croisée : pas d’accès au DOM — fonctionnement iframe brut. */
+  }
+}
+
+function onIframeError() {
+  iframeLoading.value = false
+  iframeReady.value = false
+  error.value =
+    'Impossible d’afficher la fiche de contrôle (etat_controle_assure.jsp). Vérifiez la connexion au serveur teleImmat_0.1.'
+}
+
+function printControle() {
+  const win = controleIframe.value?.contentWindow
+  if (win) {
+    win.focus()
+    win.print()
+  } else {
+    window.print()
+  }
+}
+
+watch(
+  () => [props.codeTele, props.codeSecret, props.reloadToken],
+  () => reloadControle(),
+  { immediate: true },
+)
+
+onBeforeUnmount(() => {
+  try {
+    teardownIframeDocument(controleIframe.value?.contentDocument)
+  } catch {
+    /* ignore */
+  }
+})
+</script>
+
+<style scoped>
+.controle-card {
+  border-radius: 4px;
+  overflow: hidden;
+  width: min(960px, 98vw);
+  height: min(92vh, 900px);
+  max-height: 95vh;
+  background: #fff;
+}
+
+.controle-toolbar {
+  flex-shrink: 0;
+  border-bottom: 1 solid #e0e0e0;
+  background: #fafafa;
+}
+
+.controle-iframe-wrap {
+  min-height: 200px;
+  overflow: hidden;
+}
+
+.controle-iframe {
+  width: 100%;
+  min-height: 400px;
+  border: 0;
+  background: #fff;
+}
+</style>

@@ -11,7 +11,7 @@ export default defineBoot(() => {
     const options = typeof opts === 'string' ? { message: opts } : { ...opts }
 
     return create({
-      timeout: 5000,
+      timeout: 7500,
       progress: true,
       multiLine: true,
       classes: 'app-notify',
@@ -21,7 +21,7 @@ export default defineBoot(() => {
   }
 
   Notify.setDefaults({
-    timeout: 5000,
+    timeout: 7500,
     progress: true,
     multiLine: true,
     position: 'top',

@@ -56,6 +56,11 @@ export default defineConfig((ctx) => {
         VITE_CNPS_API_USE_PROXY: process.env.VITE_CNPS_API_USE_PROXY || '',
         VITE_CNPS_API_FALLBACK_MOCK: process.env.VITE_CNPS_API_FALLBACK_MOCK || 'true',
         VITE_CNPS_USE_REAL_AUTH: process.env.VITE_CNPS_USE_REAL_AUTH || '',
+        VITE_TELE_IMMAT_USE_LEGACY: process.env.VITE_TELE_IMMAT_USE_LEGACY || 'true',
+        VITE_TELE_IMMAT_USE_PROXY: process.env.VITE_TELE_IMMAT_USE_PROXY || 'true',
+        VITE_TELE_IMMAT_DIRECT_URL:
+          process.env.VITE_TELE_IMMAT_DIRECT_URL || 'http://172.17.15.121:8080/teleImmat_0.1',
+        VITE_TELE_IMMAT_MOCK_SUBMIT: process.env.VITE_TELE_IMMAT_MOCK_SUBMIT || '',
       },
       // rawDefine: {}
       // ignorePublicFolder: true,
@@ -122,6 +127,14 @@ export default defineConfig((ctx) => {
           secure: false,
           rewrite: (path) => path.replace(/^\/api-cnps/, ''),
         },
+        '/tele-immat': {
+          target:
+            process.env.VITE_TELE_IMMAT_DIRECT_URL?.replace(/\/teleImmat_0\.1\/?$/, '') ||
+            'http://172.17.15.121:8080',
+          changeOrigin: true,
+          secure: false,
+          rewrite: (path) => path.replace(/^\/tele-immat/, '/teleImmat_0.1'),
+        },
       },
     },
 
@@ -130,7 +143,7 @@ export default defineConfig((ctx) => {
       config: {
         notify: {
           position: 'top',
-          timeout: 4000,
+          timeout: 7500,
           progress: true,
         },
       },

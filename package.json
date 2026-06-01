@@ -12,6 +12,7 @@
     "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
     "build": "quasar build",
+    "deploy:teleimmat-jsp": "powershell -NoProfile -ExecutionPolicy Bypass -File teleImmat_0.1/deploy/deploy-jsp-energizer.ps1",
     "postinstall": "quasar prepare"
   },
   "dependencies": {
