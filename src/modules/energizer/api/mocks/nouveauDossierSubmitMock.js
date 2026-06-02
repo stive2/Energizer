@@ -8,13 +8,9 @@ import { isTeleCircuitCode } from 'src/modules/energizer/utils/nouveauDossierCir
 import { normalizeMatriculeEmployeur } from 'src/modules/assure/api/depotPrestationPfUtils.js'
 import { getConnectedAgentContext } from 'src/modules/energizer/utils/nouveauDossierAgentContext.js'
 import { isFieldActive } from 'src/modules/energizer/utils/nouveauDossierFieldState.js'
+import { NouveauDossierSubmitError } from '../nouveauDossierErrors.js'
 
-export class NouveauDossierSubmitError extends Error {
-  constructor(message) {
-    super(message)
-    this.name = 'NouveauDossierSubmitError'
-  }
-}
+export { NouveauDossierSubmitError }
 
 let dossierSequence = 0
 

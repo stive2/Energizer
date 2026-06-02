@@ -17,17 +17,13 @@ import { unwrapData } from 'src/modules/energizer/api/callApi.js'
 import { calcMD5 } from 'src/modules/shared/utils/md5.js'
 
 import { AUTH_API } from './paths.js'
-
+import { isEnergizerLegacyAuthEnabled } from 'src/modules/shared/config/energizerHttp.js'
+import { loginEnergizerAgent } from './energizerAuthApi.js'
 import {
-
   SIM_PORTAL_EXTERNAL,
-
   SIM_PORTAL_INTERNAL,
-
   isSimAuthEnabled,
-
   validateSimPortalCredentials,
-
 } from 'src/modules/shared/api/auth/simPortalAuth.js'
 
 
@@ -57,15 +53,14 @@ export class AuthError extends Error {
 
 
 export async function login({ variant, login: loginValue, password }) {
-
   const profile = variantToProfile(variant)
 
+  if (variant === 'agent' && isEnergizerLegacyAuthEnabled()) {
+    return loginEnergizerAgent({ login: loginValue, password })
+  }
 
-
-  if (isSimAuthEnabled()) {
-
+  if (isSimAuthEnabled(variant)) {
     return mockLogin({ profile, login: loginValue, password })
-
   }
 
 
@@ -166,10 +161,8 @@ function mockLogin({ profile, login: loginValue, password }) {
 
 export async function forgotPassword({ login: loginValue, variant }) {
 
-  if (isSimAuthEnabled()) {
-
+  if (isSimAuthEnabled(variant)) {
     return mockForgotPassword(loginValue)
-
   }
 
 
@@ -249,19 +242,15 @@ export async function resetPassword({ token, newPassword }) {
 
 
 export async function logout() {
-
-  if (isSimAuthEnabled()) {
-
-    return Promise.resolve({ success: true })
-
+  if (import.meta.env.VITE_CNPS_USE_REAL_AUTH !== 'true') {
+    return { success: true }
   }
-
-
-
-  await api.post(AUTH_API.logout, {}, { skipErrorNotify: true })
-
+  try {
+    await api.post(AUTH_API.logout, {}, { skipErrorNotify: true })
+  } catch {
+    /* déconnexion locale prioritaire */
+  }
   return { success: true }
-
 }
 
 

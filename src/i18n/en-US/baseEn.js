@@ -274,6 +274,7 @@ export default {
       rpCertDecesGenre: 'Death and cause of death medical certificate',
       rpNoteDeFrags: 'Expense note',
       assure: 'Insured area',
+      legacySapelli: 'Sapelli applications (server)',
       depotDossiers: 'Benefits file submission',
       assureDepotDossiers: 'File deposit',
       assureDossiersPrestations: 'Benefits files',

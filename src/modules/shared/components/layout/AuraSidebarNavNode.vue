@@ -1,6 +1,29 @@
 <template>
   <q-item
-    v-if="isLeaf"
+    v-if="isExternalLeaf"
+    clickable
+    v-ripple
+    tag="a"
+    :href="entry.href"
+    target="_blank"
+    rel="noopener noreferrer"
+    :inset-level="itemInsetLevel"
+    class="aura-item"
+    @click="onNavigate"
+  >
+    <q-item-section avatar class="aura-dot-slot">
+      <q-icon :name="entry.icon || 'open_in_new'" class="aura-icon" :class="iconSizeClass" />
+    </q-item-section>
+    <q-item-section v-if="!miniMode">
+      <q-item-label class="aura-item-label" :class="labelSizeClass">{{ entryLabel }}</q-item-label>
+    </q-item-section>
+    <q-tooltip v-if="miniMode" anchor="center right" self="center left" :offset="[8, 0]">
+      {{ entryLabel }}
+    </q-tooltip>
+  </q-item>
+
+  <q-item
+    v-else-if="isLeaf"
     clickable
     v-ripple
     :to="entry.to"
@@ -15,10 +38,10 @@
       <span v-else class="aura-dot" :style="{ background: dotColor(dotIndex) }" />
     </q-item-section>
     <q-item-section v-if="!miniMode">
-      <q-item-label class="aura-item-label" :class="labelSizeClass">{{ t(entry.labelKey) }}</q-item-label>
+      <q-item-label class="aura-item-label" :class="labelSizeClass">{{ entryLabel }}</q-item-label>
     </q-item-section>
     <q-tooltip v-if="miniMode" anchor="center right" self="center left" :offset="[8, 0]">
-      {{ t(entry.labelKey) }}
+      {{ entryLabel }}
     </q-tooltip>
   </q-item>
 
@@ -37,7 +60,7 @@
         <q-icon :name="entry.icon" class="aura-icon" :class="iconSizeClass" />
       </q-item-section>
       <q-item-section>
-        <q-item-label class="aura-item-label" :class="labelSizeClass">{{ t(entry.labelKey) }}</q-item-label>
+        <q-item-label class="aura-item-label" :class="labelSizeClass">{{ entryLabel }}</q-item-label>
       </q-item-section>
     </template>
 
@@ -64,23 +87,27 @@
     </q-item-section>
     <q-menu anchor="top right" self="top left" :offset="[8, 0]">
       <q-list dense style="min-width: 220px">
-        <q-item-label header class="text-weight-bold">{{ t(entry.labelKey) }}</q-item-label>
+        <q-item-label header class="text-weight-bold">{{ entryLabel }}</q-item-label>
         <q-item
           v-for="(leaf, lIdx) in collectLeaves(entry.children)"
           :key="entryKey(leaf, lIdx)"
           clickable
           v-close-popup
           v-ripple
-          :to="leaf.to"
+          :to="leaf.href ? undefined : leaf.to"
+          :href="leaf.href"
+          :target="leaf.href ? '_blank' : undefined"
+          :rel="leaf.href ? 'noopener noreferrer' : undefined"
+          :tag="leaf.href ? 'a' : undefined"
           :exact="leaf.exact"
           @click="onNavigate"
         >
-          <q-item-section>{{ t(leaf.labelKey) }}</q-item-section>
+          <q-item-section>{{ resolveEntryLabel(leaf) }}</q-item-section>
         </q-item>
       </q-list>
     </q-menu>
     <q-tooltip anchor="center right" self="center left" :offset="[8, 0]">
-      {{ t(entry.labelKey) }}
+      {{ entryLabel }}
     </q-tooltip>
   </q-item>
 </template>
@@ -120,7 +147,12 @@ const DOT_COLORS = ['#a8d8ff', '#ffc897', '#9defc8', '#d4b8ff']
 const normalizedEntry = computed(() => normalizeEntry(props.entry))
 
 const isGroup = computed(() => normalizedEntry.value.type === 'group')
-const isLeaf = computed(() => normalizedEntry.value.type === 'item')
+const isLeaf = computed(() => normalizedEntry.value.type === 'item' && !normalizedEntry.value.href)
+const isExternalLeaf = computed(
+  () => normalizedEntry.value.type === 'item' && !!normalizedEntry.value.href,
+)
+
+const entryLabel = computed(() => resolveEntryLabel(normalizedEntry.value))
 
 const iconSizeClass = computed(() => (props.depth >= 2 ? 'aura-icon--sm' : undefined))
 const labelSizeClass = computed(() => (props.depth >= 2 ? 'aura-item-label--sm' : undefined))
@@ -143,8 +175,14 @@ function onNavigate() {
   emit('navigate')
 }
 
+function resolveEntryLabel(entry) {
+  if (entry.label) return entry.label
+  if (entry.labelKey) return t(entry.labelKey)
+  return ''
+}
+
 function entryKey(entry, idx) {
-  return entry.labelKey || entry.type || String(idx)
+  return entry.label || entry.labelKey || entry.href || entry.type || String(idx)
 }
 
 function dotColor(index) {
@@ -155,7 +193,7 @@ function collectLeaves(entries = []) {
   const leaves = []
   for (const entry of entries) {
     const normalized = normalizeEntry(entry)
-    if (normalized.type === 'item' && normalized.to) {
+    if (normalized.type === 'item' && (normalized.to || normalized.href)) {
       leaves.push(normalized)
     } else if (normalized.type === 'group' && normalized.children?.length) {
       leaves.push(...collectLeaves(normalized.children))

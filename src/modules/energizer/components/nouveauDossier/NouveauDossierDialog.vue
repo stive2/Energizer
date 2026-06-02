@@ -42,6 +42,15 @@
 
           <q-inner-loading :showing="store.loadingMeta" />
 
+          <q-banner
+            v-if="store.metaError"
+            rounded
+            dense
+            class="bg-negative text-white q-mb-md"
+          >
+            {{ store.metaError }}
+          </q-banner>
+
           <p class="text-body2 text-primary text-center q-mb-md">
             {{ t('reception.nouveauDossier.pickLead') }}
           </p>

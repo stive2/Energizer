@@ -20,8 +20,36 @@
           </div>
         </div>
 
-        <div class="authenticated-toolbar__title text-bold">
-          {{ toolbarTitle }}
+        <div class="authenticated-toolbar__title column justify-center">
+          <div class="text-bold">{{ toolbarTitle }}</div>
+          <div
+            v-if="toolbarSubtitle"
+            class="text-caption text-white authenticated-toolbar__subtitle"
+          >
+            {{ toolbarSubtitle }}
+          </div>
+        </div>
+
+        <div
+          v-if="toolbarQuickLinks.length && $q.screen.gt.sm"
+          class="authenticated-toolbar__quick-links row items-center q-gutter-xs q-ml-md"
+        >
+          <q-btn
+            v-for="(link, idx) in toolbarQuickLinks"
+            :key="link.href || idx"
+            flat
+            dense
+            no-caps
+            color="white"
+            size="sm"
+            class="authenticated-toolbar__quick-btn"
+            :href="link.href"
+            target="_blank"
+            rel="noopener noreferrer"
+            tag="a"
+          >
+            {{ link.label }}
+          </q-btn>
         </div>
 
         <div class="authenticated-toolbar__side authenticated-toolbar__side--right">
@@ -116,7 +144,7 @@
           v-else-if="menuItems.length"
           :items="menuItems"
           :mini-mode="miniMode"
-          :nav-section-label="t('layout.sidebar.navSectionPrincipal')"
+          :nav-section-label="sidebarNavSectionLabelResolved"
           @navigate="closeDrawerOnMobile"
         />
       </AuraSidebarShell>
@@ -249,6 +277,22 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  sidebarNavSectionLabel: {
+    type: String,
+    default: undefined,
+  },
+  toolbarSubtitle: {
+    type: String,
+    default: '',
+  },
+  toolbarQuickLinks: {
+    type: Array,
+    default: () => [],
+  },
+  auraBrandCaptionText: {
+    type: String,
+    default: '',
+  },
 })
 
 const $q = useQuasar()
@@ -302,6 +346,7 @@ const auraBrandTitle = computed(() => {
 })
 
 const auraBrandCaption = computed(() => {
+  if (props.auraBrandCaptionText) return props.auraBrandCaptionText
   const translated = t(props.auraBrandCaptionKey)
   return translated === props.auraBrandCaptionKey ? props.auraBrandCaptionKey : translated
 })
@@ -310,6 +355,12 @@ const sidebarTitle = computed(() => {
   if (!props.sidebarTitleKey) return ''
   const translated = t(props.sidebarTitleKey)
   return translated === props.sidebarTitleKey ? props.sidebarTitleKey : translated
+})
+
+const sidebarNavSectionLabelResolved = computed(() => {
+  if (props.sidebarNavSectionLabel === '') return ''
+  if (props.sidebarNavSectionLabel != null) return props.sidebarNavSectionLabel
+  return t('layout.sidebar.navSectionPrincipal')
 })
 
 const sidebarUserName = computed(() =>
@@ -427,9 +478,30 @@ function changeLang(lang) {
   font-size: 1.05rem;
   letter-spacing: 0.06em;
   text-align: center;
-  white-space: nowrap;
   pointer-events: none;
   max-width: min(52vw, 420px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.authenticated-toolbar__subtitle {
+  opacity: 0.92;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.authenticated-toolbar__quick-links {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  z-index: 1;
+}
+
+.authenticated-toolbar__quick-btn {
+  background: rgba(255, 255, 255, 0.12);
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
 }

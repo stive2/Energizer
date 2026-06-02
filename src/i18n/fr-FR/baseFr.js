@@ -285,6 +285,7 @@ export default {
       rpCertDecesGenre: 'Certificat Médical de Décès et genre de mort',
       rpNoteDeFrags: 'Note de Frais',
       assure: 'Espace assuré',
+      legacySapelli: 'Applications Sapelli (serveur)',
       depotDossiers: 'Dépôt des dossiers de prestations',
       assureDepotDossiers: 'Dépôt des Dossiers',
       assureDossiersPrestations: 'Dossiers de prestations',

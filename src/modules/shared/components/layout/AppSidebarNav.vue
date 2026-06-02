@@ -48,7 +48,7 @@ function onNavigate() {
 }
 
 function entryKey(entry, idx) {
-  return entry.labelKey || entry.type || String(idx)
+  return entry.label || entry.labelKey || entry.href || entry.type || String(idx)
 }
 </script>
 

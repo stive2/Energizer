@@ -46,7 +46,7 @@ export function useAuthenticatedSession(options) {
         const raw = localStorage.getItem(options.localUserInfoKey)
         if (raw) {
           const u = JSON.parse(raw)
-          return u.nom || u.name || u.email || ''
+          return u.displayName || u.nom || u.name || u.email || ''
         }
       } catch {
         /* ignore */

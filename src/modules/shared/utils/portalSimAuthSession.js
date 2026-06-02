@@ -43,11 +43,17 @@ export function isInsuredSessionActive() {
 /**
  * @param {{ login: string, displayName: string, profile: string, token: string }} payload
  */
-export function persistAgentSession(payload) {
-  const spec = getSimAccountByProfile('internal')
-  const displayName = payload.displayName || spec.displayName
-  const prenom = payload.prenom || spec.prenom
-  const nom = payload.nom || spec.nom
+export function persistAgentSession(payload = {}) {
+  const existing = readUserInfo() || {}
+  const login = payload.login || existing.login || ''
+  const prenom = payload.prenom || existing.prenom || ''
+  const nom = payload.nom || existing.nom || ''
+  const displayName =
+    payload.displayName ||
+    existing.displayName ||
+    [prenom, nom].filter(Boolean).join(' ') ||
+    login
+
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.setItem(AGENT_PROFILE_KEY, 'internal')
     sessionStorage.setItem(
@@ -56,18 +62,23 @@ export function persistAgentSession(payload) {
     )
   }
   if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(TOKEN_KEY, payload.token || `sim-token-internal`)
+    if (payload.token) {
+      localStorage.setItem(TOKEN_KEY, payload.token)
+    }
     localStorage.setItem(
       USER_KEY,
       JSON.stringify({
         profile: 'internal',
-        login: payload.login || spec.login,
+        login,
         prenom,
         nom,
         displayName,
-        email: payload.login || spec.login,
-        matricule: 'AGT-DEMO-001',
-        agence: 'Direction générale (démo)',
+        email: existing.email || login,
+        matricule: existing.matricule || login,
+        agence: payload.lib_centre || existing.agence || existing.lib_centre || '',
+        lib_centre: payload.lib_centre || existing.lib_centre || '',
+        code_centre: payload.code_centre || existing.code_centre || '',
+        code_role: existing.code_role || '',
       }),
     )
   }

@@ -10,7 +10,10 @@ import {
   fetchInfoEmployeur,
   fetchTeleimportation,
   submitNouveauDossier,
-  buildNouveauDossierPiecesPayload,
+  persistNouveauDossierPieces,
+  finalizeNouveauDossier,
+  fetchJaccueilDossiers,
+  fetchReceptionPiecesContext,
   listSavedNouveauDossiers,
 } from 'src/modules/energizer/api/nouveauDossierApi.js'
 import {
@@ -28,21 +31,11 @@ import {
   CIRCUIT_LIBELLE_ORDINAIRE,
   findCircuitByLibelle,
   isTeleCircuitCode,
-  normalizeCircuitsList,
   resolveEffectiveCodeCircuit,
 } from 'src/modules/energizer/utils/nouveauDossierCircuits.js'
-import { NOUVEAU_DOSSIER_NATURE_PRESTATIONS } from 'src/modules/energizer/data/nouveauDossierTestData.js'
 import { normalizeMatriculeEmployeur } from 'src/modules/assure/api/depotPrestationPfUtils.js'
-import {
-  mockFetchNouveauDossierObjets,
-  mockFetchTypeCircuits,
-} from 'src/modules/energizer/api/mocks/nouveauDossierMocks.js'
-import { NouveauDossierSubmitError } from 'src/modules/energizer/api/mocks/nouveauDossierSubmitMock.js'
-import {
-  getPieceTypesForObjet,
-  getMockExistingPiecesForDossier,
-  NBRE_PIECE_OPTIONS,
-} from 'src/modules/energizer/data/nouveauDossierPieceTypes.js'
+import { NouveauDossierSubmitError } from 'src/modules/energizer/api/nouveauDossierErrors.js'
+import { NBRE_PIECE_OPTIONS } from 'src/modules/energizer/data/nouveauDossierPieceTypes.js'
 import {
   resolveObjetFromCodePres,
   shouldShowAssureSummary,
@@ -51,11 +44,6 @@ import {
   validateInitialPieceRows,
   validateReceptionPieceRows,
 } from 'src/modules/energizer/utils/nouveauDossierPieces.js'
-import {
-  mockJaccueilDossiers,
-  mockFinalizeDossier,
-  mockPersistPieces,
-} from 'src/modules/energizer/api/mocks/nouveauDossierPiecesMock.js'
 import { getConnectedAgentContext } from 'src/modules/energizer/utils/nouveauDossierAgentContext.js'
 
 function t(key, params) {
@@ -140,7 +128,7 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
     loadingTele: false,
     loadingAssure: false,
     loadingEmployeur: false,
-    objets: mockFetchNouveauDossierObjets(),
+    objets: [],
     naturePrestations: [],
     circuits: [],
     selectedType: null,
@@ -158,6 +146,7 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
     jaccueilRows: [],
     loadingPieces: false,
     loadingFinalize: false,
+    metaError: null,
   }),
 
   getters: {
@@ -251,23 +240,22 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
 
     async loadMeta() {
       this.loadingMeta = true
+      this.metaError = null
       try {
         const [objets, naturePrestations, circuits] = await Promise.all([
           fetchNouveauDossierObjets(),
           fetchNaturePrestations(),
           fetchTypeCircuits(),
         ])
-        this.objets = objets?.length ? objets : mockFetchNouveauDossierObjets()
-        this.naturePrestations = naturePrestations?.length
-          ? naturePrestations
-          : NOUVEAU_DOSSIER_NATURE_PRESTATIONS
-        this.circuits = normalizeCircuitsList(
-          circuits?.length ? circuits : mockFetchTypeCircuits(),
-        )
-      } catch {
-        this.objets = mockFetchNouveauDossierObjets()
-        this.naturePrestations = NOUVEAU_DOSSIER_NATURE_PRESTATIONS
-        this.circuits = normalizeCircuitsList(mockFetchTypeCircuits())
+        this.objets = objets
+        this.naturePrestations = naturePrestations
+        this.circuits = circuits
+      } catch (error) {
+        this.objets = []
+        this.naturePrestations = []
+        this.circuits = []
+        this.metaError = error?.message || t('messages.error')
+        notify({ type: 'negative', message: this.metaError })
       } finally {
         this.loadingMeta = false
       }
@@ -637,14 +625,7 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
       if (!this.validateBeforeSubmit()) return
       this.loadingSubmit = true
       try {
-        const validationContext = {
-          fieldState: this.fieldState,
-          teleImported:
-            Boolean(this.form.tele_nom?.trim()) ||
-            Boolean(this.form.tele_raison?.trim()) ||
-            Boolean(this.form.tele_empl?.trim()),
-        }
-        const result = await submitNouveauDossier(this.form, validationContext)
+        const result = await submitNouveauDossier(this.form)
         this.lastSubmitResult = result
         const num = result?.num_dossier ?? result?.code_type_pres ?? ''
         notify({
@@ -653,19 +634,19 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
           timeout: 4000,
         })
         await this.loadSavedDossiers()
-        this.initPiecesAfterSubmit(result)
+        await this.initPiecesAfterSubmit(result)
       } catch (e) {
         const message =
           e instanceof NouveauDossierSubmitError
             ? e.message
-            : t('reception.nouveauDossier.saveError')
+            : e?.message || t('reception.nouveauDossier.saveError')
         notify({ type: 'negative', message, timeout: 6000 })
       } finally {
         this.loadingSubmit = false
       }
     },
 
-    initPiecesAfterSubmit(result) {
+    async initPiecesAfterSubmit(result) {
       const numdossier = result?.num_dossier ?? result?.code_type_pres ?? ''
       const objet = resolveObjetFromCodePres(this.form.code_pres)
       const nomComplet = this.form.nomcompletass || this.form.nomcomplet || ''
@@ -684,7 +665,25 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
         code_centre_user: this.form.code_centre || '',
       }
       this.piecesMode = 'initial'
-      this.pieceTypeOptions = getPieceTypesForObjet(objet)
+      this.pieceTypeOptions = result?.pieceTypeOptions?.length ? result.pieceTypeOptions : []
+
+      if (!this.pieceTypeOptions.length) {
+        try {
+          const ctx = await fetchReceptionPiecesContext({
+            num_dossier: numdossier,
+            Obj: this.form.code_pres,
+            num_assu: this.form.numassu,
+            nom_requerant: nomComplet,
+            adresse: this.form.adresse,
+            tel: this.form.telephone,
+            myObjet: this.form.code_natu_pres,
+            date_demande: this.piecesContext.datedemande,
+          })
+          this.pieceTypeOptions = ctx.pieceTypeOptions ?? []
+        } catch {
+          /* types de pièces indisponibles */
+        }
+      }
       const defaultTitulaire = defaultTitulaireForNature(
         this.form.code_natu_pres,
         nomComplet,
@@ -759,12 +758,9 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
       this.loadingPieces = true
       try {
         const agent = getConnectedAgentContext()
-        const piecesPayload = buildNouveauDossierPiecesPayload(
-          this.piecesContext,
-          allPieces,
-          { username: agent.login },
-        )
-        await mockPersistPieces(piecesPayload)
+        await persistNouveauDossierPieces(this.piecesContext, allPieces, {
+          username: agent.login,
+        })
         this.recapPieces = allPieces.map((p, i) => ({
           ...p,
           displayPerson: p.person,
@@ -777,12 +773,22 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
       }
     },
 
-    goToJaccueil() {
-      this.jaccueilRows = mockJaccueilDossiers(this.piecesContext?.numdossier)
-      this.step = 'jaccueil'
+    async goToJaccueil() {
+      this.loadingPieces = true
+      try {
+        this.jaccueilRows = await fetchJaccueilDossiers(this.piecesContext?.numdossier)
+        this.step = 'jaccueil'
+      } catch (e) {
+        notify({
+          type: 'negative',
+          message: e?.message || t('messages.error'),
+        })
+      } finally {
+        this.loadingPieces = false
+      }
     },
 
-    openReceptionPieces(row) {
+    async openReceptionPieces(row) {
       const numdossier = row?.num_dossier ?? this.piecesContext?.numdossier
       const objet =
         row?.myobjet || resolveObjetFromCodePres((numdossier || '').charAt(0))
@@ -791,22 +797,34 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
         numdossier,
         objet,
         nomcomplet: row?.nom_requerant ?? this.piecesContext?.nomcomplet ?? '',
-        telephone: row?.telephone ?? '',
+        telephone: row?.telephone ?? row?.tel ?? '',
         adresse: row?.adresse ?? '',
-        myobjet: row?.myobjet ?? objet,
-        datedemande: row?.datedemande ?? this.piecesContext?.datedemande,
+        myobjet: row?.myobjet ?? row?.myObjet ?? objet,
+        datedemande: row?.datedemande ?? row?.date_demande ?? this.piecesContext?.datedemande,
+        numassu: row?.num_assu ?? row?.numassu ?? this.piecesContext?.numassu ?? '',
       }
       this.piecesMode = 'reception'
-      this.pieceTypeOptions = getPieceTypesForObjet(objet)
-      this.existingPieces = getMockExistingPiecesForDossier(numdossier)
-      const firstType = this.pieceTypeOptions[0]?.value ?? ''
-      this.pieceRows = [
-        createPieceRow(1, {
-          person: firstType,
-          titulaire: row?.nom_requerant ?? '',
-        }),
-      ]
-      this.step = 'piecesReception'
+      this.loadingPieces = true
+      try {
+        const { pieceTypeOptions, existingPieces } = await fetchReceptionPiecesContext(row)
+        this.pieceTypeOptions = pieceTypeOptions
+        this.existingPieces = existingPieces
+        const firstType = this.pieceTypeOptions[0]?.value ?? ''
+        this.pieceRows = [
+          createPieceRow(1, {
+            person: firstType,
+            titulaire: row?.nom_requerant ?? '',
+          }),
+        ]
+        this.step = 'piecesReception'
+      } catch (e) {
+        notify({
+          type: 'negative',
+          message: e?.message || t('messages.error'),
+        })
+      } finally {
+        this.loadingPieces = false
+      }
     },
 
     async terminerDossier() {
@@ -825,8 +843,7 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
 
       this.loadingFinalize = true
       try {
-        const num = this.piecesContext?.numdossier ?? ''
-        const result = await mockFinalizeDossier(num)
+        const result = await finalizeNouveauDossier(this.piecesContext)
         notify({
           type: 'positive',
           message: result.message ?? t('reception.nouveauDossier.finalized'),

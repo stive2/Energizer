@@ -1,3 +1,5 @@
+import { isEnergizerLegacyAuthEnabled } from 'src/modules/shared/config/energizerHttp.js'
+
 /**
  * Comptes fictifs — authentification portail (démo, sans API CNPS).
  * Utilisés par `authApi.js` lorsque le mode simulation est actif.
@@ -24,10 +26,12 @@ export const SIM_PORTAL_INTERNAL = {
 }
 
 /**
- * Tant que l'API /auth n'existe pas : aucun appel réseau.
- * Passer `VITE_CNPS_USE_REAL_AUTH=true` dans .env quand le backend sera prêt.
+ * Simulation locale — désactivée pour l'agent si auth Energizer legacy active.
+ * Assuré : passer `VITE_CNPS_USE_REAL_AUTH=true` quand l'API /auth sera prête.
+ * @param {'agent'|'insured'} [variant]
  */
-export function isSimAuthEnabled() {
+export function isSimAuthEnabled(variant) {
+  if (variant === 'agent' && isEnergizerLegacyAuthEnabled()) return false
   return import.meta.env.VITE_CNPS_USE_REAL_AUTH !== 'true'
 }
 

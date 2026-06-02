@@ -98,6 +98,14 @@ export const useAuthStore = defineStore('auth', {
       } catch {
         /* ignore — déconnexion locale prioritaire */
       }
+      try {
+        const { useEnergizerSessionStore } = await import(
+          'src/modules/energizer/stores/energizerSessionStore.js'
+        )
+        useEnergizerSessionStore().clear()
+      } catch {
+        /* module energizer optionnel */
+      }
       this.token = null
       this.user = null
       this.error = null

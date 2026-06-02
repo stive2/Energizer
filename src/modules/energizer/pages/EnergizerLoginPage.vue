@@ -19,23 +19,21 @@
           />
         </div>
 
-        <PortalSimLogin variant="agent" embedded @authenticated="onAuth" />
+        <EnergizerAgentLogin @authenticated="onAuth" />
       </aside>
     </div>
   </q-page>
 </template>
 
 <script setup>
-import PortalSimLogin from 'src/modules/shared/components/logins/PortalSimLogin.vue'
+import EnergizerAgentLogin from 'src/modules/energizer/components/EnergizerAgentLogin.vue'
 import { useRoute, useRouter } from 'vue-router'
 import bgImage from 'assets/images/energizerCnps.jpg'
-import { persistAgentSession } from 'src/modules/shared/utils/portalSimAuthSession.js'
 
 const router = useRouter()
 const route = useRoute()
 
-function onAuth(payload) {
-  persistAgentSession(payload)
+function onAuth() {
   const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : null
   if (redirect && redirect.startsWith('/')) {
     router.replace(redirect)
@@ -101,10 +99,10 @@ function onAuth(payload) {
   padding: 0 0.35rem;
 }
 
-.login-form-side :deep(.portal-sim-login--embedded) {
+.login-form-side :deep(.energizer-agent-login) {
   flex: 1 1 auto;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 @media (max-width: 900px) {
@@ -134,13 +132,9 @@ function onAuth(payload) {
     padding-bottom: env(safe-area-inset-bottom, 0);
   }
 
-  .login-form-side :deep(.portal-sim-login--embedded) {
+  .login-form-side :deep(.energizer-agent-login) {
     overflow: visible;
     min-height: min-content;
-  }
-
-  .login-form-side :deep(.portal-sim-login--embedded .portal-sim-login__panel) {
-    margin-bottom: 0.75rem;
   }
 }
 

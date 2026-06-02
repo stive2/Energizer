@@ -57,12 +57,6 @@ export const energizerMenu = [
       },
     ],
   },
-  {
-    type: 'item',
-    labelKey: 'layout.sidebar.assure',
-    icon: 'person',
-    to: { name: 'assure-home' },
-  },
 ]
 
 export const energizerSessionConfig = {

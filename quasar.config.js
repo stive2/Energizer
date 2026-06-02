@@ -61,6 +61,12 @@ export default defineConfig((ctx) => {
         VITE_TELE_IMMAT_DIRECT_URL:
           process.env.VITE_TELE_IMMAT_DIRECT_URL || 'http://172.17.15.121:8080/teleImmat_0.1',
         VITE_TELE_IMMAT_MOCK_SUBMIT: process.env.VITE_TELE_IMMAT_MOCK_SUBMIT || '',
+        VITE_ENERGIZER_LEGACY_AUTH: process.env.VITE_ENERGIZER_LEGACY_AUTH || 'true',
+        VITE_ENERGIZER_USE_PROXY: process.env.VITE_ENERGIZER_USE_PROXY || 'true',
+        VITE_ENERGIZER_BASE_URL:
+          process.env.VITE_ENERGIZER_BASE_URL ||
+          process.env.VITE_ENERGIZER_DEV_BASE_URL ||
+          'http://172.17.15.121:8080/EnergizerDev',
       },
       // rawDefine: {}
       // ignorePublicFolder: true,
@@ -134,6 +140,14 @@ export default defineConfig((ctx) => {
           changeOrigin: true,
           secure: false,
           rewrite: (path) => path.replace(/^\/tele-immat/, '/teleImmat_0.1'),
+        },
+        '/EnergizerDev': {
+          target:
+            (
+              process.env.VITE_ENERGIZER_BASE_URL || process.env.VITE_ENERGIZER_DEV_BASE_URL
+            )?.replace(/\/EnergizerDev\/?$/i, '') || 'http://172.17.15.121:8080',
+          changeOrigin: true,
+          secure: false,
         },
       },
     },
