@@ -33,6 +33,15 @@ export function toLegacyString(value) {
 }
 
 /**
+ * Saisie texte legacy Energizer : valeur stockée en majuscules.
+ * @param {unknown} value
+ * @returns {string}
+ */
+export function toLegacyUppercase(value) {
+  return toLegacyString(value).toUpperCase()
+}
+
+/**
  * @param {Record<string, unknown>} payload
  * @param {string} key
  * @param {string | undefined} value

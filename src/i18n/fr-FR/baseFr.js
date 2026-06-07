@@ -284,6 +284,7 @@ export default {
       rpCertificatsMedicaux: 'Certificats Médicaux',
       rpCertDecesGenre: 'Certificat Médical de Décès et genre de mort',
       rpNoteDeFrags: 'Note de Frais',
+      rpTiersBeneficiaire: 'Tiers Bénéficiaire',
       assure: 'Espace assuré',
       legacySapelli: 'Applications Sapelli (serveur)',
       depotDossiers: 'Dépôt des dossiers de prestations',
@@ -521,6 +522,8 @@ export default {
     step3: 'Information de gestion CNPS',
     step4: "Informations d'identification du promoteur / responsable",
     step5: 'Documents à fournir (Max 3 Mo par fichier)',
+    resume: 'Résumé',
+    confirmSubmit: "Confirmez-vous l'exactitude des informations saisies ?",
   },
   immed: {
     step1: "Informations d'identification de l'employeur",
@@ -598,6 +601,8 @@ export default {
     telephoneResponsable: 'Téléphone du promoteur / responsable *',
     emailResponsable: 'Email du promoteur / responsable *',
     pieceIdentiteResponsable: "Pièce d'identité du promoteur / responsable",
+    /** Scan multipart — name=NUM_TYPEPIECE (imma_employeur1.js PIECEIDENT) */
+    scanPieceIdentiteResponsable: "Scan de la pièce d'identité (copie gif, jpg ou pdf)",
     numPieceIdentiteResponsable: "Numéro de la pièce d'identité du promoteur / responsable",
     dateDelivrancePieceIdentiteResponsable:
       "Date de délivrance de la pièce d'identité du promoteur / responsable",

@@ -3,6 +3,7 @@ import {
   getEnergizerBaseUrl,
   getEnergizerTimeout,
 } from 'src/modules/shared/config/energizerHttp.js'
+import { setupEnergizerAxiosSessionInterceptor } from 'src/modules/energizer/utils/energizerSessionExpiry.js'
 
 /**
  * Client HTTP backend Energizer (JSP session Tomcat).
@@ -16,6 +17,8 @@ export const energizerAxios = axios.create({
     Accept: 'text/html,application/json,text/plain,*/*',
   },
 })
+
+setupEnergizerAxiosSessionInterceptor(energizerAxios)
 
 if (import.meta.env.DEV) {
   console.info('[Energizer] baseURL:', getEnergizerBaseUrl())

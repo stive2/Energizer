@@ -44,6 +44,7 @@ async function fetchPagePrincipaleHtml() {
   const { data } = await energizerAxios.get(SESSION_PROBE_JSP, {
     responseType: 'text',
     skipErrorNotify: true,
+    skipSessionExpiryCheck: true,
   })
   return String(data ?? '')
 }
@@ -85,6 +86,7 @@ export async function loginEnergizerAgent({ login, password }) {
       responseType: 'text',
       maxRedirects: 10,
       skipErrorNotify: true,
+      skipSessionExpiryCheck: true,
     })
   } catch (err) {
     const status = err?.response?.status
@@ -137,7 +139,11 @@ export async function loginEnergizerAgent({ login, password }) {
 }
 
 export async function refreshEnergizerPagePrincipale() {
-  const html = await fetchPagePrincipaleHtml()
+  const { data } = await energizerAxios.get(SESSION_PROBE_JSP, {
+    responseType: 'text',
+    skipErrorNotify: true,
+  })
+  const html = String(data ?? '')
   if (!isEnergizerPagePrincipaleHtml(html)) {
     throw new AuthError('Session Energizer expirée. Veuillez vous reconnecter.', 'SESSION_EXPIRED')
   }

@@ -1,0 +1,135 @@
+/* Formulaires dialog — prestations familiales (PF) */
+.pf-legacy-form {
+  .pf-form-section {
+    margin-top: 1.75rem;
+    padding-top: 0.25rem;
+
+    &:first-child {
+      margin-top: 0;
+    }
+
+    & + .pf-form-section {
+      margin-top: 2rem;
+    }
+  }
+
+  .pf-form-section__title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #1565c0;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid rgba(25, 118, 210, 0.15);
+
+    .q-icon {
+      color: #1976d2;
+    }
+  }
+
+  .pf-form-row {
+    margin-bottom: 0;
+    padding: 4px 2px;
+    align-items: flex-start;
+  }
+
+  .pf-form-row--alt {
+    background: rgba(25, 118, 210, 0.04);
+    border-radius: 6px;
+  }
+
+  .pf-legacy-cell {
+    display: block;
+    width: 100%;
+    min-height: 0;
+    padding: 4px 0 8px;
+  }
+
+  .pf-legacy-cell--check {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 6px;
+    min-height: 52px;
+    padding: 8px 4px;
+  }
+
+  .pf-legacy-input,
+  .pf-form-field,
+  .af-input {
+    width: 100%;
+  }
+
+  /* stack-label : libellé au-dessus, placeholder pour la saisie */
+  :deep(.q-field--stack-label) {
+    .q-field__label {
+      position: static;
+      transform: none !important;
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #1976d2;
+      line-height: 1.3;
+      white-space: normal;
+      max-width: 100%;
+      padding: 0 0 4px 2px;
+    }
+
+    .q-field__control {
+      min-height: 36px;
+      height: 36px;
+    }
+
+    .q-field__native,
+    .q-field__input {
+      font-size: 0.9rem;
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+  }
+
+  :deep(.q-field--readonly .q-field__control) {
+    background: #fafafa;
+  }
+
+  :deep(.q-field--readonly .q-field__control:before) {
+    border-color: rgba(25, 118, 210, 0.25);
+  }
+
+  :deep(.q-checkbox) {
+    color: #1976d2;
+  }
+
+  :deep(.q-checkbox__label) {
+    color: #333;
+    font-weight: 600;
+  }
+
+  .pf-form-actions {
+    margin-top: 1.25rem;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  /* Dates / numériques compacts — même grille 3 colonnes que le début */
+  .pf-legacy-input--date {
+    max-width: 300px;
+  }
+
+  .pf-legacy-input--narrow {
+    max-width: 7.5rem;
+  }
+
+  .pf-legacy-input--matricule {
+    max-width: 14rem;
+  }
+
+  :deep(.q-field--labeled .q-field__label) {
+    white-space: normal;
+    line-height: 1.25;
+  }
+}

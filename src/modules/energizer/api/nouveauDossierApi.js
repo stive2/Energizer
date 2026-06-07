@@ -15,6 +15,7 @@ import {
   getEnergizerLegacyHtml,
   postEnergizerLegacyJsp,
   postEnergizerLegacyHtml,
+  legacyNouveauDossierRefererUrl,
   parseEnergizerLegacyRows,
 } from './energizerLegacyClient.js'
 import {
@@ -25,6 +26,8 @@ import {
   normalizeJaccueilRowsFromLegacy,
 } from './adapters/nouveauDossierLegacyAdapter.js'
 import {
+  extractLegacyNouveauDossierServerMessage,
+  isLegacyNouveauDossierSuccessMessage,
   isLegacySessionExpiredHtml,
   parseExistingPiecesFromAddpieceRecepHtml,
   parseNumdossierFromAddpieceHtml,
@@ -114,25 +117,40 @@ async function submitNouveauDossierLegacy(form) {
   const response = await postEnergizerLegacyHtml(
     ENERGIZER_LEGACY_JSP.nouvdossierServlet,
     payload,
+    { referer: legacyNouveauDossierRefererUrl() },
   )
-
-  if (response.error) {
-    throw new NouveauDossierSubmitError(response.error)
-  }
 
   if (isLegacySessionExpiredHtml(response.html)) {
     throw new NouveauDossierSubmitError('Session Energizer expirée. Veuillez vous reconnecter.')
   }
 
+  const serverMessage = extractLegacyNouveauDossierServerMessage(response)
   const num_dossier = parseNumdossierFromAddpieceHtml(response.html)
+  const isAttestation = payload.code_pres === 'X'
+
+  if (serverMessage && !isLegacyNouveauDossierSuccessMessage(serverMessage)) {
+    throw new NouveauDossierSubmitError(serverMessage)
+  }
+
   if (!num_dossier) {
+    if (serverMessage && isLegacyNouveauDossierSuccessMessage(serverMessage)) {
+      return {
+        success: true,
+        num_dossier: '',
+        code_type_pres: '',
+        pieceTypeOptions: [],
+        message: serverMessage,
+        redirect: 'redirect',
+      }
+    }
+
     throw new NouveauDossierSubmitError(
-      'Enregistrement du dossier : réponse serveur inattendue (numéro de dossier introuvable).',
+      serverMessage ||
+        'Enregistrement du dossier : réponse serveur inattendue (numéro de dossier introuvable).',
     )
   }
 
   const pieceTypeOptions = parsePieceTypeOptionsFromAddpieceHtml(response.html)
-  const isAttestation = payload.code_pres === 'X'
 
   return {
     success: true,
@@ -140,7 +158,8 @@ async function submitNouveauDossierLegacy(form) {
     code_type_pres: num_dossier,
     pieceTypeOptions,
     message: isAttestation
-      ? "Votre demande d'attestation pour soumission a été enregistrée avec succès."
+      ? serverMessage ||
+        "Votre demande d'attestation pour soumission a été enregistrée avec succès."
       : `Dossier enregistré avec succès (${num_dossier}).`,
     redirect: isAttestation ? 'redirect' : 'addpiece',
   }
@@ -154,8 +173,9 @@ async function persistNouveauDossierPiecesLegacy(context, pieceRows, options = {
   })
   const response = await postEnergizerLegacyHtml(ENERGIZER_LEGACY_JSP.showPieces, payload)
 
-  if (response.error) {
-    throw new Error(response.error)
+  const serverMessage = extractLegacyNouveauDossierServerMessage(response)
+  if (serverMessage && !isLegacyNouveauDossierSuccessMessage(serverMessage)) {
+    throw new Error(serverMessage)
   }
   if (isLegacySessionExpiredHtml(response.html)) {
     throw new Error('Session Energizer expirée. Veuillez vous reconnecter.')
@@ -179,8 +199,9 @@ async function finalizeNouveauDossierLegacy(context) {
     numassu: String(context?.numassu ?? ''),
   })
 
-  if (response.error) {
-    throw new Error(response.error)
+  const serverMessage = extractLegacyNouveauDossierServerMessage(response)
+  if (serverMessage && !isLegacyNouveauDossierSuccessMessage(serverMessage)) {
+    throw new Error(serverMessage)
   }
 
   const redirectedToJaccueil =

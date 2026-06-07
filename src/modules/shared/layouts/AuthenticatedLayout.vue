@@ -12,7 +12,7 @@
             aria-label="Menu"
             color="white"
             class="q-mr-sm"
-            @click="leftDrawerOpen = !leftDrawerOpen"
+            @click="toggleLeftDrawer"
           />
 
           <div v-if="$q.screen.gt.xs" class="q-mr-sm">
@@ -119,7 +119,6 @@
       :mini-width="auraSidebar ? 64 : undefined"
       :breakpoint="drawerBreakpoint"
       :mini="drawerComputedMini"
-      :overlay="!isDrawerDesktop"
       :class="drawerComputedClass"
       :content-class="auraSidebar ? '' : drawerContentClass"
       @mouseover="onDrawerMouseOver"
@@ -183,7 +182,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, provide } from 'vue'
+import { computed, ref, watch, onMounted, provide, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
@@ -383,8 +382,33 @@ function onDrawerMouseOut() {
   }
 }
 
+function refreshLayout() {
+  nextTick(() => {
+    window.dispatchEvent(new Event('resize'))
+  })
+}
+
 function syncDrawerForViewport() {
-  leftDrawerOpen.value = isDrawerDesktop.value
+  if (isDrawerDesktop.value) {
+    leftDrawerOpen.value = true
+  } else {
+    leftDrawerOpen.value = false
+    miniMode.value = false
+  }
+  refreshLayout()
+}
+
+function toggleLeftDrawer() {
+  if (isDrawerDesktop.value) {
+    leftDrawerOpen.value = true
+    if (props.auraSidebar) {
+      miniMode.value = !miniMode.value
+    } else if (props.drawerMini) {
+      miniState.value = !miniState.value
+    }
+    return
+  }
+  leftDrawerOpen.value = !leftDrawerOpen.value
 }
 
 function closeDrawerOnMobile() {
@@ -411,15 +435,9 @@ const drawerTitle = computed(() => t(props.drawerTitleKey))
 
 const currentLangLabel = computed(() => (locale.value === 'fr' ? 'FR' : 'EN'))
 
-watch(
-  () => $q.screen.width,
-  () => {
-    syncDrawerForViewport()
-    if (!isDrawerDesktop.value) {
-      miniMode.value = false
-    }
-  },
-)
+watch(isDrawerDesktop, () => {
+  syncDrawerForViewport()
+})
 
 watch(
   () => route.fullPath,

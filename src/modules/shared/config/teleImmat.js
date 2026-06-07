@@ -50,3 +50,6 @@ export function getTeleImmatTimeout() {
 
 /** Chemin de dépôt des pièces — aligné traitementFm1.js DestFichAssu */
 export const TELE_IMMAT_DEST_ASSURE = 'dossiers/assure/immas/'
+
+/** Employeur professionnel — imma_employeur1.js : DestFichEmpl + "/immem/" */
+export const TELE_IMMAT_DEST_EMP_PRO = 'dossiers/employeur/immem/'

@@ -15,6 +15,7 @@ import {
   buildRpCertificatInitApiPayload,
   buildRpCertificatDecesApiPayload,
   buildRpNoteFraisApiPayload,
+  buildRpTiersBeneficiaireApiPayload,
 } from 'src/modules/energizer/data/liquidationRpLegacyFields.js'
 import {
   buildPfElementsLiquidationApiPayload,
@@ -37,6 +38,7 @@ export const LegacyOperation = Object.freeze({
   RP_CERTIFICAT_INIT: 'rp.certificatInit',
   RP_CERTIFICAT_DECES: 'rp.certificatDeces',
   RP_NOTE_FRAIS: 'rp.noteFrais',
+  RP_TIERS_BENEFICIAIRE: 'rp.tiersBeneficiaire',
   PF_SEARCH: 'pf.search',
   PF_ELEMENTS_LIQUIDATION: 'pf.elementsLiquidation',
   PF_ALLOCATION_FAMILIALE: 'pf.allocationFamiliale',
@@ -113,6 +115,11 @@ export function toLegacyApiPayload(operation, source, options = {}) {
     case LegacyOperation.RP_NOTE_FRAIS:
       return /** @type {Record<string, unknown>} */ (
         buildRpNoteFraisApiPayload(/** @type {Record<string, unknown>} */ (source))
+      )
+
+    case LegacyOperation.RP_TIERS_BENEFICIAIRE:
+      return /** @type {Record<string, unknown>} */ (
+        buildRpTiersBeneficiaireApiPayload(/** @type {Record<string, unknown>} */ (source))
       )
 
     case LegacyOperation.PF_ELEMENTS_LIQUIDATION:

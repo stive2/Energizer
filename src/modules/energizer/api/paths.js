@@ -13,6 +13,7 @@ export const ENERGIZER_API = {
     notesFraisDossiers: '/energizer/rp/notes-frais/dossiers',
     notesFraisObjets: '/energizer/rp/notes-frais/objets',
     tiersBeneficiaires: '/energizer/rp/tiers-beneficiaires',
+    tiersBeneficiaire: '/energizer/rp/tiers-beneficiaire',
   },
   reception: {
     objets: '/energizer/reception/nouveau-dossier/objets',
