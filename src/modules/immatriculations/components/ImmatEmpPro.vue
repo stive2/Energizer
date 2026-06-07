@@ -1,15 +1,24 @@
 <template>
   <q-dialog v-model="open" persistent full-width>
     <q-card
-      :style="$q.screen.gt.sm ? 'width: 960px; max-width: 98vw' : 'width: 100%'"
+      :style="$q.screen.gt.sm ? 'width: 980px; max-width: 96vw' : 'width: 100%' "
       class="immat-main-card column no-wrap"
     >
-      <q-card-section class="immat-header row items-center no-wrap q-px-md q-py-xs">
-        <q-icon name="business" size="22px" class="q-mr-sm text-white" />
-        <div class="col text-subtitle1 text-white text-weight-bold">
-          {{ t(service.name) }}
+      <q-card-section class="immat-header row items-center no-wrap q-px-md q-py-sm">
+        <q-avatar size="32px" class="immat-header-avatar q-mr-sm">
+          <q-icon name="business" size="20px" color="primary" />
+        </q-avatar>
+        <div class="col">
+          <div class="text-subtitle1 text-white text-weight-bold ellipsis">
+            {{ t(service.name) }}
+          </div>
+          <div class="text-caption text-white text-opacity-80">
+            {{ $t('immep.step' + step) }}
+          </div>
         </div>
-        <q-btn flat round dense icon="close" color="white" class="q-ml-sm" @click="closeDialog" />
+        <q-btn flat round dense icon="close" color="white" class="q-ml-sm" @click="closeDialog">
+          <q-tooltip>{{ $t('form.cancel') }}</q-tooltip>
+        </q-btn>
       </q-card-section>
 
       <q-form
@@ -37,14 +46,14 @@
             </q-banner>
           </q-card-section>
 
-          <q-card-section class="q-pa-sm q-pt-none">
+          <q-card-section class="immat-stepper-section q-pt-sm q-pb-md">
           <q-stepper
             v-model="step"
             :vertical="!$q.screen.gt.sm"
             color="primary"
             done-color="positive"
             error-color="negative"
-            :inactive-color="maxStep >= step ? 'secondary' : ''"
+            :inactive-color="maxStep >= step ? 'primary' : 'grey-5'"
             animated
             header-nav
             flat
@@ -58,15 +67,12 @@
               :done="step > 1"
               :disable="!isStepAllowed(1)"
             >
-              <div class="step-section-header">
-                <q-icon name="business" class="q-mr-xs" />
-                {{ $t('immep.step1') }}
-              </div>
               <div class="immat-field-row">
                 <q-input
                   v-model="form.RAISON_SOCIALE"
                   :label="$t('input.raisonSociale')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   :rules="[required]"
                   style="text-transform: uppercase"
@@ -74,11 +80,7 @@
                 >
                   <template v-slot:label>
                     {{ t('input.raisonSociale') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-input
@@ -86,23 +88,21 @@
                   :label="$t('input.nomCommercial')"
                   class="immat-field-cell full-width"
                   outlined
+                  dense
                   :rules="[required]"
                   style="text-transform: uppercase"
                   @update:model-value="(val) => (form.NOM_COMMERCIAL = val.toUpperCase())"
                 >
                   <template v-slot:label>
                     {{ t('input.nomCommercial') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-input
                   v-model="form.Sigle"
                   :label="$t('input.sigle')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   style="text-transform: uppercase"
                   @update:model-value="(val) => (form.Sigle = val.toUpperCase())"
@@ -114,6 +114,7 @@
                   option-value="CODE_ARROND"
                   :label="$t('input.arrondissement')"
                   outlined
+                  dense
                   :disable="!referentialsReady"
                   use-input
                   input-debounce="0"
@@ -125,17 +126,14 @@
                 >
                   <template v-slot:label>
                     {{ t('input.arrondissement') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-select>
                 <q-input
                   v-model="form.BOITE_POSTALE"
                   :label="$t('input.boitePostale')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   style="text-transform: uppercase"
                   @update:model-value="(val) => (form.BOITE_POSTALE = val.toUpperCase())"
@@ -144,6 +142,7 @@
                   v-model="form.ADRESSE_EMPL"
                   :label="$t('input.adresse')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   :rules="[required]"
                   style="text-transform: uppercase"
@@ -151,17 +150,14 @@
                 >
                   <template v-slot:label>
                     {{ t('input.adresse') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-input
                   v-model="form.NOM_QUARTIER"
                   :label="$t('input.quartier')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   :rules="[required]"
                   style="text-transform: uppercase"
@@ -169,17 +165,14 @@
                 >
                   <template v-slot:label>
                     {{ t('input.quartier') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-input
                   v-model="form.LIEUDIT_EMPL"
                   :label="$t('input.lieuDit')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   style="text-transform: uppercase"
                   @update:model-value="(val) => (form.LIEUDIT_EMPL = val.toUpperCase())"
@@ -188,6 +181,7 @@
                   v-model="form.num_case"
                   :label="$t('input.numLogement')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   style="text-transform: uppercase"
                   @update:model-value="(val) => (form.num_case = val.toUpperCase())"
@@ -196,6 +190,7 @@
                   v-model="form.EMAIL"
                   :label="$t('input.email')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   type="email"
                   :rules="[
@@ -205,17 +200,14 @@
                 >
                   <template v-slot:label>
                     {{ t('input.email') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-input
                   v-model="form.TEL"
                   :label="$t('input.telephone')"
                   outlined
+                  dense
                   prefix="+237"
                   type="tel"
                   maxlength="9"
@@ -227,25 +219,24 @@
                 >
                   <template v-slot:label>
                     {{ t('input.telephone') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-input
                   v-model="form.AUTRE_CONTACT"
                   :label="$t('input.autreContact')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   style="text-transform: uppercase"
                   @update:model-value="(val) => (form.AUTRE_CONTACT = val.toUpperCase())"
                 />
+                <div class="immat-date-row">
                 <q-input
                   v-model="form.DATE_DEB_SERVICE"
                   :label="$t('input.dateOuverture')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   :rules="[required]"
                   :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
@@ -266,17 +257,14 @@
                   </template>
                   <template v-slot:label>
                     {{ t('input.dateOuverture') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-input
                   v-model="form.date_creation_empl"
                   :label="$t('input.dateCreation')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
                   :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
@@ -299,6 +287,7 @@
                   v-model="form.DATE_EFFET"
                   :label="$t('input.dateEmbauche')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
                   :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
@@ -317,22 +306,20 @@
                     </q-icon>
                   </template>
                 </q-input>
+                </div>
                 <q-input
                   v-model="form.num_registre"
                   :label="$t('input.numRegistreCommerce')"
                   class="immat-field-cell full-width"
                   outlined
+                  dense
                   :rules="[(val) => !val || regexPatterns.regComm.test(val) || '(ex: RC/YAO/2020/B/0002)']"
                   style="text-transform: uppercase"
                   @update:model-value="(val) => (form.num_registre = val.toUpperCase())"
                 >
                   <template v-slot:label>
                     {{ t('input.numRegistreCommerce') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-input
@@ -340,6 +327,7 @@
                   :label="$t('input.numContribuable')"
                   class="immat-field-cell full-width"
                   outlined
+                  dense
                   :rules="[
                     (val) =>
                       !val ||
@@ -351,22 +339,19 @@
                 >
                   <template v-slot:label>
                     {{ t('input.numContribuable') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <div class="col-12">
                   <div class="step-section-header">
-                    <q-icon name="attach_file" class="q-mr-xs" />
+                    <q-icon name="attach_file" class="q-mr-xs" size="18px" />
                     {{ $t('immep.step5') }}
                   </div>
                 </div>
                 <q-file
                   v-model="formFile.IDREGICOMM"
-                  filled
+                  outlined
+                  dense
                   class="immat-field-cell full-width"
                   label=""
                   accept=".gif,.jpg,.jpeg,.png"
@@ -378,21 +363,17 @@
                   :hint="$t('input.max_size_hint')"
                 >
                   <template v-slot:prepend>
-                    <q-icon name="attach_file" />
+                    <q-icon name="attach_file" color="primary" />
                   </template>
                   <template v-slot:label>
                     {{ t('input.registreCommerce') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                    >
-                      {{ t('input.requis') }}
-                    </span>
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-file>
                 <q-file
                   v-model="formFile.IDAUTORISATION"
-                  filled
+                  outlined
+                  dense
                   class="immat-field-cell full-width"
                   label=""
                   accept=".gif,.jpg,.jpeg,.png"
@@ -404,21 +385,17 @@
                   :hint="$t('input.max_size_hint')"
                 >
                   <template v-slot:prepend>
-                    <q-icon name="attach_file" />
+                    <q-icon name="attach_file" color="primary" />
                   </template>
                   <template v-slot:label>
                     {{ t('input.autorisationOuverture') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                    >
-                      {{ t('input.requis') }}
-                    </span>
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-file>
                 <q-file
                   v-model="formFile.IDCONTRIBUABLE"
-                  filled
+                  outlined
+                  dense
                   class="immat-field-cell full-width"
                   :label="$t('input.carteContribuable')"
                   accept=".gif,.jpg,.jpeg,.png"
@@ -429,7 +406,7 @@
                   :hint="$t('input.max_size_hint')"
                 >
                   <template v-slot:prepend>
-                    <q-icon name="attach_file" />
+                    <q-icon name="attach_file" color="primary" />
                   </template>
                 </q-file>
               </div>
@@ -445,7 +422,7 @@
               :disable="!isStepAllowed(2)"
             >
               <div class="step-section-header">
-                <q-icon name="location_on" class="q-mr-xs" />
+                <q-icon name="location_on" class="q-mr-xs" size="18px" />
                 {{ $t('immep.step2') }}
               </div>
               <div class="immat-field-row">
@@ -455,14 +432,16 @@
                     icon="corporate_fare"
                     :label="$t('input.isSuccursale')"
                     dense
-                    header-class="text-primary text-weight-bold"
+                    header-class="text-primary text-weight-bold immat-expansion-header"
                     class="immat-expansion"
                   >
-                    <div class="immat-field-row q-pa-xs">
+                    <div class="immat-field-row q-pa-sm">
                       <q-checkbox
                         name="is_succursale"
                         v-model="form.isSuccursale"
                         :label="$t('input.isSuccursale')"
+                        color="primary"
+                        dense
                         class="col-12"
                       />
                       <q-input
@@ -476,6 +455,7 @@
                         @update:model-value="(val) => (form.NUM_EMPL_SIEGE = val.toUpperCase())"
                         @blur="rechercherSiege"
                         outlined
+                        dense
                         :rules="[
                           required,
                           (val) =>
@@ -486,11 +466,7 @@
                       >
                         <template v-slot:label>
                           {{ t('input.matriculeSiege') }}
-                          <span
-                            class="q-px-sm bg-red text-white text-italic rounded-borders"
-                            style="font-size: 10px"
-                            >{{ t('input.requis') }}</span
-                          >
+                          <span class="required-badge">{{ t('input.requis') }}</span>
                         </template>
                       </q-input>
                       <q-input
@@ -499,6 +475,7 @@
                         :label="$t('input.raisonSocialeSiege')"
                         class="immat-field-cell full-width"
                         outlined
+                        dense
                         readonly
                         style="text-transform: uppercase"
                       />
@@ -508,6 +485,7 @@
                         :label="$t('input.nomCommercialSiege')"
                         class="immat-field-cell full-width"
                         outlined
+                        dense
                         readonly
                         style="text-transform: uppercase"
                       />
@@ -516,8 +494,8 @@
                 </div>
 
                 <div class="col-12">
-                  <div class="step-section-header step-section-header--blue">
-                    <q-icon name="account_balance" class="q-mr-xs" />
+                  <div class="step-section-header">
+                    <q-icon name="account_balance" class="q-mr-xs" size="18px" />
                     {{ $t('immep.step3') }}
                   </div>
                 </div>
@@ -531,16 +509,13 @@
                   map-options
                   :label="$t('input.origineImmatriculation')"
                   outlined
+                  dense
                   :rules="[required]"
                   class="immat-field-cell full-width"
                 >
                   <template v-slot:label>
                     {{ t('input.origineImmatriculation') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-select>
                 <q-select
@@ -552,16 +527,13 @@
                   map-options
                   :label="$t('input.origineDossier')"
                   outlined
+                  dense
                   :rules="[required]"
                   class="immat-field-cell full-width"
                 >
                   <template v-slot:label>
                     {{ t('input.origineDossier') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-select>
 
@@ -572,6 +544,7 @@
                   option-value="CODE_NATUREJUR"
                   :label="$t('input.formeJuridique')"
                   outlined
+                  dense
                   :disable="!referentialsReady"
                   use-input
                   input-debounce="0"
@@ -583,11 +556,7 @@
                 >
                   <template v-slot:label>
                     {{ t('input.formeJuridique') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-select>
                 <q-select
@@ -598,6 +567,7 @@
                   option-value="CODE_SECT_ACTIVITE"
                   :label="$t('input.activiteEconomique')"
                   outlined
+                  dense
                   :disable="!referentialsReady"
                   use-input
                   input-debounce="0"
@@ -609,17 +579,14 @@
                 >
                   <template v-slot:label>
                     {{ t('input.activiteEconomique') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-select>
                 <q-input
                   v-model="form.NBRE_EMPL"
                   :label="$t('input.nombreTravailleurs')"
                   outlined
+                  dense
                   type="number"
                   min="1"
                   class="immat-field-cell full-width"
@@ -627,27 +594,25 @@
                 >
                   <template v-slot:label>
                     {{ t('input.nombreTravailleurs') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-input
                   :model-value="activites.find((a) => String(a.CODE_SECT_ACTIVITE) === String(form.CODE_SECT_ACTIVITEC))?.REGIME_CNPS || ''"
                   :label="$t('input.regimeCNPS')"
                   outlined
+                  dense
                   readonly
-                  class="immat-field-cell full-width"
+                  class="immat-field-cell full-width readonly-field"
                   :rules="[required]"
                 />
                 <q-input
                   :model-value="activites.find((a) => String(a.CODE_SECT_ACTIVITE) === String(form.CODE_SECT_ACTIVITEC))?.DESCRIPTION || ''"
                   :label="$t('input.groupeRisque')"
                   outlined
+                  dense
                   readonly
-                  class="immat-field-cell full-width"
+                  class="immat-field-cell full-width readonly-field"
                   :rules="[required]"
                 />
                 <q-select
@@ -657,6 +622,7 @@
                   option-value="CODE_CENTREIMPOT"
                   :label="$t('input.centreImpots')"
                   outlined
+                  dense
                   :disable="!referentialsReady"
                   use-input
                   input-debounce="0"
@@ -669,14 +635,7 @@
                 >
                   <template v-slot:label>
                     {{ t('input.centreImpots') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
-                    <!-- @update:model-value="
-                    (val) => (form.CODE_CENTRECNPSC = findCentreCNPSByCentreImpots(val))
-                  " -->
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-select>
                 <q-select
@@ -686,6 +645,7 @@
                   option-value="CODE_CENTRE"
                   :label="$t('input.centreCNPS')"
                   outlined
+                  dense
                   :disable="!referentialsReady"
                   use-input
                   input-debounce="0"
@@ -698,22 +658,19 @@
                 >
                   <template v-slot:label>
                     {{ t('input.centreCNPS') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-select>
                 <div class="col-12">
-                  <div class="step-section-header step-section-header--blue">
-                    <q-icon name="folder" class="q-mr-xs" />
+                  <div class="step-section-header">
+                    <q-icon name="folder" class="q-mr-xs" size="18px" />
                     {{ $t('immep.step5') }}
                   </div>
                 </div>
                 <q-file
                   v-model="formFile.IDPLANLOCAL"
-                  filled
+                  outlined
+                  dense
                   class="immat-field-cell full-width"
                   accept=".gif,.jpg,.jpeg,.png"
                   :max-total-size="maxSize"
@@ -723,15 +680,16 @@
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
                 >
-                  <template v-slot:prepend><q-icon name="attach_file" /></template>
+                  <template v-slot:prepend><q-icon name="attach_file" color="primary" /></template>
                   <template v-slot:label>
                     {{ t('input.planLocalisation') }}
-                    <span class="q-px-sm bg-red text-white text-italic rounded-borders" style="font-size: 10px">{{ t('input.requis') }}</span>
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-file>
                 <q-file
                   v-model="formFile.IDCONTRATBAIL"
-                  filled
+                  outlined
+                  dense
                   class="immat-field-cell full-width"
                   :label="$t('input.contratbail')"
                   accept=".gif,.jpg,.jpeg,.png,.pdf"
@@ -741,11 +699,12 @@
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
                 >
-                  <template v-slot:prepend><q-icon name="attach_file" /></template>
+                  <template v-slot:prepend><q-icon name="attach_file" color="primary" /></template>
                 </q-file>
                 <q-file
                   v-model="formFile.IDLISTTRAV"
-                  filled
+                  outlined
+                  dense
                   class="immat-field-cell full-width"
                   accept=".gif,.jpg,.jpeg,.png,.xls,.xlsx,.doc,.docx"
                   :max-total-size="maxSize"
@@ -755,15 +714,16 @@
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
                 >
-                  <template v-slot:prepend><q-icon name="attach_file" /></template>
+                  <template v-slot:prepend><q-icon name="attach_file" color="primary" /></template>
                   <template v-slot:label>
                     {{ t('input.listeTravailleurs') }}
-                    <span class="q-px-sm bg-red text-white text-italic rounded-borders" style="font-size: 10px">{{ t('input.requis') }}</span>
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-file>
                 <q-file
                   v-model="formFile.IDPATENTE"
-                  filled
+                  outlined
+                  dense
                   class="immat-field-cell full-width"
                   :label="$t('input.patente')"
                   accept=".gif,.jpg,.jpeg,.png,.pdf"
@@ -773,11 +733,12 @@
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
                 >
-                  <template v-slot:prepend><q-icon name="attach_file" /></template>
+                  <template v-slot:prepend><q-icon name="attach_file" color="primary" /></template>
                 </q-file>
                 <q-file
                   v-model="formFile.IDIMPOT"
-                  filled
+                  outlined
+                  dense
                   class="immat-field-cell full-width"
                   accept=".gif,.jpg,.jpeg,.png,.pdf"
                   :max-total-size="maxSize"
@@ -786,12 +747,13 @@
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
                 >
-                  <template v-slot:prepend><q-icon name="attach_file" /></template>
+                  <template v-slot:prepend><q-icon name="attach_file" color="primary" /></template>
                   <template v-slot:label>{{ t('input.impotLiberatoire') }}</template>
                 </q-file>
                 <q-file
                   v-model="formFile.IDSTATUTS"
-                  filled
+                  outlined
+                  dense
                   class="immat-field-cell full-width"
                   :label="$t('input.statuts')"
                   accept=".gif,.jpg,.jpeg,.png,.pdf"
@@ -801,7 +763,7 @@
                   max-files="1"
                   :hint="$t('input.max_size_hint')"
                 >
-                  <template v-slot:prepend><q-icon name="attach_file" /></template>
+                  <template v-slot:prepend><q-icon name="attach_file" color="primary" /></template>
                 </q-file>
               </div>
             </q-step>
@@ -815,7 +777,7 @@
               :disable="!isStepAllowed(3)"
             >
               <div class="step-section-header">
-                <q-icon name="person" class="q-mr-xs" />
+                <q-icon name="person" class="q-mr-xs" size="18px" />
                 {{ $t('immep.step4') }}
               </div>
               <div class="immat-field-row">
@@ -823,6 +785,7 @@
                   v-model="form.NOM_PERSEMPL"
                   :label="$t('input.nomResponsable')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   :rules="[required]"
                   style="text-transform: uppercase"
@@ -830,17 +793,14 @@
                 >
                   <template v-slot:label>
                     {{ t('input.nomResponsable') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-input
                   v-model="form.PRENOM_PERSEMPL"
                   :label="$t('input.prenomResponsable')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   style="text-transform: uppercase"
                   @update:model-value="(val) => (form.PRENOM_PERSEMPL = val.toUpperCase())"
@@ -849,6 +809,7 @@
                   v-model="form.DATE_NAISS_PERSEMPL"
                   :label="$t('input.dateNaissanceResponsable')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   :rules="[required]"
                   :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
@@ -869,32 +830,25 @@
                   </template>
                   <template v-slot:label>
                     {{ t('input.dateNaissanceResponsable') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-input
                   v-model="form.LOCALITE_NAISS_PERSEMPL"
                   :label="$t('input.lieuNaissanceResponsable')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   :rules="[required]"
                   style="text-transform: uppercase"
                   @update:model-value="(val) => (form.LOCALITE_NAISS_PERSEMPL = val.toUpperCase())"
                 >
                   <template v-slot:prepend>
-                    <q-icon name="place" />
+                    <q-icon name="place" color="primary" />
                   </template>
                   <template v-slot:label>
                     {{ t('input.lieuNaissanceResponsable') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-select
@@ -904,6 +858,7 @@
                   option-value="CODE_ARROND"
                   :label="$t('input.arrondissementNaissanceResponsable')"
                   outlined
+                  dense
                   :disable="!referentialsReady"
                   use-input
                   input-debounce="0"
@@ -915,11 +870,7 @@
                 >
                   <template v-slot:label>
                     {{ t('input.arrondissementNaissanceResponsable') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-select>
                 <q-select
@@ -927,6 +878,7 @@
                   :options="['FEMININ', 'MASCULIN']"
                   :label="$t('input.sexeResponsable')"
                   outlined
+                  dense
                   input-debounce="0"
                   fill-input
                   :rules="[required]"
@@ -934,11 +886,7 @@
                 >
                   <template v-slot:label>
                     {{ t('input.sexeResponsable') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-select>
                 <q-select
@@ -948,6 +896,7 @@
                   option-value="code_pays"
                   :label="$t('input.nationaliteResponsable')"
                   outlined
+                  dense
                   :disable="!referentialsReady"
                   use-input
                   input-debounce="0"
@@ -959,11 +908,7 @@
                 >
                   <template v-slot:label>
                     {{ t('input.nationaliteResponsable') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-select>
 
@@ -971,6 +916,7 @@
                   v-model="form.ADR_PERSEMPL"
                   :label="$t('input.adresseResponsable')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   :rules="[required]"
                   style="text-transform: uppercase"
@@ -978,17 +924,14 @@
                 >
                   <template v-slot:label>
                     {{ t('input.adresseResponsable') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-input
                   v-model="form.BP_PERSEMPL"
                   :label="$t('input.boitePostaleResponsable')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   style="text-transform: uppercase"
                   @update:model-value="(val) => (form.BP_PERSEMPL = val.toUpperCase())"
@@ -997,6 +940,7 @@
                   v-model="form.TEL_PERSEMPL"
                   :label="$t('input.telephoneResponsable')"
                   outlined
+                  dense
                   type="tel"
                   maxlength="9"
                   prefix="+237"
@@ -1007,21 +951,18 @@
                   ]"
                 >
                   <template v-slot:prepend>
-                    <q-icon name="phone" />
+                    <q-icon name="phone" color="primary" />
                   </template>
                   <template v-slot:label>
                     {{ t('input.telephoneResponsable') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-input
                   v-model="form.EMAIL_PERSEMPL"
                   :label="$t('input.emailResponsable')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   type="email"
                   :rules="[
@@ -1030,15 +971,11 @@
                   ]"
                 >
                   <template v-slot:prepend>
-                    <q-icon name="email" />
+                    <q-icon name="email" color="primary" />
                   </template>
                   <template v-slot:label>
                     {{ t('input.emailResponsable') }}
-                    <span
-                      class="q-px-sm bg-red text-white text-italic rounded-borders"
-                      style="font-size: 10px"
-                      >{{ t('input.requis') }}</span
-                    >
+                    <span class="required-badge">{{ t('input.requis') }}</span>
                   </template>
                 </q-input>
                 <q-select
@@ -1048,6 +985,7 @@
                   option-value="NUM_TYPEPIECE"
                   :label="$t('input.pieceIdentiteResponsable')"
                   outlined
+                  dense
                   :disable="!referentialsReady"
                   use-input
                   input-debounce="0"
@@ -1061,6 +999,7 @@
                   v-model="form.NUM_PIECE"
                   :label="$t('input.numPieceIdentiteResponsable')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   style="text-transform: uppercase"
                   @update:model-value="(val) => (form.NUM_PIECE = val.toUpperCase())"
@@ -1069,6 +1008,7 @@
                   v-model="form.DATE_PIECE"
                   :label="$t('input.dateDelivrancePieceIdentiteResponsable')"
                   outlined
+                  dense
                   class="immat-field-cell full-width"
                   :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
                   :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
@@ -1094,6 +1034,7 @@
                   option-value="CODE_ARROND"
                   :label="$t('input.lieuDelivrancePieceIdentitePromoteur')"
                   outlined
+                  dense
                   :disable="!referentialsReady"
                   use-input
                   input-debounce="0"
@@ -1103,13 +1044,14 @@
                   class="immat-field-cell full-width"
                 >
                   <template v-slot:prepend>
-                    <q-icon name="place" />
+                    <q-icon name="place" color="primary" />
                   </template>
                 </q-select>
                 <q-file
                   v-if="form.NUM_TYPEPIECE"
                   v-model="formFile.fichierIdentiteResponsable"
-                  filled
+                  outlined
+                  dense
                   class="immat-field-cell full-width"
                   accept=".gif,.jpg,.jpeg,.png,.pdf"
                   :max-total-size="maxSize"
@@ -1120,7 +1062,7 @@
                   :hint="$t('input.max_size_hint')"
                 >
                   <template v-slot:prepend>
-                    <q-icon name="badge" />
+                    <q-icon name="badge" color="primary" />
                   </template>
                   <template v-slot:label>
                     {{ pieceIdentiteScanLabel }}
@@ -1138,19 +1080,29 @@
               :done="step > 4"
               :disable="!isStepAllowed(4)"
             >
-              <div class="q-pa-sm" ref="recapContent">
-                <div class="text-center q-mb-md">
-                  <q-icon name="fact_check" size="36px" color="positive" />
-                  <div :class="dynamicTextClass">{{ $t('immep.resume') }}</div>
-                  <q-linear-progress
-                    :value="1"
-                    size="6px"
-                    color="positive"
-                    class="q-mt-sm rounded-borders"
-                  />
+              <div class="q-pa-sm recap-container" ref="recapContent">
+                <!-- Hero recap -->
+                <div class="recap-hero q-mb-lg">
+                  <div class="recap-hero-icon">
+                    <q-icon name="fact_check" size="42px" color="white" />
+                  </div>
+                  <div class="recap-hero-content">
+                    <div :class="dynamicTextClass">{{ $t('immep.resume') }}</div>
+                    <div class="text-body2 text-grey-7 q-mt-xs">
+                      Vérifiez les informations avant la soumission finale
+                    </div>
+                    <q-linear-progress
+                      :value="1"
+                      size="6px"
+                      color="primary"
+                      track-color="grey-3"
+                      class="q-mt-sm rounded-borders"
+                      style="max-width: 340px"
+                    />
+                  </div>
                 </div>
 
-                <div class="row q-col-gutter-lg">
+                <div class="row q-col-gutter-md">
                   <div
                     v-for="section in recapSections"
                     :key="section.step"
@@ -1159,26 +1111,27 @@
                     <q-card
                       flat
                       bordered
-                      class="recap-card q-mb-md"
-                      :class="{
-                        'shadow-10': $q.dark.isActive,
-                        'shadow-2': !$q.dark.isActive,
-                      }"
+                      class="recap-card q-mb-sm"
                     >
-                      <q-card-section
-                        :class="[section.headerClass, 'text-white q-py-sm']"
-                      >
+                      <q-card-section class="recap-card-header q-py-sm q-px-md">
                         <div class="row items-center no-wrap">
-                          <q-icon :name="section.icon" size="sm" class="q-mr-sm" />
-                          <div class="text-subtitle1 text-weight-bold col">
-                            {{ section.title }}
+                          <q-avatar size="32px" class="recap-card-avatar q-mr-sm">
+                            <q-icon :name="section.icon" size="18px" color="primary" />
+                          </q-avatar>
+                          <div class="col">
+                            <div class="text-subtitle2 text-weight-bold text-white">
+                              {{ section.title }}
+                            </div>
+                            <div class="text-caption text-white text-opacity-80">
+                              Étape {{ section.step }}
+                            </div>
                           </div>
                           <q-btn
                             flat
                             round
                             color="white"
                             icon="edit"
-                            size="xs"
+                            size="sm"
                             class="hover-scale"
                             @click="step = section.step"
                           >
@@ -1191,16 +1144,16 @@
                           <q-item
                             v-for="(row, idx) in section.items"
                             :key="idx"
-                            class="q-py-xs"
+                            class="recap-item"
                           >
                             <q-item-section avatar>
                               <q-icon :name="row.icon" color="primary" size="sm" />
                             </q-item-section>
                             <q-item-section>
-                              <q-item-label class="text-caption text-grey-7">
+                              <q-item-label class="recap-label">
                                 {{ row.label }}
                               </q-item-label>
-                              <q-item-label class="text-weight-medium text-body2">
+                              <q-item-label class="recap-value">
                                 {{ row.value }}
                               </q-item-label>
                             </q-item-section>
@@ -1217,21 +1170,23 @@
         </q-scroll-area>
 
         <q-separator />
-        <q-card-actions align="right" class="immat-step-footer q-pa-sm">
+        <q-card-actions align="right" class="immat-step-footer q-pa-sm q-px-md">
           <q-btn
             v-if="step > 1"
-            flat
+            outline
             color="primary"
             :label="$t('form.previous')"
             icon="arrow_back"
+            no-caps
             @click="goToPreviousStep"
           />
           <q-btn
             v-if="step === 4"
-            flat
-            color="secondary"
+            outline
+            color="primary"
             icon="picture_as_pdf"
             :label="$t('form.pdf')"
+            no-caps
             class="q-ml-sm"
             @click="previewPDF"
           />
@@ -1242,6 +1197,7 @@
             unelevated
             :label="$t('form.next')"
             icon-right="arrow_forward"
+            no-caps
             @click="goToNextStep(step + 1)"
           />
           <q-btn
@@ -1249,6 +1205,7 @@
             type="submit"
             color="primary"
             unelevated
+            no-caps
             class="q-px-lg text-weight-bold"
             icon-right="send"
             :label="$t('form.submit')"
@@ -1258,9 +1215,9 @@
 
       <q-dialog v-model="pdfDialog" maximized>
         <q-card>
-          <q-card-section class="row items-center justify-between">
+          <q-card-section class="bg-primary text-white row items-center justify-between q-py-sm">
             <div class="text-h6">{{ $t('form.preview', 'Aperçu PDF') }}</div>
-            <q-btn icon="close" flat round dense @click="pdfDialog = false" />
+            <q-btn icon="close" flat round dense color="white" @click="pdfDialog = false" />
           </q-card-section>
 
           <q-separator />
@@ -1274,7 +1231,9 @@
           <q-card-actions align="right">
             <q-btn
               color="primary"
+              unelevated
               icon="download"
+              no-caps
               :label="$t('form.pdf')"
               @click="downloadPDF"
             />
@@ -1283,10 +1242,10 @@
       </q-dialog>
 
       <q-dialog v-model="dialValidation" persistent>
-        <q-card class="confirmation-card" style="min-width: 320px; max-width: 480px">
+        <q-card class="confirmation-card" style="min-width: 340px; max-width: 480px">
           <q-card-section class="bg-primary text-white row items-center no-wrap q-py-sm">
             <q-icon name="verified" size="md" class="q-mr-sm" />
-            <div class="text-h6 col">{{ $t('form.confirmationTitle') }}</div>
+            <div class="text-subtitle1 text-weight-bold col">{{ $t('form.confirmationTitle') }}</div>
             <q-btn
               flat
               round
@@ -1299,9 +1258,10 @@
 
           <q-card-section>
             <div class="confirmation-message text-body2 q-mb-md">
+              <q-icon name="info" color="primary" class="q-mr-xs" />
               {{ $t('form.confirmationMessage') }}
             </div>
-            <div class="text-subtitle2 text-weight-medium q-mb-sm">
+            <div class="text-subtitle2 text-weight-medium q-mb-sm text-primary">
               {{ $t('immep.confirmSubmit') }}
             </div>
             <q-option-group
@@ -1320,12 +1280,14 @@
               flat
               :label="$t('form.cancel')"
               color="grey-7"
+              no-caps
               @click="dialValidation = false"
             />
             <q-btn
               unelevated
               color="primary"
               icon="send"
+              no-caps
               :label="$t('form.confirm')"
               :disable="form.validation !== true"
               :loading="spinner"
@@ -1613,8 +1575,7 @@ const succursaleExpanded = ref(false)
 const dynamicTextClass = computed(() => [
   $q.screen.gt.sm ? 'text-h5' : 'custom-mobile-text',
   'text-primary',
-  'text-weight-medium',
-  'q-mb-sm',
+  'text-weight-bold',
 ])
 
 const validationOptions = computed(() => [
@@ -1725,7 +1686,6 @@ const recapSections = computed(() => {
       step: 1,
       title: t('immep.step1'),
       icon: 'business',
-      headerClass: 'bg-gradient-primary',
       items: [
         { icon: 'apartment', label: t('input.raisonSociale'), value: nz(form.value.RAISON_SOCIALE) },
         {
@@ -1805,14 +1765,12 @@ const recapSections = computed(() => {
       step: 2,
       title: t('immep.step2'),
       icon: 'location_on',
-      headerClass: 'bg-gradient-secondary',
       items: step2Items,
     },
     {
       step: 3,
       title: t('immep.step4'),
       icon: 'person',
-      headerClass: 'bg-gradient-accent',
       items: [
         {
           icon: 'person',
@@ -2063,7 +2021,6 @@ const getPieceName = (code) => {
   return item?.LIBELLE || String(code)
 }
 
-/** Libellé dynamique du scan pièce — aligné ExtJS (fieldLabel = LIBELLE du type choisi). */
 const pieceIdentiteScanLabel = computed(() => {
   const libelle = getPieceName(form.value.NUM_TYPEPIECE)
   const base = t('input.scanPieceIdentiteResponsable')
@@ -2188,60 +2145,28 @@ watch(
 </script>
 
 <style scoped>
+/* ====== CARD PRINCIPALE ====== */
 .immat-main-card {
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
-  height: min(88vh, 820px);
-  max-height: 92vh;
+  height: min(90vh, 860px);
+  max-height: 94vh;
+  box-shadow: 0 12px 40px rgba(25, 118, 210, 0.15);
 }
 
-.recap-card {
-  transition: all 0.3s ease;
-  border-radius: 12px;
-  overflow: hidden;
+/* ====== HEADER ====== */
+.immat-header {
+  background: linear-gradient(135deg, var(--q-primary) 0%, #1976d2 50%, #42a5f5 100%);
+  min-height: unset;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.recap-card:hover {
-  transform: translateY(-2px);
+.immat-header-avatar {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.bg-gradient-primary {
-  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
-}
-
-.bg-gradient-secondary {
-  background: linear-gradient(135deg, #7b1fa2 0%, #ba68c8 100%);
-}
-
-.bg-gradient-accent {
-  background: linear-gradient(135deg, #00acc1 0%, #4dd0e1 100%);
-}
-
-.hover-scale {
-  transition: transform 0.2s ease;
-}
-
-.hover-scale:hover {
-  transform: scale(1.1);
-}
-
-.custom-mobile-text {
-  font-size: 14px;
-  line-height: 1.5rem;
-}
-
-.confirmation-card {
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-}
-
-.confirmation-message {
-  background: #f8f9fa;
-  padding: 16px;
-  border-radius: 8px;
-  border-left: 4px solid #2196f3;
-}
-
+/* ====== FORM CONTAINER ====== */
 .immat-form {
   min-height: 0;
 }
@@ -2250,91 +2175,116 @@ watch(
   height: 0;
   flex: 1 1 auto;
   min-height: 280px;
+  background: #fafbfc;
 }
 
+/* ====== FOOTER ====== */
 .immat-step-footer {
   flex-shrink: 0;
-  background: #f5f7fa;
-  border-top: 1px solid #e0e0e0;
+  background: #ffffff;
+  border-top: 1px solid #e3e8ee;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.immat-header {
-  background: linear-gradient(135deg, #1565c0 0%, #1976d2 60%, #42a5f5 100%);
-  min-height: unset;
+/* ====== STEPPER WRAP ====== */
+.immat-stepper-section {
+  padding-left: 20px;
+  padding-right: 20px;
+}
+
+/* ====== STEPPER ====== */
+.immat-stepper {
+  background: transparent;
 }
 
 .immat-stepper :deep(.q-stepper__header) {
-  background: #f5f7fa;
-  border-bottom: 1px solid #e0e0e0;
+  background: #ffffff;
+  border-bottom: 2px solid #e3e8ee;
   min-height: unset;
-  padding: 2px 4px;
+  padding: 6px 8px;
+  border-radius: 10px 10px 0 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .immat-stepper :deep(.q-stepper__tab) {
-  min-height: 40px;
-  padding: 4px 6px;
+  min-height: 52px;
+  padding: 8px 12px;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+}
+
+.immat-stepper :deep(.q-stepper__tab:hover) {
+  background: rgba(25, 118, 210, 0.06);
 }
 
 .immat-stepper :deep(.q-stepper__title) {
-  font-size: 0.7rem;
-  line-height: 1.15;
-  margin-top: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  margin-top: 2px;
   padding: 0 2px;
 }
 
 .immat-stepper :deep(.q-stepper__label) {
-  margin-top: 0;
+  margin-top: 2px;
 }
 
 .immat-stepper :deep(.q-stepper__dot) {
-  width: 22px;
-  min-width: 22px;
-  height: 22px;
+  width: 28px;
+  min-width: 28px;
+  height: 28px;
   font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.immat-stepper :deep(.q-stepper__tab--active .q-stepper__dot),
+.immat-stepper :deep(.q-stepper__tab--done .q-stepper__dot) {
+  box-shadow: 0 2px 10px rgba(25, 118, 210, 0.35);
 }
 
 .immat-stepper :deep(.q-stepper__line) {
-  margin-top: 11px;
+  margin-top: 14px;
 }
 
-.immat-expansion {
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
+.immat-stepper :deep(.q-stepper__step-content) {
+  padding-top: 12px;
+  padding-bottom: 8px;
 }
 
+.immat-stepper :deep(.q-stepper__step-inner) {
+  background: #ffffff;
+  border-radius: 0 0 10px 10px;
+  margin-left: 3cm;
+  margin-right: 3cm;
+  padding: 12px 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* ====== SECTION HEADERS ====== */
 .step-section-header {
   display: flex;
   align-items: center;
   font-size: 13px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #1565c0;
-  background: #e3f2fd;
-  border-left: 3px solid #1976d2;
-  padding: 6px 12px;
-  border-radius: 0 4px 4px 0;
-  margin-bottom: 8px;
-  margin-top: 4px;
+  letter-spacing: 0.05em;
+  color: var(--q-primary);
+  background: linear-gradient(90deg, rgba(25, 118, 210, 0.08) 0%, rgba(25, 118, 210, 0.02) 100%);
+  border-left: 4px solid var(--q-primary);
+  padding: 10px 14px;
+  border-radius: 0 6px 6px 0;
+  margin-bottom: 14px;
+  margin-top: 6px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-.step-section-header--blue {
-  color: #0d47a1;
-  background: #e3f2fd;
-  border-left-color: #1565c0;
-}
-
-/* Grille : 2 champs par ligne, largeur normale */
-.immat-stepper :deep(.q-stepper__step-content) {
-  padding-top: 8px;
-  padding-bottom: 8px;
-}
-
+/* ====== FIELD GRID ====== */
 .immat-stepper :deep(.immat-field-row) {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   column-gap: 16px;
-  row-gap: 12px;
+  row-gap: 14px;
   margin-bottom: 8px;
 }
 
@@ -2342,22 +2292,282 @@ watch(
   grid-column: 1 / -1;
 }
 
+.immat-date-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  column-gap: 16px;
+  row-gap: 14px;
+}
+
 .immat-stepper :deep(.immat-field-cell) {
   min-width: 0;
   width: 100%;
 }
 
-.immat-stepper :deep(.immat-field-cell .q-field) {
-  margin-bottom: 0;
+/* ====== INPUTS DENSES ====== */
+.immat-stepper :deep(.q-field--outlined .q-field__control) {
+  border-radius: 8px;
+  min-height: 42px;
+  transition: all 0.2s ease;
+}
+
+.immat-stepper :deep(.q-field--outlined .q-field__control:hover) {
+  background: rgba(25, 118, 210, 0.02);
+}
+
+.immat-stepper :deep(.q-field--outlined .q-field__control:before) {
+  border-color: #d1d9e0;
+}
+
+.immat-stepper :deep(.q-field--outlined.q-field--focused .q-field__control:before) {
+  border-color: var(--q-primary);
+  border-width: 2px;
+}
+
+.immat-stepper :deep(.q-field--outlined.q-field--focused .q-field__control:after) {
+  border-color: var(--q-primary);
+}
+
+.immat-stepper :deep(.q-field--dense .q-field__label) {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.immat-stepper :deep(.q-field--dense .q-field__native) {
+  font-size: 13.5px;
 }
 
 .immat-stepper :deep(.immat-field-cell .q-field__bottom) {
   padding-top: 4px;
-  min-height: 20px;
+  min-height: 18px;
+  font-size: 11px;
 }
 
-.immat-stepper :deep(.step-section-header) {
-  margin-bottom: 8px;
-  margin-top: 4px;
+.immat-stepper :deep(.q-field__hint) {
+  font-size: 11px;
+  color: #6b7785;
+}
+
+/* Readonly fields visual */
+.immat-stepper :deep(.readonly-field .q-field__control) {
+  background: #f5f7fa;
+}
+
+/* ====== REQUIRED BADGE ====== */
+.required-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 8px;
+  background: #e53935;
+  color: white;
+  font-size: 9px;
+  font-style: italic;
+  font-weight: 600;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  vertical-align: middle;
+}
+
+/* ====== EXPANSION ====== */
+.immat-expansion {
+  border: 1px solid #d1d9e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: linear-gradient(90deg, rgba(25, 118, 210, 0.03) 0%, transparent 100%);
+}
+
+.immat-expansion :deep(.immat-expansion-header) {
+  background: rgba(25, 118, 210, 0.05);
+  padding: 8px 12px;
+}
+
+.immat-expansion :deep(.q-expansion-item__container) {
+  background: #ffffff;
+}
+
+/* ====== RECAP STEP ====== */
+.recap-container {
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  border-radius: 12px;
+  padding: 20px !important;
+}
+
+.recap-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(66, 165, 245, 0.04) 100%);
+  border: 1px solid rgba(25, 118, 210, 0.15);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.06);
+}
+
+.recap-hero-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--q-primary) 0%, #42a5f5 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+  flex-shrink: 0;
+}
+
+.recap-hero-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.recap-card {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e3e8ee !important;
+  background: #ffffff;
+}
+
+.recap-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(25, 118, 210, 0.12) !important;
+  border-color: rgba(25, 118, 210, 0.3) !important;
+}
+
+.recap-card-header {
+  background: linear-gradient(135deg, var(--q-primary) 0%, #1976d2 60%, #42a5f5 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.recap-card-header::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 100%);
+  pointer-events: none;
+}
+
+.recap-card-avatar {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.recap-item {
+  padding: 8px 16px;
+  transition: background 0.2s ease;
+}
+
+.recap-item:hover {
+  background: rgba(25, 118, 210, 0.04);
+}
+
+.recap-label {
+  font-size: 11px;
+  color: #6b7785;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.recap-value {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #1f2937;
+  word-break: break-word;
+}
+
+/* ====== HOVER EFFECTS ====== */
+.hover-scale {
+  transition: transform 0.2s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.15);
+}
+
+/* ====== CONFIRMATION DIALOG ====== */
+.confirmation-card {
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+
+.confirmation-message {
+  background: linear-gradient(90deg, rgba(25, 118, 210, 0.06) 0%, rgba(25, 118, 210, 0.02) 100%);
+  padding: 14px 16px;
+  border-radius: 8px;
+  border-left: 4px solid var(--q-primary);
+  display: flex;
+  align-items: flex-start;
+}
+
+/* ====== MOBILE ====== */
+.custom-mobile-text {
+  font-size: 16px;
+  line-height: 1.5rem;
+  font-weight: 700;
+}
+
+@media (max-width: 599px) {
+  .immat-stepper :deep(.immat-field-row) {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+  }
+
+  .immat-date-row {
+    grid-template-columns: 1fr;
+    column-gap: 0;
+  }
+
+  .recap-hero {
+    flex-direction: column;
+    text-align: center;
+    padding: 16px;
+  }
+
+  .immat-stepper :deep(.q-stepper__step-inner) {
+    margin-left: 12px;
+    margin-right: 12px;
+    padding: 10px 12px;
+  }
+}
+
+/* ====== DARK MODE ====== */
+.body--dark .immat-scroll-area {
+  background: #1d1d1d;
+}
+
+.body--dark .immat-step-footer {
+  background: #2a2a2a;
+  border-top-color: #3a3a3a;
+}
+
+.body--dark .step-section-header {
+  background: linear-gradient(90deg, rgba(66, 165, 245, 0.15) 0%, rgba(66, 165, 245, 0.05) 100%);
+  color: #64b5f6;
+}
+
+.body--dark .recap-container {
+  background: linear-gradient(180deg, #1d1d1d 0%, #2a2a2a 100%);
+}
+
+.body--dark .recap-card {
+  background: #2a2a2a;
+  border-color: #3a3a3a !important;
+}
+
+.body--dark .recap-label {
+  color: #9ca3af;
+}
+
+.body--dark .recap-value {
+  color: #e5e7eb;
 }
 </style>

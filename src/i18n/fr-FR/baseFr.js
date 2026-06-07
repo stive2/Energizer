@@ -652,6 +652,9 @@ export default {
     revision: 'VOULEZ  VOUS ASSOCIER CE DOSSIER A UNE REVISION DE DROITS ?',
     oui: 'OUI',
     non: 'NON',
+    yes: 'OUI',
+    no: 'NON',
+    nonRenseigne: 'Non renseigné',
 
     numdossier: 'Numéro de dossier',
     emploiassure: 'Emploi de l’assuré',

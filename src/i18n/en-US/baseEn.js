@@ -629,6 +629,9 @@ export default {
     revision: 'DO YOU WANT TO ASSOCIATE THIS CASE WITH A RIGHTS REVIEW?',
     oui: 'YES',
     non: 'NO',
+    yes: 'YES',
+    no: 'NO',
+    nonRenseigne: 'Not provided',
 
     numdossier: 'Case Number',
     emploiassure: "Insured's Job",
