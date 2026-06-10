@@ -52,9 +52,7 @@ function resolveCrumbLink(entry, nextEntry) {
       if (next.type === 'item' && next.to) {
         return next.to
       }
-      if (next.type === 'group') {
-        return firstLeafRoute(next.children)
-      }
+      return null
     }
     return firstLeafRoute(normalized.children)
   }
@@ -68,20 +66,31 @@ function resolveCrumbLink(entry, nextEntry) {
  * @param {{ homeLabelKey?: string, homeRoute?: object }} [options]
  * @returns {Array<{ labelKey: string, to?: object }>}
  */
+function buildCrumbFromEntry(entry) {
+  if (entry.label) {
+    return { label: entry.label }
+  }
+  if (entry.labelKey) {
+    return { labelKey: entry.labelKey }
+  }
+  return { label: '' }
+}
+
 export function buildMenuBreadcrumbs(menuItems, routeName, options = {}) {
   const homeLabelKey = options.homeLabelKey ?? 'layout.sidebar.home'
   const homeRoute = options.homeRoute ?? { name: 'energizer-home' }
+  const prependHome = options.prependHome !== false
 
   const chain = findMenuChain(menuItems, routeName)
   if (!chain?.length) {
     return []
   }
 
-  const crumbs = [{ labelKey: homeLabelKey, to: homeRoute }]
+  const crumbs = prependHome ? [{ labelKey: homeLabelKey, to: homeRoute }] : []
 
   chain.forEach((entry, index) => {
     const isLast = index === chain.length - 1
-    const crumb = { labelKey: entry.labelKey }
+    const crumb = buildCrumbFromEntry(entry)
     if (!isLast) {
       const to = resolveCrumbLink(entry, chain[index + 1])
       if (to) {

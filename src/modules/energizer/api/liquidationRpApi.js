@@ -2,7 +2,7 @@ import { api } from 'src/modules/shared/services/http/cnpsHttp.js'
 
 import { ENERGIZER_API } from './paths.js'
 
-import { callApi, unwrapData } from './callApi.js'
+import { unwrapData } from './callApi.js'
 
 import {
 
@@ -27,13 +27,6 @@ import {
   searchRpCertificatDossiersLegacy,
   searchRpDossiersLegacy,
 } from './liquidationRpLegacyApi.js'
-
-import {
-  mockNotesFraisMeta,
-  mockSubmitOk,
-} from './mocks/rpMocks.js'
-
-
 
 export async function fetchRpEmployeur(matricule) {
   if (isRpLegacyApiEnabled()) {
@@ -62,17 +55,12 @@ export async function searchRpDossiers(params = {}) {
   }
 
   const legacyParams = toLegacyApiPayload(LegacyOperation.RP_SEARCH, params)
-  return callApi(
-    async () => {
-      const { data } = await api.get(ENERGIZER_API.rp.dossiers, {
-        params: legacyParams,
-        skipErrorNotify: true,
-      })
-      const list = unwrapData(data)
-      return Array.isArray(list) ? list : []
-    },
-    () => [],
-  )
+  const { data } = await api.get(ENERGIZER_API.rp.dossiers, {
+    params: legacyParams,
+    skipErrorNotify: true,
+  })
+  const list = unwrapData(data)
+  return Array.isArray(list) ? list : []
 }
 
 export async function searchRpCertificatDossiers() {
@@ -107,13 +95,8 @@ export async function saveRpDeclaration(form) {
   }
 
   const payload = toLegacyApiPayload(LegacyOperation.RP_DECLARATION, form)
-  return callApi(
-    async () => {
-      const { data } = await api.post(ENERGIZER_API.rp.declaration, payload)
-      return unwrapData(data)
-    },
-    () => mockSubmitOk(payload),
-  )
+  const { data } = await api.post(ENERGIZER_API.rp.declaration, payload)
+  return unwrapData(data)
 }
 
 
@@ -148,14 +131,8 @@ export async function saveNoteFrais(form) {
   }
 
   const payload = toLegacyApiPayload(LegacyOperation.RP_NOTE_FRAIS, form)
-
-  return callApi(
-    async () => {
-      const { data } = await api.post(ENERGIZER_API.rp.notesFrais, payload)
-      return unwrapData(data)
-    },
-    () => mockSubmitOk(payload),
-  )
+  const { data } = await api.post(ENERGIZER_API.rp.notesFrais, payload)
+  return unwrapData(data)
 }
 
 export async function fetchNotesFraisDossiers() {
@@ -163,13 +140,8 @@ export async function fetchNotesFraisDossiers() {
     return fetchNotesFraisDossiersLegacy()
   }
 
-  return callApi(
-    async () => {
-      const { data } = await api.get(ENERGIZER_API.rp.notesFraisDossiers, { skipErrorNotify: true })
-      return unwrapData(data)
-    },
-    () => mockNotesFraisMeta().dossiers,
-  )
+  const { data } = await api.get(ENERGIZER_API.rp.notesFraisDossiers, { skipErrorNotify: true })
+  return unwrapData(data)
 }
 
 export async function fetchNotesFraisObjets() {
@@ -177,13 +149,8 @@ export async function fetchNotesFraisObjets() {
     return fetchNotesFraisObjetsLegacy()
   }
 
-  return callApi(
-    async () => {
-      const { data } = await api.get(ENERGIZER_API.rp.notesFraisObjets, { skipErrorNotify: true })
-      return unwrapData(data)
-    },
-    () => mockNotesFraisMeta().objets,
-  )
+  const { data } = await api.get(ENERGIZER_API.rp.notesFraisObjets, { skipErrorNotify: true })
+  return unwrapData(data)
 }
 
 
@@ -203,16 +170,12 @@ export async function fetchTiersBeneficiaires(numassu) {
     return fetchTiersBeneficiairesLegacy(numassu)
   }
 
-  return callApi(
-    async () => {
-      const { data } = await api.get(ENERGIZER_API.rp.tiersBeneficiaires, {
-        params: { numassu },
-        skipErrorNotify: true,
-      })
-      return unwrapData(data)
-    },
-    () => mockNotesFraisMeta().tiers[numassu] ?? [],
-  )
+  const { data } = await api.get(ENERGIZER_API.rp.tiersBeneficiaires, {
+    params: { numassu },
+    skipErrorNotify: true,
+  })
+  const list = unwrapData(data)
+  return Array.isArray(list) ? list : []
 }
 
 

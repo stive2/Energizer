@@ -1,8 +1,6 @@
 <template>
   <q-page class="nouveau-dossier-page q-pa-md">
     <div class="nouveau-dossier-page__wrap q-mx-auto">
-      <AppBreadcrumbs :menu-items="energizerMenu" />
-
       <h1 class="nouveau-dossier-page__title text-h5 text-primary text-weight-bold text-center q-mb-md">
         {{ t('reception.nouveauDossier.pageTitle') }}
       </h1>
@@ -101,8 +99,6 @@ import { useI18n } from 'vue-i18n'
 import { useRoute } from 'vue-router'
 import { useNouveauDossierStore } from 'src/modules/energizer/stores/nouveauDossierStore.js'
 import NouveauDossierDialog from 'src/modules/energizer/components/nouveauDossier/NouveauDossierDialog.vue'
-import AppBreadcrumbs from 'src/modules/shared/components/layout/AppBreadcrumbs.vue'
-import { energizerMenu } from 'src/modules/energizer/config/energizerMenu.js'
 
 const { t } = useI18n()
 const route = useRoute()

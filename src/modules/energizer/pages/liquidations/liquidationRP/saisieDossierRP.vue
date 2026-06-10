@@ -1,8 +1,5 @@
 <template>
   <q-page class="q-pa-md saisie-dossier-rp-page">
-
-    <AppBreadcrumbs :menu-items="energizerMenu" class="q-mb-md" />
-
     <!-- ════════════════════════════════════════════════
          LANDING : grille de cartes
     ════════════════════════════════════════════════ -->
@@ -97,8 +94,6 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import NlleDeclaration from 'src/modules/energizer/components/prestationRP/nlledeclaration.vue'
-import AppBreadcrumbs from 'src/modules/shared/components/layout/AppBreadcrumbs.vue'
-import { energizerMenu } from 'src/modules/energizer/config/energizerMenu.js'
 
 defineOptions({ name: 'SaisieDossierRPPage' })
 

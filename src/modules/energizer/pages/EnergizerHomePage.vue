@@ -18,11 +18,16 @@
         />
       </div>
 
-      <q-banner dense rounded class="bg-blue-1 text-primary q-mb-md energizer-stats-banner">
+      <q-banner
+        v-if="!hasStatsData"
+        dense
+        rounded
+        class="bg-blue-1 text-primary q-mb-md energizer-stats-banner"
+      >
         <template #avatar>
           <q-icon name="info" />
         </template>
-        {{ t('home.energizerStats.simulatedNotice') }}
+        {{ t('home.energizerStats.noDataNotice') }}
       </q-banner>
 
       <div class="row q-col-gutter-md q-mb-md">
@@ -193,11 +198,13 @@ const periodMultiplier = computed(() => {
 })
 
 const baseKpis = {
-  total: 248,
-  reception: 94,
-  liquidationRp: 86,
-  liquidationPf: 68,
+  total: 0,
+  reception: 0,
+  liquidationRp: 0,
+  liquidationPf: 0,
 }
+
+const hasStatsData = computed(() => baseKpis.total > 0)
 
 const kpiCards = computed(() => {
   const m = periodMultiplier.value
@@ -211,7 +218,7 @@ const kpiCards = computed(() => {
       value: fmt(baseKpis.total),
       trendIcon: 'trending_up',
       trendClass: 'text-positive',
-      trendLabel: t('home.energizerStats.trendUp', { pct: 12 }),
+      trendLabel: t('home.energizerStats.trendFlat'),
     },
     {
       key: 'reception',
@@ -221,7 +228,7 @@ const kpiCards = computed(() => {
       value: fmt(baseKpis.reception),
       trendIcon: 'trending_up',
       trendClass: 'text-positive',
-      trendLabel: t('home.energizerStats.trendUp', { pct: 8 }),
+      trendLabel: t('home.energizerStats.trendFlat'),
     },
     {
       key: 'rp',
@@ -241,7 +248,7 @@ const kpiCards = computed(() => {
       value: fmt(baseKpis.liquidationPf),
       trendIcon: 'trending_up',
       trendClass: 'text-positive',
-      trendLabel: t('home.energizerStats.trendUp', { pct: 5 }),
+      trendLabel: t('home.energizerStats.trendFlat'),
     },
   ]
 })
@@ -281,10 +288,10 @@ const domainBreakdown = computed(() => {
 })
 
 const weeklyBase = [
-  { labelKey: 'home.energizerStats.week1', reception: 18, rp: 14, pf: 11 },
-  { labelKey: 'home.energizerStats.week2', reception: 22, rp: 19, pf: 15 },
-  { labelKey: 'home.energizerStats.week3', reception: 26, rp: 21, pf: 17 },
-  { labelKey: 'home.energizerStats.week4', reception: 28, rp: 32, pf: 25 },
+  { labelKey: 'home.energizerStats.week1', reception: 0, rp: 0, pf: 0 },
+  { labelKey: 'home.energizerStats.week2', reception: 0, rp: 0, pf: 0 },
+  { labelKey: 'home.energizerStats.week3', reception: 0, rp: 0, pf: 0 },
+  { labelKey: 'home.energizerStats.week4', reception: 0, rp: 0, pf: 0 },
 ]
 
 const weeklyBars = computed(() => {
@@ -306,88 +313,7 @@ const weeklyBars = computed(() => {
   })
 })
 
-const allActivities = [
-  {
-    id: 'A-2401',
-    date: '16/05/2026 09:42',
-    domainKey: 'reception',
-    domainLabelKey: 'home.energizerStats.domainReception',
-    actionKey: 'home.energizerStats.actionReceptionNew',
-    agent: 'M. Nguema',
-    status: 'completed',
-    statusLabelKey: 'home.energizerStats.statusCompleted',
-  },
-  {
-    id: 'A-2402',
-    date: '16/05/2026 10:15',
-    domainKey: 'rp',
-    domainLabelKey: 'home.energizerStats.domainRp',
-    actionKey: 'home.energizerStats.actionRpDossier',
-    agent: 'S. Abega',
-    status: 'in_progress',
-    statusLabelKey: 'home.energizerStats.statusInProgress',
-  },
-  {
-    id: 'A-2403',
-    date: '16/05/2026 11:03',
-    domainKey: 'pf',
-    domainLabelKey: 'home.energizerStats.domainPf',
-    actionKey: 'home.energizerStats.actionPfElements',
-    agent: 'C. Fotso',
-    status: 'completed',
-    statusLabelKey: 'home.energizerStats.statusCompleted',
-  },
-  {
-    id: 'A-2404',
-    date: '15/05/2026 16:28',
-    domainKey: 'rp',
-    domainLabelKey: 'home.energizerStats.domainRp',
-    actionKey: 'home.energizerStats.actionRpCert',
-    agent: 'J. Mballa',
-    status: 'completed',
-    statusLabelKey: 'home.energizerStats.statusCompleted',
-  },
-  {
-    id: 'A-2405',
-    date: '15/05/2026 14:10',
-    domainKey: 'reception',
-    domainLabelKey: 'home.energizerStats.domainReception',
-    actionKey: 'home.energizerStats.actionReceptionNew',
-    agent: 'P. Essomba',
-    status: 'pending',
-    statusLabelKey: 'home.energizerStats.statusPending',
-  },
-  {
-    id: 'A-2406',
-    date: '15/05/2026 09:55',
-    domainKey: 'pf',
-    domainLabelKey: 'home.energizerStats.domainPf',
-    actionKey: 'home.energizerStats.actionPfAlloc',
-    agent: 'A. Tchinda',
-    status: 'in_progress',
-    statusLabelKey: 'home.energizerStats.statusInProgress',
-  },
-  {
-    id: 'A-2407',
-    date: '14/05/2026 17:40',
-    domainKey: 'rp',
-    domainLabelKey: 'home.energizerStats.domainRp',
-    actionKey: 'home.energizerStats.actionRpLiquidation',
-    agent: 'M. Nguema',
-    status: 'completed',
-    statusLabelKey: 'home.energizerStats.statusCompleted',
-  },
-  {
-    id: 'A-2408',
-    date: '14/05/2026 08:20',
-    domainKey: 'reception',
-    domainLabelKey: 'home.energizerStats.domainReception',
-    actionKey: 'home.energizerStats.actionReceptionValidate',
-    agent: 'S. Abega',
-    status: 'completed',
-    statusLabelKey: 'home.energizerStats.statusCompleted',
-  },
-]
+const allActivities = []
 
 const filteredActivities = computed(() => {
   const limit = period.value === 'week' ? 5 : allActivities.length

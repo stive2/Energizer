@@ -45,6 +45,10 @@
       <q-scroll-area class="aura-sidebar-shell__scroll">
         <slot />
       </q-scroll-area>
+
+      <div v-if="$slots.footer" class="aura-sidebar-shell__footer">
+        <slot name="footer" />
+      </div>
     </div>
 
     <q-btn
@@ -177,6 +181,14 @@ function toggleMini() {
 .aura-sidebar-shell__scroll {
   flex: 1 1 auto;
   min-height: 0;
+}
+
+.aura-sidebar-shell__footer {
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.12);
+  padding-top: 4px;
+  padding-bottom: 8px;
 }
 
 .aura-sidebar-shell__collapse {

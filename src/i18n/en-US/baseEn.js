@@ -12,14 +12,14 @@ export default {
     energizer: {
       cardTitle: 'EnergiZer',
       loginTitle: 'Staff sign-in — EnergiZer',
-      loginSubtitle: 'Demo credentials (CNPS staff profile).',
+      loginSubtitle: 'Access restricted to CNPS staff.',
     },
     employeur: {
       cardTitle: 'Employer area',
       layoutTitle: 'Employer module',
       loginTitle: 'Employer sign-in',
       loginSubtitle: 'For employer representatives only.',
-      demoHint: 'Demo: employeur.demo@cnps.demo — password: Employeur2026!',
+      demoHint: '',
       homeTitle: 'Employer home',
       homeLead: 'Employer-side benefit requests.',
       stubBanner: 'Placeholder: plug employer workflows here.',
@@ -212,6 +212,7 @@ export default {
     energizer: {
       toolbarTitle: 'SAPELLI ENERGIZER',
       toolbarTitleMobile: 'ENERGIZER',
+      toolbarDossiers: 'Files',
     },
     assure: {
       toolbarTitle: 'INSURED AREA',
@@ -239,6 +240,9 @@ export default {
       currentPasswordInvalid: 'Incorrect current password',
       profileSaved: 'Profile updated',
       passwordSaved: 'Password changed',
+      tabHistory: 'History',
+      historyLead: 'View your Energizer portal login history.',
+      openHistory: 'Login history',
     },
     sidebar: {
       navTitle: 'Navigation',
@@ -313,10 +317,10 @@ export default {
     sectionModules: 'Business modules',
     sectionCatalog: 'Service catalog',
     persona: {
-      title: 'Access profile (simulated)',
+      title: 'Access profile',
       external: 'Insured — external',
       internal: 'CNPS staff — internal',
-      hint: 'Fictive selection to show the right shortcuts (no real authentication).',
+      hint: '',
     },
     external: {
       sectionTitle: 'Online claim file submission',
@@ -336,14 +340,14 @@ export default {
       other: 'Other intranet modules',
     },
     simLogin: {
-      title: 'Portal sign-in (demo)',
+      title: 'Portal sign-in',
       subtitle:
         'Demo credentials: pick a profile type, then sign in to see the matching shortcuts.',
       tabExternal: 'Insured (external)',
       tabInternal: 'Staff (internal)',
-      demoBannerTitle: 'Demo accounts',
-      demoBannerExternal: 'Insured: assure.externe@cnps.demo — password: Assure2026!',
-      demoBannerInternal: 'Staff: agent.interne@cnps.demo — password: Agent2026!',
+      demoBannerTitle: '',
+      demoBannerExternal: '',
+      demoBannerInternal: '',
       fieldLogin: 'Sign-in (email)',
       fieldPassword: 'Password',
       required: 'Required',
@@ -379,9 +383,10 @@ export default {
     },
     energizerStats: {
       title: 'EnergiZer activity',
-      subtitle: 'Summary of completed workflows for the selected period (simulated data).',
-      simulatedNotice:
-        'These metrics are simulated: they illustrate intake, RP liquidation, and PF liquidation volume.',
+      subtitle: 'Summary of completed workflows for the selected period.',
+      noDataNotice:
+        'No statistics available yet. Metrics will be provided by the backend.',
+      simulatedNotice: '',
       periodWeek: '7 days',
       periodMonth: '30 days',
       kpiTotal: 'Total activities',

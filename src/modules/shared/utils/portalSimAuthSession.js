@@ -1,5 +1,3 @@
-import { getSimAccountByProfile } from 'src/modules/shared/api/auth/simPortalAuth.js'
-
 const TOKEN_KEY = 'auth_token'
 const USER_KEY = 'user_info'
 
@@ -85,30 +83,31 @@ export function persistAgentSession(payload = {}) {
 }
 
 /**
- * @param {{ login: string, displayName: string, profile: string, token: string }} payload
+ * @param {{ login: string, displayName?: string, num_assu?: string, token: string, user?: object }} payload
  */
-export function persistInsuredSession(payload) {
-  const spec = getSimAccountByProfile('external')
-  const numAssu = payload.num_assu || payload.login || spec.num_assu || spec.login
+export function persistInsuredSession(payload = {}) {
+  const numAssu = payload.num_assu || payload.login || ''
+  const displayName = payload.displayName || numAssu
+
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.setItem(ASSURE_PROFILE_KEY, 'external')
-    sessionStorage.setItem(ASSURE_NAME_KEY, payload.displayName || spec.displayName)
+    sessionStorage.setItem(ASSURE_NAME_KEY, displayName)
   }
   if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(TOKEN_KEY, payload.token || `sim-token-external`)
+    if (payload.token) {
+      localStorage.setItem(TOKEN_KEY, payload.token)
+    }
     localStorage.setItem(
       USER_KEY,
       JSON.stringify({
         profile: 'external',
-        login: payload.login || spec.login,
+        login: payload.login || numAssu,
         num_assu: numAssu,
-        nom: payload.displayName || spec.displayName,
-        email: payload.login || spec.login,
-        telephone: '+237677123456',
-        adresse: 'YAOUNDE, CAMEROUN',
+        displayName,
+        nom: displayName,
+        email: payload.email || payload.login || numAssu,
         numeroAssure: numAssu,
-        sexe: 'F',
-        mat_interne: 'EMP-2024-001',
+        ...(payload.user || {}),
       }),
     )
   }

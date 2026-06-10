@@ -7,8 +7,8 @@
   >
     <q-breadcrumbs-el
       v-for="(crumb, idx) in resolvedItems"
-      :key="`${crumb.labelKey}-${idx}`"
-      :label="t(crumb.labelKey)"
+      :key="`${crumb.label || crumb.labelKey || idx}-${idx}`"
+      :label="crumbLabel(crumb)"
       :to="crumb.to"
     />
   </q-breadcrumbs>
@@ -41,6 +41,10 @@ const props = defineProps({
     type: Object,
     default: () => ({ name: 'energizer-home' }),
   },
+  prependHome: {
+    type: Boolean,
+    default: true,
+  },
 })
 
 const route = useRoute()
@@ -57,6 +61,13 @@ const resolvedItems = computed(() => {
   return buildMenuBreadcrumbs(props.menuItems, name, {
     homeLabelKey: props.homeLabelKey,
     homeRoute: props.homeRoute,
+    prependHome: props.prependHome,
   })
 })
+
+function crumbLabel(crumb) {
+  if (crumb.label) return crumb.label
+  if (crumb.labelKey) return t(crumb.labelKey)
+  return ''
+}
 </script>

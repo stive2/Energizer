@@ -161,7 +161,10 @@ export async function probeEnergizerSessionIfNeeded(toRoute) {
 
   try {
     const { html } = await refreshEnergizerPagePrincipale()
-    useEnergizerSessionStore().applyFromHtml(html)
+    const { readAgentLogin } = await import(
+      'src/modules/energizer/utils/syncAuthUserFromEnergizer.js'
+    )
+    useEnergizerSessionStore().applyFromHtml(html, readAgentLogin())
   } catch (error) {
     if (isEnergizerSessionExpiredError(error)) {
       await handleEnergizerSessionExpired(toRoute.fullPath)

@@ -25,22 +25,44 @@
 
 .piece-row {
   overflow-x: auto;
+  display: flex;
+  justify-content: center;
 }
 
 .piece-row-grid {
   display: grid;
   grid-template-columns:
     24px
-    180px
+    450px
     160px
     148px
     148px
     minmax(140px, 200px)
-    72px;
+    250px;
   gap: 8px;
   align-items: start;
   width: max-content;
   max-width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.piece-row-grid__nature,
+.piece-row-grid__numero {
+  display: flex;
+  justify-content: center;
+}
+
+.piece-row-grid__nature .q-field,
+.piece-field-nature {
+  width: 450px;
+  max-width: 450px;
+}
+
+.piece-row-grid__numero .q-field,
+.piece-field-numero {
+  width: 250px;
+  max-width: 250px;
 }
 
 .piece-row-grid__index {
@@ -176,6 +198,6 @@
   }
 
   .piece-row-grid {
-    min-width: 920px;
+    min-width: 1380px;
   }
 }

@@ -42,11 +42,12 @@
         <div class="piece-row-grid__index">
           {{ row.index }}
         </div>
-        <div>
+        <div class="piece-row-grid__nature">
           <q-select
             v-model="row.person"
             :name="'person' + row.index"
             :label="t('reception.nouveauDossier.naturePiece')"
+            class="piece-field-nature"
             outlined
             dense
             :required="!row._readonly"
@@ -132,11 +133,12 @@
             :readonly="row._readonly"
           />
         </div>
-        <div>
+        <div class="piece-row-grid__numero">
           <q-select
             v-model="row.nbre"
             :name="'nbre' + row.index"
             :label="t('reception.nouveauDossier.nbrePiece')"
+            class="piece-field-numero"
             outlined
             dense
             required

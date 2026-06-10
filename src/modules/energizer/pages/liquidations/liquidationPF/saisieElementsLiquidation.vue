@@ -1,8 +1,6 @@
 <template>
   <q-page class="q-pa-md saisie-elements-page">
 
-    <AppBreadcrumbs :menu-items="energizerMenu" class="q-mb-md" />
-
     <!-- ════════════════════════════════════════════════
          LANDING : grille de cartes (aucun panel actif)
     ════════════════════════════════════════════════ -->
@@ -150,8 +148,6 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import ElementsLiquidationPF from 'src/modules/energizer/components/prestationPF/elementsLiquidationPF.vue'
-import AppBreadcrumbs from 'src/modules/shared/components/layout/AppBreadcrumbs.vue'
-import { energizerMenu } from 'src/modules/energizer/config/energizerMenu.js'
 import GestionDesReprises from 'src/modules/energizer/components/prestationPF/gestionDesReprises.vue'
 import ElementsLiquidationAF from 'src/modules/energizer/components/prestationPF/elementsLiquidationAF.vue'
 import PeriodeActivite from 'src/modules/energizer/components/prestationPF/periodeActivite.vue'

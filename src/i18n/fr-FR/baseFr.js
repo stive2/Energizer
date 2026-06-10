@@ -12,14 +12,14 @@ export default {
     energizer: {
       cardTitle: 'EnergiZer',
       loginTitle: 'Connexion agent — EnergiZer',
-      loginSubtitle: 'Identifiants de démonstration (profil agent CNPS).',
+      loginSubtitle: 'Accès réservé aux agents CNPS.',
     },
     employeur: {
       cardTitle: 'Espace employeur',
       layoutTitle: 'Module employeur',
       loginTitle: 'Connexion employeur',
       loginSubtitle: 'Accès réservé aux représentants employeur.',
-      demoHint: 'Démo : employeur.demo@cnps.demo — mot de passe : Employeur2026!',
+      demoHint: '',
       homeTitle: 'Accueil employeur',
       homeLead: 'Espace dédié aux demandes de prestations côté employeur.',
       stubBanner:
@@ -223,6 +223,7 @@ export default {
     energizer: {
       toolbarTitle: 'SAPELLI ENERGIZER',
       toolbarTitleMobile: 'ENERGIZER',
+      toolbarDossiers: 'Dossiers',
     },
     assure: {
       toolbarTitle: 'ESPACE ASSURÉ',
@@ -250,6 +251,9 @@ export default {
       currentPasswordInvalid: 'Mot de passe actuel incorrect',
       profileSaved: 'Profil mis à jour',
       passwordSaved: 'Mot de passe modifié',
+      tabHistory: 'Historique',
+      historyLead: 'Consultez l’historique de vos connexions sur le portail Energizer.',
+      openHistory: 'Historique de connexion',
     },
     sidebar: {
       navTitle: 'Navigation',
@@ -325,10 +329,10 @@ export default {
     sectionModules: 'Modules métier',
     sectionCatalog: 'Catalogue des services',
     persona: {
-      title: 'Profil d’accès (simulation)',
+      title: 'Profil d’accès',
       external: 'Assuré — externe',
       internal: 'Agent CNPS — interne',
-      hint: 'Choix fictif pour afficher les raccourcis adaptés (aucune authentification réelle).',
+      hint: '',
     },
     external: {
       sectionTitle: 'Dépôt des dossiers en ligne',
@@ -348,14 +352,13 @@ export default {
       other: 'Autres modules intranet',
     },
     simLogin: {
-      title: 'Connexion au portail (démonstration)',
-      subtitle:
-        'Identifiants fictifs : choisissez le type de profil, puis connectez-vous pour accéder aux raccourcis.',
+      title: 'Connexion au portail',
+      subtitle: 'Saisissez vos identifiants pour accéder à votre espace.',
       tabExternal: 'Assuré (externe)',
       tabInternal: 'Agent (interne)',
-      demoBannerTitle: 'Comptes de démonstration',
-      demoBannerExternal: 'Assuré : assure.externe@cnps.demo — mot de passe : Assure2026!',
-      demoBannerInternal: 'Agent : agent.interne@cnps.demo — mot de passe : Agent2026!',
+      demoBannerTitle: '',
+      demoBannerExternal: '',
+      demoBannerInternal: '',
       fieldLogin: 'Identifiant (e-mail)',
       fieldPassword: 'Mot de passe',
       required: 'Champ obligatoire',
@@ -392,9 +395,10 @@ export default {
     },
     energizerStats: {
       title: 'Activités EnergiZer',
-      subtitle: 'Synthèse des traitements réalisés sur la période sélectionnée (données simulées).',
-      simulatedNotice:
-        'Ces indicateurs sont simulés : ils illustrent le volume d’activité réception, liquidation RP et PF.',
+      subtitle: 'Synthèse des traitements réalisés sur la période sélectionnée.',
+      noDataNotice:
+        'Aucune statistique disponible pour le moment. Les indicateurs seront alimentés par le backend.',
+      simulatedNotice: '',
       periodWeek: '7 jours',
       periodMonth: '30 jours',
       kpiTotal: 'Activités totales',

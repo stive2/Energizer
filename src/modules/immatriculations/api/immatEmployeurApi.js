@@ -1,5 +1,5 @@
 import { api } from 'boot/axios'
-import { callApi, unwrapData } from 'src/modules/energizer/api/callApi.js'
+import { unwrapData } from 'src/modules/energizer/api/callApi.js'
 import { getCnpsApiTimeout } from 'src/modules/shared/config/api.js'
 import { getApiErrorMessage } from 'src/modules/shared/services/http/apiError.js'
 import { isTeleImmatLegacyEnabled } from 'src/modules/shared/config/teleImmat.js'
@@ -13,13 +13,6 @@ const GERER_EMPLOYEUR_PATH =
   import.meta.env.VITE_CNPS_API_GERER_EMPLOYEUR_PATH || '/immat/gerer-employeur'
 
 const IMMAT_SUBMIT_TIMEOUT_MS = Math.max(getCnpsApiTimeout(), 120_000)
-
-export function mockSubmitGererEmployeur() {
-  return Promise.resolve({
-    success: true,
-    Msg: 'Employeur de main d’œuvre professionnelle enregistré avec succès.',
-  })
-}
 
 async function postGererEmployeurLegacy(formData) {
   const { data } = await teleImmatAxios.post('/GererEmployeur', formData, {
@@ -52,14 +45,9 @@ export async function submitGererEmployeur(formData) {
     }
   }
 
-  return callApi(
-    async () => {
-      const { data } = await api.post(GERER_EMPLOYEUR_PATH, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: IMMAT_SUBMIT_TIMEOUT_MS,
-      })
-      return unwrapData(data)
-    },
-    mockSubmitGererEmployeur,
-  ).catch(() => mockSubmitGererEmployeur())
+  const { data } = await api.post(GERER_EMPLOYEUR_PATH, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: IMMAT_SUBMIT_TIMEOUT_MS,
+  })
+  return unwrapData(data)
 }

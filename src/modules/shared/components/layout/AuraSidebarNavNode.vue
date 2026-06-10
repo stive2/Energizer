@@ -17,20 +17,25 @@
     <q-item-section v-if="!miniMode">
       <q-item-label class="aura-item-label" :class="labelSizeClass">{{ entryLabel }}</q-item-label>
     </q-item-section>
+    <q-item-section v-if="!miniMode && entry.badge" side>
+      <q-badge color="orange" text-color="white" class="aura-item-badge">{{ entry.badge }}</q-badge>
+    </q-item-section>
     <q-tooltip v-if="miniMode" anchor="center right" self="center left" :offset="[8, 0]">
-      {{ entryLabel }}
+      {{ entryLabel }}<template v-if="entry.badge"> ({{ entry.badge }})</template>
     </q-tooltip>
   </q-item>
 
   <q-item
     v-else-if="isLeaf"
-    clickable
+    :clickable="!entry.disabled && !!entry.to"
+    :disable="!!entry.disabled"
     v-ripple
-    :to="entry.to"
+    :to="entry.disabled ? undefined : entry.to"
     :exact="entry.exact"
     :inset-level="itemInsetLevel"
     active-class="aura-active"
     class="aura-item"
+    :class="{ 'aura-item--pending': entry.disabled }"
     @click="onNavigate"
   >
     <q-item-section avatar class="aura-dot-slot">
@@ -40,8 +45,11 @@
     <q-item-section v-if="!miniMode">
       <q-item-label class="aura-item-label" :class="labelSizeClass">{{ entryLabel }}</q-item-label>
     </q-item-section>
+    <q-item-section v-if="!miniMode && entry.badge" side>
+      <q-badge color="orange" text-color="white" class="aura-item-badge">{{ entry.badge }}</q-badge>
+    </q-item-section>
     <q-tooltip v-if="miniMode" anchor="center right" self="center left" :offset="[8, 0]">
-      {{ entryLabel }}
+      {{ entryLabel }}<template v-if="entry.badge"> ({{ entry.badge }})</template>
     </q-tooltip>
   </q-item>
 
@@ -91,11 +99,12 @@
         <q-item
           v-for="(leaf, lIdx) in collectLeaves(entry.children)"
           :key="entryKey(leaf, lIdx)"
-          clickable
+          :clickable="!leaf.disabled && (!!leaf.to || !!leaf.href)"
+          :disable="!!leaf.disabled"
           v-close-popup
           v-ripple
-          :to="leaf.href ? undefined : leaf.to"
-          :href="leaf.href"
+          :to="leaf.disabled || leaf.href ? undefined : leaf.to"
+          :href="leaf.disabled ? undefined : leaf.href"
           :target="leaf.href ? '_blank' : undefined"
           :rel="leaf.href ? 'noopener noreferrer' : undefined"
           :tag="leaf.href ? 'a' : undefined"
@@ -103,6 +112,9 @@
           @click="onNavigate"
         >
           <q-item-section>{{ resolveEntryLabel(leaf) }}</q-item-section>
+          <q-item-section v-if="leaf.badge" side>
+            <q-badge color="orange" text-color="white">{{ leaf.badge }}</q-badge>
+          </q-item-section>
         </q-item>
       </q-list>
     </q-menu>
@@ -193,7 +205,7 @@ function collectLeaves(entries = []) {
   const leaves = []
   for (const entry of entries) {
     const normalized = normalizeEntry(entry)
-    if (normalized.type === 'item' && (normalized.to || normalized.href)) {
+    if (normalized.type === 'item') {
       leaves.push(normalized)
     } else if (normalized.type === 'group' && normalized.children?.length) {
       leaves.push(...collectLeaves(normalized.children))
@@ -221,5 +233,16 @@ function collectLeaves(entries = []) {
 
 .aura-item-label--sm {
   font-size: 12.5px;
+}
+
+.aura-item-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  min-width: 1.25rem;
+  justify-content: center;
+}
+
+.aura-item--pending {
+  opacity: 0.72;
 }
 </style>

@@ -184,12 +184,6 @@ async function onSubmit() {
       password: formulaire.userpassword,
     })
 
-    if (result.pagePrincipaleHtml) {
-      energizerSession.applyFromHtml(result.pagePrincipaleHtml)
-    } else if (result.pagePrincipale) {
-      energizerSession.pagePrincipale = result.pagePrincipale
-    }
-
     persistAgentSession({
       login: result.user.login,
       displayName: result.user.displayName,
@@ -200,6 +194,12 @@ async function onSubmit() {
       lib_centre: result.user.lib_centre,
       code_centre: result.user.code_centre,
     })
+
+    if (result.pagePrincipaleHtml) {
+      energizerSession.applyFromHtml(result.pagePrincipaleHtml, result.user.login)
+    } else if (result.pagePrincipale) {
+      energizerSession.applyParsed(result.pagePrincipale, result.user.login)
+    }
 
     $q.notify({
       type: 'positive',

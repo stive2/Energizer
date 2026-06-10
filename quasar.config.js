@@ -54,13 +54,10 @@ export default defineConfig((ctx) => {
         VITE_CNPS_API_BASE_URL: process.env.VITE_CNPS_API_BASE_URL || 'http://172.17.15.121:8020',
         VITE_CNPS_API_TIMEOUT: process.env.VITE_CNPS_API_TIMEOUT || '30000',
         VITE_CNPS_API_USE_PROXY: process.env.VITE_CNPS_API_USE_PROXY || '',
-        VITE_CNPS_API_FALLBACK_MOCK: process.env.VITE_CNPS_API_FALLBACK_MOCK || 'true',
-        VITE_CNPS_USE_REAL_AUTH: process.env.VITE_CNPS_USE_REAL_AUTH || '',
         VITE_TELE_IMMAT_USE_LEGACY: process.env.VITE_TELE_IMMAT_USE_LEGACY || 'true',
         VITE_TELE_IMMAT_USE_PROXY: process.env.VITE_TELE_IMMAT_USE_PROXY || 'true',
         VITE_TELE_IMMAT_DIRECT_URL:
           process.env.VITE_TELE_IMMAT_DIRECT_URL || 'http://172.17.15.121:8080/teleImmat_0.1',
-        VITE_TELE_IMMAT_MOCK_SUBMIT: process.env.VITE_TELE_IMMAT_MOCK_SUBMIT || '',
         VITE_ENERGIZER_LEGACY_AUTH: process.env.VITE_ENERGIZER_LEGACY_AUTH || 'true',
         VITE_ENERGIZER_USE_PROXY: process.env.VITE_ENERGIZER_USE_PROXY || 'true',
         VITE_ENERGIZER_BASE_URL:

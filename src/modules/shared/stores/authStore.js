@@ -14,6 +14,7 @@ import {
   logout as apiLogout,
   AuthError,
 } from 'src/modules/shared/api/auth/authApi.js'
+import { persistAgentSession } from 'src/modules/shared/utils/portalSimAuthSession.js'
 
 const TOKEN_KEY = 'auth_token'
 const USER_KEY = 'user_info'
@@ -66,6 +67,30 @@ export const useAuthStore = defineStore('auth', {
           localStorage.setItem(TOKEN_KEY, result.token)
           localStorage.setItem(USER_KEY, JSON.stringify(result.user))
         }
+
+        if (payload.variant === 'agent' && (result.pagePrincipaleHtml || result.pagePrincipale)) {
+          persistAgentSession({
+            login: result.user?.login,
+            displayName: result.user?.displayName,
+            prenom: result.user?.prenom,
+            nom: result.user?.nom,
+            profile: result.user?.profile || 'internal',
+            token: result.token,
+            lib_centre: result.user?.lib_centre,
+            code_centre: result.user?.code_centre,
+          })
+
+          const { useEnergizerSessionStore } = await import(
+            'src/modules/energizer/stores/energizerSessionStore.js'
+          )
+          const energizerSession = useEnergizerSessionStore()
+          if (result.pagePrincipaleHtml) {
+            energizerSession.applyFromHtml(result.pagePrincipaleHtml, result.user?.login)
+          } else {
+            energizerSession.applyParsed(result.pagePrincipale, result.user?.login)
+          }
+        }
+
         return result
       } catch (err) {
         const message =

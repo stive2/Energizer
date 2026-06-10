@@ -1,8 +1,6 @@
 <template>
   <q-page class="q-pa-md saisie-elements-rp-page">
 
-    <AppBreadcrumbs :menu-items="energizerMenu" class="q-mb-md" />
-
     <!-- ════════════════════════════════════════════════
          LANDING : grille de cartes
     ════════════════════════════════════════════════ -->
@@ -97,8 +95,6 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import NewCertificat       from 'src/modules/energizer/components/prestationRP/NewCertificatMedical.vue'
-import AppBreadcrumbs from 'src/modules/shared/components/layout/AppBreadcrumbs.vue'
-import { energizerMenu } from 'src/modules/energizer/config/energizerMenu.js'
 import NewCertificatDeces  from 'src/modules/energizer/components/prestationRP/newcertificatdeces.vue'
 import NlleNoteDeFrags     from 'src/modules/energizer/components/prestationRP/nllenotedefrais.vue'
 import NewTiersBeneficiaire from 'src/modules/energizer/components/prestationRP/NewTiersBeneficiaire.vue'

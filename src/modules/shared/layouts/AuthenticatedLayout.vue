@@ -89,6 +89,7 @@
             :user-profile="userProfile"
             :persist-user-profile="persistUserProfile"
             :change-sim-password="changeSimPassword"
+            :login-history-link="loginHistoryLink"
             class="q-mr-sm"
           />
 
@@ -146,6 +147,14 @@
           :nav-section-label="sidebarNavSectionLabelResolved"
           @navigate="closeDrawerOnMobile"
         />
+        <template v-if="sidebarFooterMenuItems.length" #footer>
+          <AppSidebarNav
+            :items="sidebarFooterMenuItems"
+            :mini-mode="miniMode"
+            nav-section-label=""
+            @navigate="closeDrawerOnMobile"
+          />
+        </template>
       </AuraSidebarShell>
 
       <q-scroll-area v-else class="fit authenticated-drawer__scroll">
@@ -162,6 +171,17 @@
     </q-drawer>
 
     <q-page-container class="app-page-shell">
+      <div v-if="showPageChrome" class="authenticated-page-chrome">
+        <AppBreadcrumbs
+          v-if="showRouteBreadcrumbs && menuItems.length"
+          :menu-items="menuItems"
+          :prepend-home="breadcrumbPrependHome"
+          class="authenticated-page-breadcrumbs"
+        />
+        <div v-if="pageBannerText" class="authenticated-page-banner">
+          {{ pageBannerText }}
+        </div>
+      </div>
       <slot />
     </q-page-container>
 
@@ -187,6 +207,7 @@ import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import AppSidebarNav from 'src/modules/shared/components/layout/AppSidebarNav.vue'
+import AppBreadcrumbs from 'src/modules/shared/components/layout/AppBreadcrumbs.vue'
 import AuraSidebarShell from 'src/modules/shared/components/layout/AuraSidebarShell.vue'
 import UserProfileMenu from 'src/modules/shared/components/layout/UserProfileMenu.vue'
 import LogoutMenuButton from 'src/modules/shared/components/layout/LogoutMenuButton.vue'
@@ -197,6 +218,10 @@ const AURA_DRAWER_WIDTH = 260
 
 const props = defineProps({
   menuItems: {
+    type: Array,
+    default: () => [],
+  },
+  sidebarFooterMenuItems: {
     type: Array,
     default: () => [],
   },
@@ -292,6 +317,22 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  pageBannerText: {
+    type: String,
+    default: '',
+  },
+  loginHistoryLink: {
+    type: Object,
+    default: null,
+  },
+  showRouteBreadcrumbs: {
+    type: Boolean,
+    default: false,
+  },
+  breadcrumbPrependHome: {
+    type: Boolean,
+    default: true,
+  },
 })
 
 const $q = useQuasar()
@@ -304,14 +345,28 @@ const miniMode = ref(false)
 
 const isDrawerDesktop = computed(() => $q.screen.width >= props.drawerBreakpoint)
 
+const showPageChrome = computed(
+  () =>
+    (props.showRouteBreadcrumbs && props.menuItems.length > 0) || Boolean(props.pageBannerText),
+)
+
 const authSession = useAuthenticatedSession(props.sessionConfig)
 
 const displayName = authSession.displayName
 const userInitials = authSession.userInitials
 const userProfile = authSession.userProfile
+const refreshUserProfile = authSession.refreshUserProfile
 const persistUserProfile = authSession.persistUserProfile
 const changeSimPassword = authSession.changeSimPassword
 const performLogout = authSession.performLogout
+
+watch(
+  () => props.pageBannerText,
+  () => {
+    if (!props.showProfileMenu) return
+    refreshUserProfile()
+  },
+)
 
 const effectiveDrawerWidth = computed(() => {
   const max = props.drawerWidth
@@ -515,6 +570,24 @@ function changeLang(lang) {
   min-width: 0;
   overflow-x: auto;
   z-index: 1;
+}
+
+.authenticated-page-chrome {
+  padding: 12px 16px 0;
+}
+
+.authenticated-page-breadcrumbs {
+  margin-bottom: 4px;
+}
+
+.authenticated-page-banner {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 0 8px;
+  color: var(--q-primary);
 }
 
 .authenticated-toolbar__quick-btn {

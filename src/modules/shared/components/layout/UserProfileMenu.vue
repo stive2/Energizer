@@ -49,6 +49,12 @@
             <q-tab name="view" :label="t('layout.profile.tabView')" icon="person_outline" />
             <q-tab name="edit" :label="t('layout.profile.tabEdit')" icon="edit_outlined" />
             <q-tab name="password" :label="t('layout.profile.tabPassword')" icon="lock_outline" />
+            <q-tab
+              v-if="loginHistoryLink"
+              name="history"
+              :label="t('layout.profile.tabHistory')"
+              icon="history"
+            />
           </q-tabs>
 
           <q-separator />
@@ -113,6 +119,22 @@
                   :loading="savingProfile"
                 />
               </q-form>
+            </q-tab-panel>
+
+            <q-tab-panel v-if="loginHistoryLink" name="history" class="q-pa-md">
+              <p class="profile-history-lead">{{ t('layout.profile.historyLead') }}</p>
+              <q-btn
+                color="primary"
+                unelevated
+                no-caps
+                icon="open_in_new"
+                class="full-width"
+                :label="loginHistoryLink.label || t('layout.profile.openHistory')"
+                tag="a"
+                :href="loginHistoryLink.href"
+                target="_blank"
+                rel="noopener noreferrer"
+              />
             </q-tab-panel>
 
             <q-tab-panel name="password" class="q-pa-md">
@@ -203,6 +225,7 @@ const props = defineProps({
   userProfile: { type: Object, default: null },
   persistUserProfile: { type: Function, required: true },
   changeSimPassword: { type: Function, required: true },
+  loginHistoryLink: { type: Object, default: null },
 })
 
 const $q = useQuasar()
@@ -434,5 +457,12 @@ async function savePassword() {
   font-size: 0.875rem;
   color: #0f172a;
   font-weight: 500;
+}
+
+.profile-history-lead {
+  margin: 0 0 16px;
+  font-size: 0.875rem;
+  color: #64748b;
+  line-height: 1.45;
 }
 </style>
