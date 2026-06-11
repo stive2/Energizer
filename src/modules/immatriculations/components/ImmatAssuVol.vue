@@ -319,8 +319,7 @@
                     >
                       <template v-slot:label>
                         <span class="req-label">
-                          {{ $t('inputassu.contribution_base')
-                          }}<span class="req-badge">*</span>
+                          {{ $t('inputassu.contribution_base') }}<span class="req-badge">*</span>
                         </span>
                       </template>
                     </q-input>
@@ -356,7 +355,7 @@
                       class="full-width"
                       :counter-label="counterLabelFn"
                       max-files="1"
-                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png"
+                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png,.pdf"
                       :max-file-size="LEGACY_MAX_FILE_SIZE"
                       :hint="fileHintWithSize($t('inputassu.annual_income_declaration'))"
                       :rules="[required]"
@@ -388,7 +387,7 @@
                       class="full-width"
                       :counter-label="counterLabelFn"
                       max-files="1"
-                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png"
+                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png,.pdf"
                       :max-file-size="LEGACY_MAX_FILE_SIZE"
                       :rules="[required]"
                       :error="hasFieldError('file507')"
@@ -408,7 +407,6 @@
                     </q-file>
                   </div>
                 </div>
-
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -790,7 +788,6 @@
                     </q-file>
                   </div>
                 </div>
-
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -819,7 +816,12 @@
                       class="full-width"
                       :error="hasFieldError('NOM_PERE')"
                       :error-message="fieldErrorMsg('NOM_PERE')"
-                      @update:model-value="(val) => { form.NOM_PERE = val.toUpperCase(); reevaluateField('NOM_PERE') }"
+                      @update:model-value="
+                        (val) => {
+                          form.NOM_PERE = val.toUpperCase()
+                          reevaluateField('NOM_PERE')
+                        }
+                      "
                     />
                   </div>
                   <div class="col-12 col-sm-6">
@@ -932,7 +934,6 @@
                     </q-input>
                   </div>
                 </div>
-
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -1104,7 +1105,6 @@
                     </q-input>
                   </div>
                 </div>
-
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -1257,7 +1257,6 @@
                     </q-select>
                   </div>
                 </div>
-
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -1297,7 +1296,11 @@
                       <q-file
                         v-model="form.actesNaissance[index - 1]"
                         :label="$t('inputassu.birth_certificate_child', { number: index })"
-                        :hint="fileHintWithSize($t('inputassu.birth_certificate_child', { number: index }))"
+                        :hint="
+                          fileHintWithSize(
+                            $t('inputassu.birth_certificate_child', { number: index }),
+                          )
+                        "
                         outlined
                         dense
                         class="full-width"
@@ -1346,7 +1349,9 @@
                       <q-file
                         v-model="form.certificatsTravail[index - 1]"
                         :label="$t('inputassu.work_certificates', { number: index })"
-                        :hint="fileHintWithSize($t('inputassu.work_certificates', { number: index }))"
+                        :hint="
+                          fileHintWithSize($t('inputassu.work_certificates', { number: index }))
+                        "
                         outlined
                         dense
                         class="full-width"
@@ -1383,7 +1388,13 @@
                       dense
                       class="full-width"
                       min="0"
-                      @update:model-value="(v) => { form.nombConj = v; resetFileField('actesMariage'); reevaluateField('nombConj') }"
+                      @update:model-value="
+                        (v) => {
+                          form.nombConj = v
+                          resetFileField('actesMariage')
+                          reevaluateField('nombConj')
+                        }
+                      "
                     />
                   </div>
                   <template v-if="form.nombConj > 0">
@@ -1395,7 +1406,11 @@
                       <q-file
                         v-model="form.actesMariage[index - 1]"
                         :label="$t('inputassu.marriages_certificates', { number: index })"
-                        :hint="fileHintWithSize($t('inputassu.marriages_certificates', { number: index }))"
+                        :hint="
+                          fileHintWithSize(
+                            $t('inputassu.marriages_certificates', { number: index }),
+                          )
+                        "
                         outlined
                         dense
                         class="full-width"
@@ -1416,7 +1431,6 @@
                     </div>
                   </template>
                 </div>
-
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -1456,7 +1470,9 @@
                         <q-card-section class="bg-gradient-primary text-white q-py-sm">
                           <div class="row items-center no-wrap">
                             <q-icon name="account_balance_wallet" size="sm" class="q-mr-sm" />
-                            <div class="text-subtitle1 text-weight-bold col">{{ $t('immat.step8') }}</div>
+                            <div class="text-subtitle1 text-weight-bold col">
+                              {{ $t('immat.step8') }}
+                            </div>
                             <q-btn
                               flat
                               round
@@ -1627,7 +1643,9 @@
                         <q-card-section class="bg-gradient-secondary text-white q-py-sm">
                           <div class="row items-center no-wrap">
                             <q-icon name="person" size="sm" class="q-mr-sm" />
-                            <div class="text-subtitle1 text-weight-bold col">{{ $t('immat.step2') }}</div>
+                            <div class="text-subtitle1 text-weight-bold col">
+                              {{ $t('immat.step2') }}
+                            </div>
                             <q-btn
                               flat
                               round
@@ -2077,7 +2095,9 @@
                         <q-card-section class="bg-gradient-warning text-white q-py-sm">
                           <div class="row items-center no-wrap">
                             <q-icon name="folder" size="sm" class="q-mr-sm" />
-                            <div class="text-subtitle1 text-weight-bold col">{{ $t('immat.step6') }}</div>
+                            <div class="text-subtitle1 text-weight-bold col">
+                              {{ $t('immat.step6') }}
+                            </div>
                             <q-btn
                               flat
                               round
@@ -2264,7 +2284,6 @@
     <q-dialog persistent v-model="spinner">
       <q-spinner-cube size="xl" color="primary" />
     </q-dialog>
-
   </q-dialog>
 </template>
 
@@ -2283,7 +2302,10 @@ import {
   updateSmigFromAffiliationDateFallback,
   normalizeQDateForLegacyCompare,
 } from 'src/modules/immatriculations/utils/immatAssuVolLegacy.js'
-import { compareDates, syncLegacyHiddenFields } from 'src/modules/immatriculations/utils/immatAssuTrvLegacy.js'
+import {
+  compareDates,
+  syncLegacyHiddenFields,
+} from 'src/modules/immatriculations/utils/immatAssuTrvLegacy.js'
 import { useI18n } from 'vue-i18n'
 import html2pdf from 'html2pdf.js'
 import { submitTeleImmatAssure } from 'src/modules/immatriculations/api/immatAssureApi.js'
@@ -2539,7 +2561,7 @@ async function loadVolSmigLines(codeRegime) {
   try {
     const lines = await fetchSmigLinesByRegime(codeRegime, debut)
     if (!lines.length) {
-      notifyError(t('immat.vol.smigNotConfigured', "Régime non paramétré pour cette activité."))
+      notifyError(t('immat.vol.smigNotConfigured', 'Régime non paramétré pour cette activité.'))
       volSmigLines.value = []
       return
     }
@@ -2592,14 +2614,18 @@ function onDetailsOrigineBlur() {
 
 function onDateAffiSollFocus() {
   if (!form.value.CODE_ORIGINEREV) {
-    notifyError(t('immat.vol.selectOrigineFirst', "Veuillez d'abord choisir l'origine des revenus."))
+    notifyError(
+      t('immat.vol.selectOrigineFirst', "Veuillez d'abord choisir l'origine des revenus."),
+    )
   }
 }
 
 function onDateDebutAffiSollChange() {
   if (!form.value.CODE_ORIGINEREV) {
     form.value.DATE_DEBUT_AFFI_SOLL = ''
-    notifyError(t('immat.vol.selectOrigineFirst', "Veuillez d'abord choisir l'origine des revenus."))
+    notifyError(
+      t('immat.vol.selectOrigineFirst', "Veuillez d'abord choisir l'origine des revenus."),
+    )
     return
   }
   refreshVolSmigForAffiliationDate()
@@ -2612,10 +2638,7 @@ function onDateDebutAffiSollBlur() {
   }
   const d = form.value.DATE_DEBUT_AFFI_SOLL
   if (!d) return
-  if (
-    form.value.MIN_DATE_DEBUT_AFFI &&
-    compareDates(d, form.value.MIN_DATE_DEBUT_AFFI) < 0
-  ) {
+  if (form.value.MIN_DATE_DEBUT_AFFI && compareDates(d, form.value.MIN_DATE_DEBUT_AFFI) < 0) {
     notifyError(
       t(
         'immat.vol.dateAffiSollBeforeMin',
@@ -2805,20 +2828,11 @@ const optionsDateAffiliation = (dateStr) => {
 
 const validateDateAffiSoll = (val) => {
   if (!val) return true
-  if (
-    form.value.MIN_DATE_DEBUT_AFFI &&
-    compareDates(val, form.value.MIN_DATE_DEBUT_AFFI) < 0
-  ) {
-    return t(
-      'immat.vol.dateAffiSollBeforeMin',
-      "Date antérieure au minimum autorisé.",
-    )
+  if (form.value.MIN_DATE_DEBUT_AFFI && compareDates(val, form.value.MIN_DATE_DEBUT_AFFI) < 0) {
+    return t('immat.vol.dateAffiSollBeforeMin', 'Date antérieure au minimum autorisé.')
   }
   if (form.value.DATE_DEBUT_AFFI && compareDates(val, form.value.DATE_DEBUT_AFFI) > 0) {
-    return t(
-      'immat.vol.dateAffiSollAfterMax',
-      "Date postérieure à l'affiliation normale.",
-    )
+    return t('immat.vol.dateAffiSollAfterMax', "Date postérieure à l'affiliation normale.")
   }
   return true
 }
@@ -2826,10 +2840,7 @@ const validateDateAffiSoll = (val) => {
 const validateAssietteDigits = (val) => {
   const s = String(val ?? '').trim()
   if (!/^\d{5,10}$/.test(s)) {
-    return t(
-      'immat.vol.assietteDigits',
-      "L'assiette doit comporter entre 5 et 10 chiffres.",
-    )
+    return t('immat.vol.assietteDigits', "L'assiette doit comporter entre 5 et 10 chiffres.")
   }
   return true
 }

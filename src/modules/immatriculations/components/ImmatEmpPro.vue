@@ -1,24 +1,24 @@
 <template>
   <q-dialog v-model="open" persistent full-width>
     <q-card
-      :style="$q.screen.gt.sm ? 'width: 980px; max-width: 96vw' : 'width: 100%' "
+      :style="$q.screen.gt.sm ? 'width: 960px; max-width: 98vw' : 'width: 100%'"
       class="immat-main-card column no-wrap"
     >
-      <q-card-section class="immat-header row items-center no-wrap q-px-md q-py-sm">
-        <q-avatar size="32px" class="immat-header-avatar q-mr-sm">
-          <q-icon name="business" size="20px" color="primary" />
-        </q-avatar>
-        <div class="col">
-          <div class="text-subtitle1 text-white text-weight-bold ellipsis">
-            {{ t(service.name) }}
-          </div>
-          <div class="text-caption text-white text-opacity-80">
-            {{ $t('immep.step' + step) }}
-          </div>
+      <!-- ═══ EN-TÊTE ═══ -->
+      <q-card-section class="immat-header row items-center no-wrap q-px-md q-py-xs">
+        <q-icon name="business" size="22px" class="q-mr-sm text-white" />
+        <div class="col text-subtitle1 text-white text-weight-bold">
+          {{ $t(service.name) }}
         </div>
-        <q-btn flat round dense icon="close" color="white" class="q-ml-sm" @click="closeDialog">
-          <q-tooltip>{{ $t('form.cancel') }}</q-tooltip>
-        </q-btn>
+        <q-chip
+          :label="$t('immep.step' + step)"
+          color="white"
+          text-color="primary"
+          dense
+          icon="corporate_fare"
+          class="q-ml-sm"
+        />
+        <q-btn flat round dense icon="close" color="white" class="q-ml-sm" @click="closeDialog" />
       </q-card-section>
 
       <q-form
@@ -46,1147 +46,1355 @@
             </q-banner>
           </q-card-section>
 
-          <q-card-section class="immat-stepper-section q-pt-sm q-pb-md">
-          <q-stepper
-            v-model="step"
-            :vertical="!$q.screen.gt.sm"
-            color="primary"
-            done-color="positive"
-            error-color="negative"
-            :inactive-color="maxStep >= step ? 'primary' : 'grey-5'"
-            animated
-            header-nav
-            flat
-            class="immat-stepper"
-          >
-            <!-- Etape 1 : Informations sur l'employeur -->
-            <q-step
-              :name="1"
-              :title="$t('immep.step1')"
-              icon="business"
-              :done="step > 1"
-              :disable="!isStepAllowed(1)"
+          <q-card-section class="q-pa-sm">
+            <q-stepper
+              v-model="step"
+              :vertical="!$q.screen.gt.sm"
+              color="primary"
+              done-color="positive"
+              error-color="negative"
+              header-nav
+              animated
+              flat
+              class="immat-stepper"
             >
-              <div class="immat-field-row">
-                <q-input
-                  v-model="form.RAISON_SOCIALE"
-                  :label="$t('input.raisonSociale')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :rules="[required]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.RAISON_SOCIALE = val.toUpperCase())"
-                >
-                  <template v-slot:label>
-                    {{ t('input.raisonSociale') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.NOM_COMMERCIAL"
-                  :label="$t('input.nomCommercial')"
-                  class="immat-field-cell full-width"
-                  outlined
-                  dense
-                  :rules="[required]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.NOM_COMMERCIAL = val.toUpperCase())"
-                >
-                  <template v-slot:label>
-                    {{ t('input.nomCommercial') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.Sigle"
-                  :label="$t('input.sigle')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.Sigle = val.toUpperCase())"
-                />
-                <q-select
-                  v-model="form.CODE_ARRONDC"
-                  :options="arrondissements"
-                  option-label="NOM_ARROND"
-                  option-value="CODE_ARROND"
-                  :label="$t('input.arrondissement')"
-                  outlined
-                  dense
-                  :disable="!referentialsReady"
-                  use-input
-                  input-debounce="0"
-                  emit-value
-                  map-options
-                  @filter="filterArrondissement"
-                  :rules="[required]"
-                  class="immat-field-cell full-width"
-                >
-                  <template v-slot:label>
-                    {{ t('input.arrondissement') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-select>
-                <q-input
-                  v-model="form.BOITE_POSTALE"
-                  :label="$t('input.boitePostale')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.BOITE_POSTALE = val.toUpperCase())"
-                />
-                <q-input
-                  v-model="form.ADRESSE_EMPL"
-                  :label="$t('input.adresse')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :rules="[required]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.ADRESSE_EMPL = val.toUpperCase())"
-                >
-                  <template v-slot:label>
-                    {{ t('input.adresse') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.NOM_QUARTIER"
-                  :label="$t('input.quartier')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :rules="[required]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.NOM_QUARTIER = val.toUpperCase())"
-                >
-                  <template v-slot:label>
-                    {{ t('input.quartier') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.LIEUDIT_EMPL"
-                  :label="$t('input.lieuDit')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.LIEUDIT_EMPL = val.toUpperCase())"
-                />
-                <q-input
-                  v-model="form.num_case"
-                  :label="$t('input.numLogement')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.num_case = val.toUpperCase())"
-                />
-                <q-input
-                  v-model="form.EMAIL"
-                  :label="$t('input.email')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  type="email"
-                  :rules="[
-                    required,
-                    (val) => regexPatterns.email.test(val) || '(ex: adresse@email.com)',
-                  ]"
-                >
-                  <template v-slot:label>
-                    {{ t('input.email') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.TEL"
-                  :label="$t('input.telephone')"
-                  outlined
-                  dense
-                  prefix="+237"
-                  type="tel"
-                  maxlength="9"
-                  class="immat-field-cell full-width"
-                  :rules="[
-                    required,
-                    (val) => regexPatterns.telephone.test(val) || t('input.invalidPhone'),
-                  ]"
-                >
-                  <template v-slot:label>
-                    {{ t('input.telephone') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.AUTRE_CONTACT"
-                  :label="$t('input.autreContact')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.AUTRE_CONTACT = val.toUpperCase())"
-                />
-                <div class="immat-date-row">
-                <q-input
-                  v-model="form.DATE_DEB_SERVICE"
-                  :label="$t('input.dateOuverture')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :rules="[required]"
-                  :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
-                  :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
-                >
-                  <template #append>
-                    <q-icon name="event" class="cursor-pointer" color="primary">
-                      <q-popup-proxy transition-show="scale" transition-hide="scale">
-                        <q-date
-                          v-model="form.DATE_DEB_SERVICE"
-                          :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
-                          locale="fr"
-                          :options="optionsDn"
-                          color="primary"
-                        />
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                  <template v-slot:label>
-                    {{ t('input.dateOuverture') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.date_creation_empl"
-                  :label="$t('input.dateCreation')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
-                  :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
-                >
-                  <template #append>
-                    <q-icon name="event" class="cursor-pointer" color="primary">
-                      <q-popup-proxy transition-show="scale" transition-hide="scale">
-                        <q-date
-                          v-model="form.date_creation_empl"
-                          :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
-                          :locale="locale"
-                          :options="optionsDn"
-                          color="primary"
-                        />
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.DATE_EFFET"
-                  :label="$t('input.dateEmbauche')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
-                  :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
-                >
-                  <template #append>
-                    <q-icon name="event" class="cursor-pointer" color="primary">
-                      <q-popup-proxy transition-show="scale" transition-hide="scale">
-                        <q-date
-                          v-model="form.DATE_EFFET"
-                          :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
-                          :locale="locale"
-                          :options="optionsDn"
-                          color="primary"
-                        />
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
+              <!-- ══════════════════════════════════════════════
+                  ÉTAPE 1 : Informations sur l'employeur
+              ══════════════════════════════════════════════ -->
+              <q-step
+                :name="1"
+                :title="$t('immep.step1')"
+                icon="business"
+                :done="step > 1"
+                :disable="!isStepAllowed(1)"
+              >
+                <!-- Sous-section : Identification -->
+                <div class="step-section-header">
+                  <q-icon name="apartment" class="q-mr-xs" />
+                  {{ $t('immep.step1') }}
                 </div>
-                <q-input
-                  v-model="form.num_registre"
-                  :label="$t('input.numRegistreCommerce')"
-                  class="immat-field-cell full-width"
-                  outlined
-                  dense
-                  :rules="[(val) => !val || regexPatterns.regComm.test(val) || '(ex: RC/YAO/2020/B/0002)']"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.num_registre = val.toUpperCase())"
-                >
-                  <template v-slot:label>
-                    {{ t('input.numRegistreCommerce') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.num_contr"
-                  :label="$t('input.numContribuable')"
-                  class="immat-field-cell full-width"
-                  outlined
-                  dense
-                  :rules="[
-                    (val) =>
-                      !val ||
-                      regexPatterns.numContr.test(val) ||
-                      'Format invalide (ex: P123456789321M)',
-                  ]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.num_contr = val.toUpperCase())"
-                >
-                  <template v-slot:label>
-                    {{ t('input.numContribuable') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <div class="col-12">
-                  <div class="step-section-header">
-                    <q-icon name="attach_file" class="q-mr-xs" size="18px" />
-                    {{ $t('immep.step5') }}
+                <div class="row q-col-gutter-sm q-mb-sm">
+                  <!-- Raison Sociale -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.RAISON_SOCIALE"
+                      :label="$t('input.raisonSociale')"
+                      outlined
+                      dense
+                      class="full-width"
+                      :rules="[required]"
+                      @update:model-value="(val) => (form.RAISON_SOCIALE = val.toUpperCase())"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.raisonSociale') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
                   </div>
-                </div>
-                <q-file
-                  v-model="formFile.IDREGICOMM"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  label=""
-                  accept=".gif,.jpg,.jpeg,.png"
-                  :max-total-size="maxSize"
-                  @rejected="onRejected"
-                  :rules="[(val) => (val && val != '') || t('input.requis'), fileTypeImage]"
-                  counter
-                  max-files="1"
-                  :hint="$t('input.max_size_hint')"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="attach_file" color="primary" />
-                  </template>
-                  <template v-slot:label>
-                    {{ t('input.registreCommerce') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-file>
-                <q-file
-                  v-model="formFile.IDAUTORISATION"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  label=""
-                  accept=".gif,.jpg,.jpeg,.png"
-                  :max-total-size="maxSize"
-                  @rejected="onRejected"
-                  :rules="[(val) => (val && val != '') || t('input.requis'), fileTypeImage]"
-                  counter
-                  max-files="1"
-                  :hint="$t('input.max_size_hint')"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="attach_file" color="primary" />
-                  </template>
-                  <template v-slot:label>
-                    {{ t('input.autorisationOuverture') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-file>
-                <q-file
-                  v-model="formFile.IDCONTRIBUABLE"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :label="$t('input.carteContribuable')"
-                  accept=".gif,.jpg,.jpeg,.png"
-                  :max-total-size="maxSize"
-                  @rejected="onRejected"
-                  counter
-                  max-files="1"
-                  :hint="$t('input.max_size_hint')"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="attach_file" color="primary" />
-                  </template>
-                </q-file>
-              </div>
-
-            </q-step>
-
-            <!-- Etape 2 : Localisation et contact employeur + gestion CNPS -->
-            <q-step
-              :name="2"
-              :title="$t('immep.step2')"
-              icon="location_on"
-              :done="step > 2"
-              :disable="!isStepAllowed(2)"
-            >
-              <div class="step-section-header">
-                <q-icon name="location_on" class="q-mr-xs" size="18px" />
-                {{ $t('immep.step2') }}
-              </div>
-              <div class="immat-field-row">
-                <div class="col-12">
-                  <q-expansion-item
-                    v-model="succursaleExpanded"
-                    icon="corporate_fare"
-                    :label="$t('input.isSuccursale')"
-                    dense
-                    header-class="text-primary text-weight-bold immat-expansion-header"
-                    class="immat-expansion"
-                  >
-                    <div class="immat-field-row q-pa-sm">
-                      <q-checkbox
-                        name="is_succursale"
-                        v-model="form.isSuccursale"
-                        :label="$t('input.isSuccursale')"
-                        color="primary"
-                        dense
-                        class="col-12"
-                      />
-                      <q-input
-                        v-model="form.NUM_EMPL_SIEGE"
-                        v-if="form.isSuccursale"
-                        :label="$t('input.matriculeSiege')"
-                        class="immat-field-cell full-width"
-                        style="text-transform: uppercase"
-                        :loading="loadingSiege"
-                        :disable="!referentialsReady"
-                        @update:model-value="(val) => (form.NUM_EMPL_SIEGE = val.toUpperCase())"
-                        @blur="rechercherSiege"
-                        outlined
-                        dense
-                        :rules="[
-                          required,
-                          (val) =>
-                            regexPatterns.numEmpl1.test(val) ||
-                            regexPatterns.numEmpl2.test(val) ||
-                            '(ex: 321-1234567-A ou 321-1234567-000-M)',
-                        ]"
-                      >
-                        <template v-slot:label>
-                          {{ t('input.matriculeSiege') }}
-                          <span class="required-badge">{{ t('input.requis') }}</span>
-                        </template>
-                      </q-input>
-                      <q-input
-                        v-model="form.RAISON_SOCIALE_SIEGE"
-                        v-if="form.isSuccursale"
-                        :label="$t('input.raisonSocialeSiege')"
-                        class="immat-field-cell full-width"
-                        outlined
-                        dense
-                        readonly
-                        style="text-transform: uppercase"
-                      />
-                      <q-input
-                        v-model="form.NOM_COMMERCIAL_SIEGE"
-                        v-if="form.isSuccursale"
-                        :label="$t('input.nomCommercialSiege')"
-                        class="immat-field-cell full-width"
-                        outlined
-                        dense
-                        readonly
-                        style="text-transform: uppercase"
-                      />
-                    </div>
-                  </q-expansion-item>
-                </div>
-
-                <div class="col-12">
-                  <div class="step-section-header">
-                    <q-icon name="account_balance" class="q-mr-xs" size="18px" />
-                    {{ $t('immep.step3') }}
+                  <!-- Nom Commercial -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.NOM_COMMERCIAL"
+                      :label="$t('input.nomCommercial')"
+                      outlined
+                      dense
+                      class="full-width"
+                      :rules="[required]"
+                      @update:model-value="(val) => (form.NOM_COMMERCIAL = val.toUpperCase())"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.nomCommercial') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
                   </div>
-                </div>
-
-                <q-select
-                  v-model="form.CAUSE_IMMA"
-                  :options="causeImmaOptions"
-                  option-label="label"
-                  option-value="value"
-                  emit-value
-                  map-options
-                  :label="$t('input.origineImmatriculation')"
-                  outlined
-                  dense
-                  :rules="[required]"
-                  class="immat-field-cell full-width"
-                >
-                  <template v-slot:label>
-                    {{ t('input.origineImmatriculation') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-select>
-                <q-select
-                  v-model="form.CIRCUIT_DOSSIER"
-                  :options="circuitDossierOptions"
-                  option-label="label"
-                  option-value="value"
-                  emit-value
-                  map-options
-                  :label="$t('input.origineDossier')"
-                  outlined
-                  dense
-                  :rules="[required]"
-                  class="immat-field-cell full-width"
-                >
-                  <template v-slot:label>
-                    {{ t('input.origineDossier') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-select>
-
-                <q-select
-                  v-model="form.NATURE_JURC"
-                  :options="formeJuridique"
-                  option-label="LIBELLE_NATUREJUR"
-                  option-value="CODE_NATUREJUR"
-                  :label="$t('input.formeJuridique')"
-                  outlined
-                  dense
-                  :disable="!referentialsReady"
-                  use-input
-                  input-debounce="0"
-                  emit-value
-                  map-options
-                  @filter="filterFormeJuridique"
-                  :rules="[required]"
-                  class="immat-field-cell full-width"
-                >
-                  <template v-slot:label>
-                    {{ t('input.formeJuridique') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-select>
-                <q-select
-                  v-model="form.CODE_SECT_ACTIVITEC"
-                  :options="activites"
-                  v-model-options="{ trackBy: 'LIBELLE_SECT_ACTIVITE' }"
-                  option-label="LIBELLE_SECT_ACTIVITE"
-                  option-value="CODE_SECT_ACTIVITE"
-                  :label="$t('input.activiteEconomique')"
-                  outlined
-                  dense
-                  :disable="!referentialsReady"
-                  use-input
-                  input-debounce="0"
-                  emit-value
-                  map-options
-                  @filter="filterActivites"
-                  :rules="[required]"
-                  class="immat-field-cell full-width"
-                >
-                  <template v-slot:label>
-                    {{ t('input.activiteEconomique') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-select>
-                <q-input
-                  v-model="form.NBRE_EMPL"
-                  :label="$t('input.nombreTravailleurs')"
-                  outlined
-                  dense
-                  type="number"
-                  min="1"
-                  class="immat-field-cell full-width"
-                  :rules="[required]"
-                >
-                  <template v-slot:label>
-                    {{ t('input.nombreTravailleurs') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-input
-                  :model-value="activites.find((a) => String(a.CODE_SECT_ACTIVITE) === String(form.CODE_SECT_ACTIVITEC))?.REGIME_CNPS || ''"
-                  :label="$t('input.regimeCNPS')"
-                  outlined
-                  dense
-                  readonly
-                  class="immat-field-cell full-width readonly-field"
-                  :rules="[required]"
-                />
-                <q-input
-                  :model-value="activites.find((a) => String(a.CODE_SECT_ACTIVITE) === String(form.CODE_SECT_ACTIVITEC))?.DESCRIPTION || ''"
-                  :label="$t('input.groupeRisque')"
-                  outlined
-                  dense
-                  readonly
-                  class="immat-field-cell full-width readonly-field"
-                  :rules="[required]"
-                />
-                <q-select
-                  v-model="form.CODE_CENTREIMPOTC"
-                  :options="impots"
-                  option-label="ABREVIATION"
-                  option-value="CODE_CENTREIMPOT"
-                  :label="$t('input.centreImpots')"
-                  outlined
-                  dense
-                  :disable="!referentialsReady"
-                  use-input
-                  input-debounce="0"
-                  emit-value
-                  map-options
-                  @filter="filterImpots"
-                  @update:model-value="onCentreImpotsSelected"
-                  :rules="[required]"
-                  class="immat-field-cell full-width"
-                >
-                  <template v-slot:label>
-                    {{ t('input.centreImpots') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-select>
-                <q-select
-                  v-model="form.CODE_CENTRECNPSC"
-                  :options="centres"
-                  option-label="LIB_CENTRE"
-                  option-value="CODE_CENTRE"
-                  :label="$t('input.centreCNPS')"
-                  outlined
-                  dense
-                  :disable="!referentialsReady"
-                  use-input
-                  input-debounce="0"
-                  emit-value
-                  map-options
-                  @filter="filterCentreCNPS"
-                  @update:model-value="onCentreCnpsSelected"
-                  :rules="[required]"
-                  class="immat-field-cell full-width"
-                >
-                  <template v-slot:label>
-                    {{ t('input.centreCNPS') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-select>
-                <div class="col-12">
-                  <div class="step-section-header">
-                    <q-icon name="folder" class="q-mr-xs" size="18px" />
-                    {{ $t('immep.step5') }}
+                  <!-- Sigle -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.Sigle"
+                      :label="$t('input.sigle')"
+                      outlined
+                      dense
+                      class="full-width"
+                      @update:model-value="(val) => (form.Sigle = val.toUpperCase())"
+                    />
                   </div>
-                </div>
-                <q-file
-                  v-model="formFile.IDPLANLOCAL"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  accept=".gif,.jpg,.jpeg,.png"
-                  :max-total-size="maxSize"
-                  @rejected="onRejected"
-                  :rules="[(val) => (val && val != '') || t('input.requis'), fileTypeImage]"
-                  counter
-                  max-files="1"
-                  :hint="$t('input.max_size_hint')"
-                >
-                  <template v-slot:prepend><q-icon name="attach_file" color="primary" /></template>
-                  <template v-slot:label>
-                    {{ t('input.planLocalisation') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-file>
-                <q-file
-                  v-model="formFile.IDCONTRATBAIL"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :label="$t('input.contratbail')"
-                  accept=".gif,.jpg,.jpeg,.png,.pdf"
-                  :max-total-size="maxSize"
-                  @rejected="onRejected"
-                  counter
-                  max-files="1"
-                  :hint="$t('input.max_size_hint')"
-                >
-                  <template v-slot:prepend><q-icon name="attach_file" color="primary" /></template>
-                </q-file>
-                <q-file
-                  v-model="formFile.IDLISTTRAV"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  accept=".gif,.jpg,.jpeg,.png,.xls,.xlsx,.doc,.docx"
-                  :max-total-size="maxSize"
-                  @rejected="onRejected"
-                  :rules="[(val) => (val && val != '') || t('input.requis'), fileTypeImage]"
-                  counter
-                  max-files="1"
-                  :hint="$t('input.max_size_hint')"
-                >
-                  <template v-slot:prepend><q-icon name="attach_file" color="primary" /></template>
-                  <template v-slot:label>
-                    {{ t('input.listeTravailleurs') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-file>
-                <q-file
-                  v-model="formFile.IDPATENTE"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :label="$t('input.patente')"
-                  accept=".gif,.jpg,.jpeg,.png,.pdf"
-                  :max-total-size="maxSize"
-                  @rejected="onRejected"
-                  counter
-                  max-files="1"
-                  :hint="$t('input.max_size_hint')"
-                >
-                  <template v-slot:prepend><q-icon name="attach_file" color="primary" /></template>
-                </q-file>
-                <q-file
-                  v-model="formFile.IDIMPOT"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  accept=".gif,.jpg,.jpeg,.png,.pdf"
-                  :max-total-size="maxSize"
-                  @rejected="onRejected"
-                  counter
-                  max-files="1"
-                  :hint="$t('input.max_size_hint')"
-                >
-                  <template v-slot:prepend><q-icon name="attach_file" color="primary" /></template>
-                  <template v-slot:label>{{ t('input.impotLiberatoire') }}</template>
-                </q-file>
-                <q-file
-                  v-model="formFile.IDSTATUTS"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :label="$t('input.statuts')"
-                  accept=".gif,.jpg,.jpeg,.png,.pdf"
-                  :max-total-size="maxSize"
-                  @rejected="onRejected"
-                  counter
-                  max-files="1"
-                  :hint="$t('input.max_size_hint')"
-                >
-                  <template v-slot:prepend><q-icon name="attach_file" color="primary" /></template>
-                </q-file>
-              </div>
-            </q-step>
-
-            <!-- Etape 3 : Informations du promoteur -->
-            <q-step
-              :name="3"
-              :title="$t('immep.step4')"
-              icon="person"
-              :done="step > 3"
-              :disable="!isStepAllowed(3)"
-            >
-              <div class="step-section-header">
-                <q-icon name="person" class="q-mr-xs" size="18px" />
-                {{ $t('immep.step4') }}
-              </div>
-              <div class="immat-field-row">
-                <q-input
-                  v-model="form.NOM_PERSEMPL"
-                  :label="$t('input.nomResponsable')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :rules="[required]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.NOM_PERSEMPL = val.toUpperCase())"
-                >
-                  <template v-slot:label>
-                    {{ t('input.nomResponsable') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.PRENOM_PERSEMPL"
-                  :label="$t('input.prenomResponsable')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.PRENOM_PERSEMPL = val.toUpperCase())"
-                />
-                <q-input
-                  v-model="form.DATE_NAISS_PERSEMPL"
-                  :label="$t('input.dateNaissanceResponsable')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :rules="[required]"
-                  :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
-                  :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
-                >
-                  <template #append>
-                    <q-icon name="event" class="cursor-pointer" color="primary">
-                      <q-popup-proxy transition-show="scale" transition-hide="scale">
-                        <q-date
-                          v-model="form.DATE_NAISS_PERSEMPL"
-                          :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
-                          :locale="locale"
-                          :options="optionsDn"
-                          color="primary"
-                        />
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                  <template v-slot:label>
-                    {{ t('input.dateNaissanceResponsable') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.LOCALITE_NAISS_PERSEMPL"
-                  :label="$t('input.lieuNaissanceResponsable')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :rules="[required]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.LOCALITE_NAISS_PERSEMPL = val.toUpperCase())"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="place" color="primary" />
-                  </template>
-                  <template v-slot:label>
-                    {{ t('input.lieuNaissanceResponsable') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-select
-                  v-model="form.LieuNaissPe"
-                  :options="arrondissements"
-                  option-label="NOM_ARROND"
-                  option-value="CODE_ARROND"
-                  :label="$t('input.arrondissementNaissanceResponsable')"
-                  outlined
-                  dense
-                  :disable="!referentialsReady"
-                  use-input
-                  input-debounce="0"
-                  emit-value
-                  map-options
-                  @filter="filterArrondissement"
-                  :rules="[required]"
-                  class="immat-field-cell full-width"
-                >
-                  <template v-slot:label>
-                    {{ t('input.arrondissementNaissanceResponsable') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-select>
-                <q-select
-                  v-model="form.SEXE_PERSEMPL"
-                  :options="['FEMININ', 'MASCULIN']"
-                  :label="$t('input.sexeResponsable')"
-                  outlined
-                  dense
-                  input-debounce="0"
-                  fill-input
-                  :rules="[required]"
-                  class="immat-field-cell full-width"
-                >
-                  <template v-slot:label>
-                    {{ t('input.sexeResponsable') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-select>
-                <q-select
-                  v-model="form.NATIONALITEC"
-                  :options="pays"
-                  option-label="nationalite"
-                  option-value="code_pays"
-                  :label="$t('input.nationaliteResponsable')"
-                  outlined
-                  dense
-                  :disable="!referentialsReady"
-                  use-input
-                  input-debounce="0"
-                  emit-value
-                  map-options
-                  @filter="filterPays"
-                  :rules="[required]"
-                  class="immat-field-cell full-width"
-                >
-                  <template v-slot:label>
-                    {{ t('input.nationaliteResponsable') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-select>
-
-                <q-input
-                  v-model="form.ADR_PERSEMPL"
-                  :label="$t('input.adresseResponsable')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :rules="[required]"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.ADR_PERSEMPL = val.toUpperCase())"
-                >
-                  <template v-slot:label>
-                    {{ t('input.adresseResponsable') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.BP_PERSEMPL"
-                  :label="$t('input.boitePostaleResponsable')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.BP_PERSEMPL = val.toUpperCase())"
-                />
-                <q-input
-                  v-model="form.TEL_PERSEMPL"
-                  :label="$t('input.telephoneResponsable')"
-                  outlined
-                  dense
-                  type="tel"
-                  maxlength="9"
-                  prefix="+237"
-                  class="immat-field-cell full-width"
-                  :rules="[
-                    required,
-                    (val) => regexPatterns.telephone.test(val) || t('input.invalidPhone'),
-                  ]"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="phone" color="primary" />
-                  </template>
-                  <template v-slot:label>
-                    {{ t('input.telephoneResponsable') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-input
-                  v-model="form.EMAIL_PERSEMPL"
-                  :label="$t('input.emailResponsable')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  type="email"
-                  :rules="[
-                    required,
-                    (val) => regexPatterns.email.test(val) || '(ex: adresse@email.com)',
-                  ]"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="email" color="primary" />
-                  </template>
-                  <template v-slot:label>
-                    {{ t('input.emailResponsable') }}
-                    <span class="required-badge">{{ t('input.requis') }}</span>
-                  </template>
-                </q-input>
-                <q-select
-                  v-model="form.NUM_TYPEPIECE"
-                  :options="pieces"
-                  option-label="LIBELLE"
-                  option-value="NUM_TYPEPIECE"
-                  :label="$t('input.pieceIdentiteResponsable')"
-                  outlined
-                  dense
-                  :disable="!referentialsReady"
-                  use-input
-                  input-debounce="0"
-                  emit-value
-                  map-options
-                  @filter="filterPieces"
-                  @update:model-value="onTypePieceSelected"
-                  class="immat-field-cell full-width"
-                />
-                <q-input
-                  v-model="form.NUM_PIECE"
-                  :label="$t('input.numPieceIdentiteResponsable')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  style="text-transform: uppercase"
-                  @update:model-value="(val) => (form.NUM_PIECE = val.toUpperCase())"
-                />
-                <q-input
-                  v-model="form.DATE_PIECE"
-                  :label="$t('input.dateDelivrancePieceIdentiteResponsable')"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
-                  :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
-                >
-                  <template #append>
-                    <q-icon name="event" class="cursor-pointer" color="primary">
-                      <q-popup-proxy transition-show="scale" transition-hide="scale">
-                        <q-date
-                          v-model="form.DATE_PIECE"
-                          :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
-                          :locale="locale"
-                          :options="optionsDn"
-                          color="primary"
-                        />
-                      </q-popup-proxy>
-                    </q-icon>
-                  </template>
-                </q-input>
-                <q-select
-                  v-model="form.LIEU_PIECEC"
-                  :options="arrondissements"
-                  option-label="NOM_ARROND"
-                  option-value="CODE_ARROND"
-                  :label="$t('input.lieuDelivrancePieceIdentitePromoteur')"
-                  outlined
-                  dense
-                  :disable="!referentialsReady"
-                  use-input
-                  input-debounce="0"
-                  emit-value
-                  map-options
-                  @filter="filterArrondissement"
-                  class="immat-field-cell full-width"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="place" color="primary" />
-                  </template>
-                </q-select>
-                <q-file
-                  v-if="form.NUM_TYPEPIECE"
-                  v-model="formFile.fichierIdentiteResponsable"
-                  outlined
-                  dense
-                  class="immat-field-cell full-width"
-                  accept=".gif,.jpg,.jpeg,.png,.pdf"
-                  :max-total-size="maxSize"
-                  @rejected="onRejected"
-                  :rules="[fileTypeDoc]"
-                  counter
-                  max-files="1"
-                  :hint="$t('input.max_size_hint')"
-                >
-                  <template v-slot:prepend>
-                    <q-icon name="badge" color="primary" />
-                  </template>
-                  <template v-slot:label>
-                    {{ pieceIdentiteScanLabel }}
-                  </template>
-                </q-file>
-              </div>
-
-            </q-step>
-
-            <!-- Etape 4 : Résumé -->
-            <q-step
-              :name="4"
-              :title="$t('immep.resume')"
-              icon="check_circle"
-              :done="step > 4"
-              :disable="!isStepAllowed(4)"
-            >
-              <div class="q-pa-sm recap-container" ref="recapContent">
-                <!-- Hero recap -->
-                <div class="recap-hero q-mb-lg">
-                  <div class="recap-hero-icon">
-                    <q-icon name="fact_check" size="42px" color="white" />
+                  <!-- Arrondissement -->
+                  <div class="col-12 col-sm-4">
+                    <q-select
+                      v-model="form.CODE_ARRONDC"
+                      :options="arrondissements"
+                      option-label="NOM_ARROND"
+                      option-value="CODE_ARROND"
+                      :label="$t('input.arrondissement')"
+                      outlined
+                      dense
+                      :disable="!referentialsReady"
+                      use-input
+                      input-debounce="0"
+                      emit-value
+                      map-options
+                      @filter="filterArrondissement"
+                      :rules="[required]"
+                      class="full-width"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.arrondissement') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-select>
                   </div>
-                  <div class="recap-hero-content">
-                    <div :class="dynamicTextClass">{{ $t('immep.resume') }}</div>
-                    <div class="text-body2 text-grey-7 q-mt-xs">
-                      Vérifiez les informations avant la soumission finale
-                    </div>
-                    <q-linear-progress
-                      :value="1"
-                      size="6px"
-                      color="primary"
-                      track-color="grey-3"
-                      class="q-mt-sm rounded-borders"
-                      style="max-width: 340px"
+                  <!-- Adresse -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.ADRESSE_EMPL"
+                      :label="$t('input.adresse')"
+                      outlined
+                      dense
+                      class="full-width"
+                      :rules="[required]"
+                      @update:model-value="(val) => (form.ADRESSE_EMPL = val.toUpperCase())"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.adresse') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
+                  </div>
+                  <!-- Quartier -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.NOM_QUARTIER"
+                      :label="$t('input.quartier')"
+                      outlined
+                      dense
+                      class="full-width"
+                      :rules="[required]"
+                      @update:model-value="(val) => (form.NOM_QUARTIER = val.toUpperCase())"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.quartier') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
+                  </div>
+                  <!-- Lieu-dit -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.LIEUDIT_EMPL"
+                      :label="$t('input.lieuDit')"
+                      outlined
+                      dense
+                      class="full-width"
+                      @update:model-value="(val) => (form.LIEUDIT_EMPL = val.toUpperCase())"
+                    />
+                  </div>
+                  <!-- Boîte Postale -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.BOITE_POSTALE"
+                      :label="$t('input.boitePostale')"
+                      outlined
+                      dense
+                      class="full-width"
+                      @update:model-value="(val) => (form.BOITE_POSTALE = val.toUpperCase())"
+                    />
+                  </div>
+                  <!-- Numéro logement -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.num_case"
+                      :label="$t('input.numLogement')"
+                      outlined
+                      dense
+                      class="full-width"
+                      @update:model-value="(val) => (form.num_case = val.toUpperCase())"
                     />
                   </div>
                 </div>
 
-                <div class="row q-col-gutter-md">
-                  <div
-                    v-for="section in recapSections"
-                    :key="section.step"
-                    class="col-12 col-lg-6"
-                  >
-                    <q-card
-                      flat
-                      bordered
-                      class="recap-card q-mb-sm"
+                <!-- Sous-section : Contacts -->
+                <div class="step-section-header">
+                  <q-icon name="contact_phone" class="q-mr-xs" />
+                  {{ $t('immat.section.contacts', 'Contacts') }}
+                </div>
+                <div class="row q-col-gutter-sm q-mb-sm">
+                  <!-- Email -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.EMAIL"
+                      :label="$t('input.email')"
+                      outlined
+                      dense
+                      class="full-width"
+                      type="email"
+                      :rules="[
+                        required,
+                        (val) => regexPatterns.email.test(val) || '(ex: adresse@email.com)',
+                      ]"
                     >
-                      <q-card-section class="recap-card-header q-py-sm q-px-md">
-                        <div class="row items-center no-wrap">
-                          <q-avatar size="32px" class="recap-card-avatar q-mr-sm">
-                            <q-icon :name="section.icon" size="18px" color="primary" />
-                          </q-avatar>
-                          <div class="col">
-                            <div class="text-subtitle2 text-weight-bold text-white">
-                              {{ section.title }}
-                            </div>
-                            <div class="text-caption text-white text-opacity-80">
-                              Étape {{ section.step }}
-                            </div>
-                          </div>
-                          <q-btn
-                            flat
-                            round
-                            color="white"
-                            icon="edit"
-                            size="sm"
-                            class="hover-scale"
-                            @click="step = section.step"
-                          >
-                            <q-tooltip>{{ $t('form.edit') }}</q-tooltip>
-                          </q-btn>
-                        </div>
-                      </q-card-section>
-                      <q-card-section class="q-pa-none">
-                        <q-list separator dense>
-                          <q-item
-                            v-for="(row, idx) in section.items"
-                            :key="idx"
-                            class="recap-item"
-                          >
-                            <q-item-section avatar>
-                              <q-icon :name="row.icon" color="primary" size="sm" />
-                            </q-item-section>
-                            <q-item-section>
-                              <q-item-label class="recap-label">
-                                {{ row.label }}
-                              </q-item-label>
-                              <q-item-label class="recap-value">
-                                {{ row.value }}
-                              </q-item-label>
-                            </q-item-section>
-                          </q-item>
-                        </q-list>
-                      </q-card-section>
-                    </q-card>
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.email') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                      <template v-slot:prepend><q-icon name="email" /></template>
+                    </q-input>
+                  </div>
+                  <!-- Téléphone -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.TEL"
+                      :label="$t('input.telephone')"
+                      outlined
+                      dense
+                      prefix="+237"
+                      type="tel"
+                      maxlength="9"
+                      class="full-width"
+                      :rules="[
+                        required,
+                        (val) => regexPatterns.telephone.test(val) || t('input.invalidPhone'),
+                      ]"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.telephone') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
+                  </div>
+                  <!-- Autre contact -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.AUTRE_CONTACT"
+                      :label="$t('input.autreContact')"
+                      outlined
+                      dense
+                      class="full-width"
+                      @update:model-value="(val) => (form.AUTRE_CONTACT = val.toUpperCase())"
+                    />
                   </div>
                 </div>
-              </div>
-            </q-step>
-          </q-stepper>
+
+                <!-- Sous-section : Dates -->
+                <div class="step-section-header">
+                  <q-icon name="event" class="q-mr-xs" />
+                  {{ $t('immat.section.dates', 'Dates importantes') }}
+                </div>
+                <div class="row q-col-gutter-sm q-mb-sm">
+                  <!-- Date d'ouverture -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.DATE_DEB_SERVICE"
+                      :label="$t('input.dateOuverture')"
+                      outlined
+                      dense
+                      class="full-width"
+                      :rules="[required]"
+                      :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
+                      :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
+                    >
+                      <template #append>
+                        <q-icon name="event" class="cursor-pointer" color="primary">
+                          <q-popup-proxy transition-show="scale" transition-hide="scale">
+                            <q-date
+                              v-model="form.DATE_DEB_SERVICE"
+                              :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
+                              :options="optionsDn"
+                              color="primary"
+                            />
+                          </q-popup-proxy>
+                        </q-icon>
+                      </template>
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.dateOuverture') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
+                  </div>
+                  <!-- Date création -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.date_creation_empl"
+                      :label="$t('input.dateCreation')"
+                      outlined
+                      dense
+                      class="full-width"
+                      :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
+                      :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
+                    >
+                      <template #append>
+                        <q-icon name="event" class="cursor-pointer" color="primary">
+                          <q-popup-proxy transition-show="scale" transition-hide="scale">
+                            <q-date
+                              v-model="form.date_creation_empl"
+                              :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
+                              :options="optionsDn"
+                              color="primary"
+                            />
+                          </q-popup-proxy>
+                        </q-icon>
+                      </template>
+                    </q-input>
+                  </div>
+                  <!-- Date embauche (effet) -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.DATE_EFFET"
+                      :label="$t('input.dateEmbauche')"
+                      outlined
+                      dense
+                      class="full-width"
+                      :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
+                      :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
+                    >
+                      <template #append>
+                        <q-icon name="event" class="cursor-pointer" color="primary">
+                          <q-popup-proxy transition-show="scale" transition-hide="scale">
+                            <q-date
+                              v-model="form.DATE_EFFET"
+                              :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
+                              :options="optionsDn"
+                              color="primary"
+                            />
+                          </q-popup-proxy>
+                        </q-icon>
+                      </template>
+                    </q-input>
+                  </div>
+                </div>
+
+                <!-- Sous-section : Identification légale -->
+                <div class="step-section-header">
+                  <q-icon name="gavel" class="q-mr-xs" />
+                  {{ $t('immat.section.legal', 'Identification légale') }}
+                </div>
+                <div class="row q-col-gutter-sm q-mb-sm">
+                  <!-- Registre de commerce -->
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      v-model="form.num_registre"
+                      :label="$t('input.numRegistreCommerce')"
+                      outlined
+                      dense
+                      class="full-width"
+                      :rules="[
+                        (val) =>
+                          !val || regexPatterns.regComm.test(val) || '(ex: RC/YAO/2020/B/0002)',
+                      ]"
+                      @update:model-value="(val) => (form.num_registre = val.toUpperCase())"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.numRegistreCommerce')
+                          }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
+                  </div>
+                  <!-- Numéro contribuable -->
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      v-model="form.num_contr"
+                      :label="$t('input.numContribuable')"
+                      outlined
+                      dense
+                      class="full-width"
+                      :rules="[
+                        (val) =>
+                          !val ||
+                          regexPatterns.numContr.test(val) ||
+                          'Format invalide (ex: P123456789321M)',
+                      ]"
+                      @update:model-value="(val) => (form.num_contr = val.toUpperCase())"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.numContribuable') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
+                  </div>
+                </div>
+
+                <!-- Sous-section : Documents de l'employeur -->
+                <div class="step-section-header">
+                  <q-icon name="attach_file" class="q-mr-xs" />
+                  {{ $t('immep.step5') }}
+                </div>
+                <div class="row q-col-gutter-sm">
+                  <div class="col-12 col-sm-4">
+                    <q-file
+                      v-model="formFile.IDREGICOMM"
+                      :label="$t('input.carteContribuable')"
+                      outlined
+                      dense
+                      class="full-width"
+                      accept=".gif,.jpg,.jpeg,.png,.pdf"
+                      :max-total-size="maxSize"
+                      @rejected="onRejected"
+                      :rules="[(val) => (val && val != '') || t('input.requis'), fileTypeImage]"
+                      counter
+                      max-files="1"
+                      :hint="$t('input.max_size_hint')"
+                    >
+                      <template v-slot:prepend
+                        ><q-icon name="upload_file" color="primary"
+                      /></template>
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.registreCommerce') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-file>
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <q-file
+                      v-model="formFile.IDAUTORISATION"
+                      :label="$t('input.carteContribuable')"
+                      outlined
+                      dense
+                      class="full-width"
+                      accept=".gif,.jpg,.jpeg,.png,.pdf"
+                      :max-total-size="maxSize"
+                      @rejected="onRejected"
+                      :rules="[(val) => (val && val != '') || t('input.requis'), fileTypeImage]"
+                      counter
+                      max-files="1"
+                      :hint="$t('input.max_size_hint')"
+                    >
+                      <template v-slot:prepend
+                        ><q-icon name="upload_file" color="primary"
+                      /></template>
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.autorisationOuverture')
+                          }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-file>
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <q-file
+                      v-model="formFile.IDCONTRIBUABLE"
+                      outlined
+                      dense
+                      class="full-width"
+                      :label="$t('input.carteContribuable')"
+                      accept=".gif,.jpg,.jpeg,.png,.pdf"
+                      :max-total-size="maxSize"
+                      @rejected="onRejected"
+                      counter
+                      max-files="1"
+                      :hint="$t('input.max_size_hint')"
+                    >
+                      <template v-slot:prepend
+                        ><q-icon name="upload_file" color="primary"
+                      /></template>
+                    </q-file>
+                  </div>
+                </div>
+              </q-step>
+
+              <!-- ══════════════════════════════════════════════
+                  ÉTAPE 2 : Localisation, CNPS & documents
+              ══════════════════════════════════════════════ -->
+              <q-step
+                :name="2"
+                :title="$t('immep.step2')"
+                icon="location_on"
+                :done="step > 2"
+                :disable="!isStepAllowed(2)"
+              >
+                <!-- Sous-section : Succursale -->
+                <div class="step-section-header">
+                  <q-icon name="corporate_fare" class="q-mr-xs" />
+                  {{ $t('input.isSuccursale') }}
+                </div>
+                <div class="row q-col-gutter-sm q-mb-sm">
+                  <div class="col-12">
+                    <q-expansion-item
+                      v-model="succursaleExpanded"
+                      icon="corporate_fare"
+                      :label="$t('input.isSuccursale')"
+                      dense
+                      header-class="text-primary text-weight-bold"
+                      class="immat-expansion"
+                    >
+                      <div class="row q-col-gutter-sm q-pa-sm">
+                        <div class="col-12">
+                          <q-checkbox
+                            name="is_succursale"
+                            v-model="form.isSuccursale"
+                            :label="$t('input.isSuccursale')"
+                            color="primary"
+                            dense
+                          />
+                        </div>
+                        <div class="col-12 col-sm-4" v-if="form.isSuccursale">
+                          <q-input
+                            v-model="form.NUM_EMPL_SIEGE"
+                            :label="$t('input.matriculeSiege')"
+                            :loading="loadingSiege"
+                            :disable="!referentialsReady"
+                            @update:model-value="(val) => (form.NUM_EMPL_SIEGE = val.toUpperCase())"
+                            @blur="rechercherSiege"
+                            outlined
+                            dense
+                            class="full-width"
+                            :rules="[
+                              required,
+                              (val) =>
+                                regexPatterns.numEmpl1.test(val) ||
+                                regexPatterns.numEmpl2.test(val) ||
+                                '(ex: 321-1234567-A ou 321-1234567-000-M)',
+                            ]"
+                          >
+                            <template v-slot:label>
+                              <span class="req-label"
+                                >{{ $t('input.matriculeSiege')
+                                }}<span class="req-badge">*</span></span
+                              >
+                            </template>
+                          </q-input>
+                        </div>
+                        <div class="col-12 col-sm-4" v-if="form.isSuccursale">
+                          <q-input
+                            v-model="form.RAISON_SOCIALE_SIEGE"
+                            :label="$t('input.raisonSocialeSiege')"
+                            outlined
+                            dense
+                            readonly
+                            class="full-width"
+                          />
+                        </div>
+                        <div class="col-12 col-sm-4" v-if="form.isSuccursale">
+                          <q-input
+                            v-model="form.NOM_COMMERCIAL_SIEGE"
+                            :label="$t('input.nomCommercialSiege')"
+                            outlined
+                            dense
+                            readonly
+                            class="full-width"
+                          />
+                        </div>
+                      </div>
+                    </q-expansion-item>
+                  </div>
+                </div>
+
+                <!-- Sous-section : Infos CNPS & Juridique -->
+                <div class="step-section-header">
+                  <q-icon name="account_balance" class="q-mr-xs" />
+                  {{ $t('immep.step3') }}
+                </div>
+                <div class="row q-col-gutter-sm q-mb-sm">
+                  <!-- Origine immatriculation -->
+                  <div class="col-12 col-sm-4">
+                    <q-select
+                      v-model="form.CAUSE_IMMA"
+                      :options="causeImmaOptions"
+                      option-label="label"
+                      option-value="value"
+                      emit-value
+                      map-options
+                      :label="$t('input.origineImmatriculation')"
+                      outlined
+                      dense
+                      :rules="[required]"
+                      class="full-width"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.origineImmatriculation')
+                          }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-select>
+                  </div>
+                  <!-- Origine dossier -->
+                  <div class="col-12 col-sm-4">
+                    <q-select
+                      v-model="form.CIRCUIT_DOSSIER"
+                      :options="circuitDossierOptions"
+                      option-label="label"
+                      option-value="value"
+                      emit-value
+                      map-options
+                      :label="$t('input.origineDossier')"
+                      outlined
+                      dense
+                      :rules="[required]"
+                      class="full-width"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.origineDossier') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-select>
+                  </div>
+                  <!-- Forme juridique -->
+                  <div class="col-12 col-sm-4">
+                    <q-select
+                      v-model="form.NATURE_JURC"
+                      :options="formeJuridique"
+                      option-label="LIBELLE_NATUREJUR"
+                      option-value="CODE_NATUREJUR"
+                      :label="$t('input.formeJuridique')"
+                      outlined
+                      dense
+                      :disable="!referentialsReady"
+                      use-input
+                      input-debounce="0"
+                      emit-value
+                      map-options
+                      @filter="filterFormeJuridique"
+                      :rules="[required]"
+                      class="full-width"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.formeJuridique') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-select>
+                  </div>
+                  <!-- Activité économique -->
+                  <div class="col-12 col-sm-4">
+                    <q-select
+                      v-model="form.CODE_SECT_ACTIVITEC"
+                      :options="activites"
+                      option-label="LIBELLE_SECT_ACTIVITE"
+                      option-value="CODE_SECT_ACTIVITE"
+                      :label="$t('input.activiteEconomique')"
+                      outlined
+                      dense
+                      :disable="!referentialsReady"
+                      use-input
+                      input-debounce="0"
+                      emit-value
+                      map-options
+                      @filter="filterActivites"
+                      :rules="[required]"
+                      class="full-width"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.activiteEconomique')
+                          }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-select>
+                  </div>
+                  <!-- Nombre travailleurs -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.NBRE_EMPL"
+                      :label="$t('input.nombreTravailleurs')"
+                      outlined
+                      dense
+                      type="number"
+                      min="1"
+                      class="full-width"
+                      :rules="[required]"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.nombreTravailleurs')
+                          }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
+                  </div>
+                  <!-- Régime CNPS (readonly) -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      :model-value="
+                        activites.find(
+                          (a) => String(a.CODE_SECT_ACTIVITE) === String(form.CODE_SECT_ACTIVITEC),
+                        )?.REGIME_CNPS || ''
+                      "
+                      :label="$t('input.regimeCNPS')"
+                      outlined
+                      dense
+                      readonly
+                      class="full-width"
+                    />
+                  </div>
+                  <!-- Groupe de risque (readonly) -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      :model-value="
+                        activites.find(
+                          (a) => String(a.CODE_SECT_ACTIVITE) === String(form.CODE_SECT_ACTIVITEC),
+                        )?.DESCRIPTION || ''
+                      "
+                      :label="$t('input.groupeRisque')"
+                      outlined
+                      dense
+                      readonly
+                      class="full-width"
+                    />
+                  </div>
+                  <!-- Centre des impôts -->
+                  <div class="col-12 col-sm-4">
+                    <q-select
+                      v-model="form.CODE_CENTREIMPOTC"
+                      :options="impots"
+                      option-label="ABREVIATION"
+                      option-value="CODE_CENTREIMPOT"
+                      :label="$t('input.centreImpots')"
+                      outlined
+                      dense
+                      :disable="!referentialsReady"
+                      use-input
+                      input-debounce="0"
+                      emit-value
+                      map-options
+                      @filter="filterImpots"
+                      @update:model-value="onCentreImpotsSelected"
+                      :rules="[required]"
+                      class="full-width"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.centreImpots') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-select>
+                  </div>
+                  <!-- Centre CNPS -->
+                  <div class="col-12 col-sm-4">
+                    <q-select
+                      v-model="form.CODE_CENTRECNPSC"
+                      :options="centres"
+                      option-label="LIB_CENTRE"
+                      option-value="CODE_CENTRE"
+                      :label="$t('input.centreCNPS')"
+                      outlined
+                      dense
+                      :disable="!referentialsReady"
+                      use-input
+                      input-debounce="0"
+                      emit-value
+                      map-options
+                      @filter="filterCentreCNPS"
+                      @update:model-value="onCentreCnpsSelected"
+                      :rules="[required]"
+                      class="full-width"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.centreCNPS') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-select>
+                  </div>
+                </div>
+
+                <!-- Sous-section : Documents localisation -->
+                <div class="step-section-header">
+                  <q-icon name="folder_open" class="q-mr-xs" />
+                  {{ $t('immep.step5') }}
+                </div>
+                <div class="row q-col-gutter-sm">
+                  <div class="col-12 col-sm-4">
+                    <q-file
+                      v-model="formFile.IDPLANLOCAL"
+                      :label="$t('input.planLocalisation')"
+                      outlined
+                      dense
+                      class="full-width"
+                      accept=".gif,.jpg,.jpeg,.png,.pdf"
+                      :max-total-size="maxSize"
+                      @rejected="onRejected"
+                      :rules="[(val) => (val && val != '') || t('input.requis'), fileTypeImage]"
+                      counter
+                      max-files="1"
+                      :hint="$t('input.max_size_hint')"
+                    >
+                      <template v-slot:prepend
+                        ><q-icon name="upload_file" color="primary"
+                      /></template>
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.planLocalisation') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-file>
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <q-file
+                      v-model="formFile.IDCONTRATBAIL"
+                      outlined
+                      dense
+                      class="full-width"
+                      :label="$t('input.contratbail')"
+                      accept=".gif,.jpg,.jpeg,.png,.pdf"
+                      :max-total-size="maxSize"
+                      @rejected="onRejected"
+                      counter
+                      max-files="1"
+                      :hint="$t('input.max_size_hint')"
+                    >
+                      <template v-slot:prepend
+                        ><q-icon name="upload_file" color="primary"
+                      /></template>
+                    </q-file>
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <q-file
+                      v-model="formFile.IDLISTTRAV"
+                      :label="$t('input.listeTravailleurs')"
+                      outlined
+                      dense
+                      class="full-width"
+                      accept=".gif,.jpg,.jpeg,.png,.xls,.xlsx,.doc,.docx,.pdf"
+                      :max-total-size="maxSize"
+                      @rejected="onRejected"
+                      :rules="[(val) => (val && val != '') || t('input.requis'), fileTypeImage]"
+                      counter
+                      max-files="1"
+                      :hint="$t('input.max_size_hint')"
+                    >
+                      <template v-slot:prepend
+                        ><q-icon name="upload_file" color="primary"
+                      /></template>
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.listeTravailleurs') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-file>
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <q-file
+                      v-model="formFile.IDPATENTE"
+                      outlined
+                      dense
+                      class="full-width"
+                      :label="$t('input.patente')"
+                      accept=".gif,.jpg,.jpeg,.png,.pdf"
+                      :max-total-size="maxSize"
+                      @rejected="onRejected"
+                      counter
+                      max-files="1"
+                      :hint="$t('input.max_size_hint')"
+                    >
+                      <template v-slot:prepend
+                        ><q-icon name="upload_file" color="primary"
+                      /></template>
+                    </q-file>
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <q-file
+                      v-model="formFile.IDIMPOT"
+                      :label="$t('input.impotLiberatoire')"
+                      outlined
+                      dense
+                      class="full-width"
+                      accept=".gif,.jpg,.jpeg,.png,.pdf"
+                      :max-total-size="maxSize"
+                      @rejected="onRejected"
+                      counter
+                      max-files="1"
+                      :hint="$t('input.max_size_hint')"
+                    >
+                      <template v-slot:prepend
+                        ><q-icon name="upload_file" color="primary"
+                      /></template>
+                    </q-file>
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <q-file
+                      v-model="formFile.IDSTATUTS"
+                      outlined
+                      dense
+                      class="full-width"
+                      :label="$t('input.statuts')"
+                      accept=".gif,.jpg,.jpeg,.png,.pdf"
+                      :max-total-size="maxSize"
+                      @rejected="onRejected"
+                      counter
+                      max-files="1"
+                      :hint="$t('input.max_size_hint')"
+                    >
+                      <template v-slot:prepend
+                        ><q-icon name="upload_file" color="primary"
+                      /></template>
+                    </q-file>
+                  </div>
+                </div>
+              </q-step>
+
+              <!-- ══════════════════════════════════════════════
+                  ÉTAPE 3 : Informations du promoteur
+              ══════════════════════════════════════════════ -->
+              <q-step
+                :name="3"
+                :title="$t('immep.step4')"
+                icon="person"
+                :done="step > 3"
+                :disable="!isStepAllowed(3)"
+              >
+                <!-- Sous-section : Identité promoteur -->
+                <div class="step-section-header step-section-header--blue">
+                  <q-icon name="person" class="q-mr-xs" />
+                  {{ $t('immep.step4') }}
+                </div>
+                <div class="row q-col-gutter-sm q-mb-sm">
+                  <!-- Nom -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.NOM_PERSEMPL"
+                      :label="$t('input.nomResponsable')"
+                      outlined
+                      dense
+                      class="full-width"
+                      :rules="[required]"
+                      @update:model-value="(val) => (form.NOM_PERSEMPL = val.toUpperCase())"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.nomResponsable') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
+                  </div>
+                  <!-- Prénom -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.PRENOM_PERSEMPL"
+                      :label="$t('input.prenomResponsable')"
+                      outlined
+                      dense
+                      class="full-width"
+                      @update:model-value="(val) => (form.PRENOM_PERSEMPL = val.toUpperCase())"
+                    />
+                  </div>
+                  <!-- Lieu de naissance -->
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.LOCALITE_NAISS_PERSEMPL"
+                      :label="$t('input.lieuNaissanceResponsable')"
+                      outlined
+                      dense
+                      class="full-width"
+                      :rules="[required]"
+                      @update:model-value="
+                        (val) => (form.LOCALITE_NAISS_PERSEMPL = val.toUpperCase())
+                      "
+                    >
+                      <template v-slot:prepend><q-icon name="place" color="primary" /></template>
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.lieuNaissanceResponsable')
+                          }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
+                  </div>
+                  <!-- Date de naissance -->
+                  <div class="col-12 col-sm-3">
+                    <q-input
+                      v-model="form.DATE_NAISS_PERSEMPL"
+                      :label="$t('input.dateNaissanceResponsable')"
+                      outlined
+                      dense
+                      class="full-width"
+                      :rules="[required]"
+                      :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
+                      :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
+                    >
+                      <template #append>
+                        <q-icon name="event" class="cursor-pointer" color="primary">
+                          <q-popup-proxy transition-show="scale" transition-hide="scale">
+                            <q-date
+                              v-model="form.DATE_NAISS_PERSEMPL"
+                              :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
+                              :options="optionsDn"
+                              color="primary"
+                            />
+                          </q-popup-proxy>
+                        </q-icon>
+                      </template>
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.dateNaissanceResponsable')
+                          }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
+                  </div>
+                  <!-- Arrondissement naissance -->
+                  <div class="col-12 col-sm-3">
+                    <q-select
+                      v-model="form.LieuNaissPe"
+                      :options="arrondissements"
+                      option-label="NOM_ARROND"
+                      option-value="CODE_ARROND"
+                      :label="$t('input.arrondissementNaissanceResponsable')"
+                      outlined
+                      dense
+                      :disable="!referentialsReady"
+                      use-input
+                      input-debounce="0"
+                      emit-value
+                      map-options
+                      @filter="filterArrondissement"
+                      :rules="[required]"
+                      class="full-width"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.arrondissementNaissanceResponsable')
+                          }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-select>
+                  </div>
+                  <!-- Sexe -->
+                  <div class="col-12 col-sm-3">
+                    <q-select
+                      v-model="form.SEXE_PERSEMPL"
+                      :options="['FEMININ', 'MASCULIN']"
+                      :label="$t('input.sexeResponsable')"
+                      outlined
+                      dense
+                      :rules="[required]"
+                      class="full-width"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.sexeResponsable') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-select>
+                  </div>
+                  <!-- Nationalité -->
+                  <div class="col-12 col-sm-3">
+                    <q-select
+                      v-model="form.NATIONALITEC"
+                      :options="pays"
+                      option-label="nationalite"
+                      option-value="code_pays"
+                      :label="$t('input.nationaliteResponsable')"
+                      outlined
+                      dense
+                      :disable="!referentialsReady"
+                      use-input
+                      input-debounce="0"
+                      emit-value
+                      map-options
+                      @filter="filterPays"
+                      :rules="[required]"
+                      class="full-width"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.nationaliteResponsable')
+                          }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-select>
+                  </div>
+                </div>
+
+                <!-- Sous-section : Contacts promoteur -->
+                <div class="step-section-header">
+                  <q-icon name="contact_phone" class="q-mr-xs" />
+                  {{ $t('immat.section.contacts', 'Contacts') }}
+                </div>
+                <div class="row q-col-gutter-sm q-mb-sm">
+                  <!-- Adresse -->
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      v-model="form.ADR_PERSEMPL"
+                      :label="$t('input.adresseResponsable')"
+                      outlined
+                      dense
+                      class="full-width"
+                      :rules="[required]"
+                      @update:model-value="(val) => (form.ADR_PERSEMPL = val.toUpperCase())"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.adresseResponsable')
+                          }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
+                  </div>
+                  <!-- BP -->
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      v-model="form.BP_PERSEMPL"
+                      :label="$t('input.boitePostaleResponsable')"
+                      outlined
+                      dense
+                      class="full-width"
+                      @update:model-value="(val) => (form.BP_PERSEMPL = val.toUpperCase())"
+                    />
+                  </div>
+                  <!-- Téléphone -->
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      v-model="form.TEL_PERSEMPL"
+                      :label="$t('input.telephoneResponsable')"
+                      outlined
+                      dense
+                      type="tel"
+                      maxlength="9"
+                      prefix="+237"
+                      class="full-width"
+                      :rules="[
+                        required,
+                        (val) => regexPatterns.telephone.test(val) || t('input.invalidPhone'),
+                      ]"
+                    >
+                      <template v-slot:prepend><q-icon name="phone" color="primary" /></template>
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.telephoneResponsable')
+                          }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
+                  </div>
+                  <!-- Email -->
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      v-model="form.EMAIL_PERSEMPL"
+                      :label="$t('input.emailResponsable')"
+                      outlined
+                      dense
+                      class="full-width"
+                      type="email"
+                      :rules="[
+                        required,
+                        (val) => regexPatterns.email.test(val) || '(ex: adresse@email.com)',
+                      ]"
+                    >
+                      <template v-slot:prepend><q-icon name="email" color="primary" /></template>
+                      <template v-slot:label>
+                        <span class="req-label"
+                          >{{ $t('input.emailResponsable') }}<span class="req-badge">*</span></span
+                        >
+                      </template>
+                    </q-input>
+                  </div>
+                </div>
+
+                <!-- Sous-section : Pièce d'identité promoteur -->
+                <div class="step-section-header">
+                  <q-icon name="credit_card" class="q-mr-xs" />
+                  {{ $t('immat.section.id_doc', "Pièce d'identité") }}
+                </div>
+                <div class="row q-col-gutter-sm">
+                  <!-- Type de pièce -->
+                  <div class="col-12 col-sm-6">
+                    <q-select
+                      v-model="form.NUM_TYPEPIECE"
+                      :options="pieces"
+                      option-label="LIBELLE"
+                      option-value="NUM_TYPEPIECE"
+                      :label="$t('input.pieceIdentiteResponsable')"
+                      outlined
+                      dense
+                      :disable="!referentialsReady"
+                      use-input
+                      input-debounce="0"
+                      emit-value
+                      map-options
+                      @filter="filterPieces"
+                      @update:model-value="onTypePieceSelected"
+                      class="full-width"
+                    />
+                  </div>
+                  <!-- Numéro pièce -->
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      v-model="form.NUM_PIECE"
+                      :label="$t('input.numPieceIdentiteResponsable')"
+                      outlined
+                      dense
+                      class="full-width"
+                      @update:model-value="(val) => (form.NUM_PIECE = val.toUpperCase())"
+                    />
+                  </div>
+                  <!-- Date délivrance -->
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      v-model="form.DATE_PIECE"
+                      :label="$t('input.dateDelivrancePieceIdentiteResponsable')"
+                      outlined
+                      dense
+                      class="full-width"
+                      :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
+                      :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
+                    >
+                      <template #append>
+                        <q-icon name="event" class="cursor-pointer" color="primary">
+                          <q-popup-proxy transition-show="scale" transition-hide="scale">
+                            <q-date
+                              v-model="form.DATE_PIECE"
+                              :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
+                              :options="optionsDn"
+                              color="primary"
+                            />
+                          </q-popup-proxy>
+                        </q-icon>
+                      </template>
+                    </q-input>
+                  </div>
+                  <!-- Lieu délivrance -->
+                  <div class="col-12 col-sm-6">
+                    <q-select
+                      v-model="form.LIEU_PIECEC"
+                      :options="arrondissements"
+                      option-label="NOM_ARROND"
+                      option-value="CODE_ARROND"
+                      :label="$t('input.lieuDelivrancePieceIdentitePromoteur')"
+                      outlined
+                      dense
+                      :disable="!referentialsReady"
+                      use-input
+                      input-debounce="0"
+                      emit-value
+                      map-options
+                      @filter="filterArrondissement"
+                      class="full-width"
+                    >
+                      <template v-slot:prepend><q-icon name="place" color="primary" /></template>
+                    </q-select>
+                  </div>
+                  <!-- Scan pièce d'identité -->
+                  <div class="col-12 col-sm-6" v-if="form.NUM_TYPEPIECE">
+                    <q-file
+                      v-model="formFile.fichierIdentiteResponsable"
+                      outlined
+                      dense
+                      :label="pieceIdentiteScanLabel"
+                      class="full-width"
+                      accept=".gif,.jpg,.jpeg,.png,.pdf"
+                      :max-total-size="maxSize"
+                      @rejected="onRejected"
+                      :rules="[fileTypeDoc]"
+                      counter
+                      max-files="1"
+                      :hint="$t('input.max_size_hint')"
+                    >
+                      <template v-slot:prepend><q-icon name="badge" color="primary" /></template>
+                      <template v-slot:label>{{ pieceIdentiteScanLabel }}</template>
+                    </q-file>
+                  </div>
+                </div>
+              </q-step>
+
+              <!-- ══════════════════════════════════════════════
+                  ÉTAPE 4 : Récapitulatif & Validation
+              ══════════════════════════════════════════════ -->
+              <q-step
+                :name="4"
+                :title="$t('immep.resume')"
+                icon="check_circle"
+                :done="step > 4"
+                :disable="!isStepAllowed(4)"
+              >
+                <div class="q-pa-sm" ref="recapContent">
+                  <!-- En-tête récap -->
+                  <div class="text-center q-mb-md">
+                    <q-icon name="fact_check" size="36px" color="positive" />
+                    <div :class="dynamicTextClass">{{ $t('immep.resume') }}</div>
+                    <q-linear-progress
+                      :value="1"
+                      size="6px"
+                      color="positive"
+                      class="q-mt-sm rounded-borders"
+                      animation-speed="100"
+                    />
+                  </div>
+
+                  <div class="row q-col-gutter-lg">
+                    <div
+                      v-for="section in recapSections"
+                      :key="section.step"
+                      class="col-12 col-lg-6"
+                    >
+                      <q-card
+                        flat
+                        bordered
+                        class="recap-card q-mb-md"
+                        :class="{ 'shadow-10': $q.dark.isActive, 'shadow-2': !$q.dark.isActive }"
+                      >
+                        <q-card-section class="bg-gradient-primary text-white q-py-sm">
+                          <div class="row items-center no-wrap">
+                            <q-icon :name="section.icon" size="sm" class="q-mr-sm" />
+                            <div class="text-subtitle1 text-weight-bold col">
+                              {{ section.title }}
+                            </div>
+                            <q-btn
+                              flat
+                              round
+                              color="white"
+                              icon="edit"
+                              size="xs"
+                              class="hover-scale"
+                              @click="step = section.step"
+                              ><q-tooltip>{{ $t('form.edit') }}</q-tooltip></q-btn
+                            >
+                          </div>
+                        </q-card-section>
+                        <q-card-section class="q-pa-none">
+                          <q-list separator dense>
+                            <q-item v-for="(row, idx) in section.items" :key="idx" class="q-py-xs">
+                              <q-item-section avatar>
+                                <q-icon :name="row.icon" color="primary" size="sm" />
+                              </q-item-section>
+                              <q-item-section>
+                                <q-item-label class="text-caption text-grey-6">{{
+                                  row.label
+                                }}</q-item-label>
+                                <q-item-label class="text-weight-medium">{{
+                                  row.value
+                                }}</q-item-label>
+                              </q-item-section>
+                            </q-item>
+                          </q-list>
+                        </q-card-section>
+                      </q-card>
+                    </div>
+                  </div>
+                </div>
+              </q-step>
+            </q-stepper>
           </q-card-section>
         </q-scroll-area>
 
         <q-separator />
-        <q-card-actions align="right" class="immat-step-footer q-pa-sm q-px-md">
+        <q-card-actions align="right" class="immat-step-footer q-pa-sm">
           <q-btn
             v-if="step > 1"
-            outline
+            flat
             color="primary"
             :label="$t('form.previous')"
             icon="arrow_back"
-            no-caps
             @click="goToPreviousStep"
           />
           <q-btn
             v-if="step === 4"
-            outline
+            flat
             color="primary"
             icon="picture_as_pdf"
             :label="$t('form.pdf')"
-            no-caps
             class="q-ml-sm"
             @click="previewPDF"
           />
@@ -1197,7 +1405,6 @@
             unelevated
             :label="$t('form.next')"
             icon-right="arrow_forward"
-            no-caps
             @click="goToNextStep(step + 1)"
           />
           <q-btn
@@ -1205,7 +1412,6 @@
             type="submit"
             color="primary"
             unelevated
-            no-caps
             class="q-px-lg text-weight-bold"
             icon-right="send"
             :label="$t('form.submit')"
@@ -1213,49 +1419,34 @@
         </q-card-actions>
       </q-form>
 
+      <!-- ═══ DIALOGUE PDF ═══ -->
       <q-dialog v-model="pdfDialog" maximized>
         <q-card>
-          <q-card-section class="bg-primary text-white row items-center justify-between q-py-sm">
+          <q-card-section class="row items-center justify-between">
             <div class="text-h6">{{ $t('form.preview', 'Aperçu PDF') }}</div>
-            <q-btn icon="close" flat round dense color="white" @click="pdfDialog = false" />
+            <q-btn icon="close" flat round dense @click="pdfDialog = false" />
           </q-card-section>
-
           <q-separator />
-
           <q-card-section class="q-pa-none">
             <iframe :src="pdfBlobUrl" width="100%" height="600px" style="border: none"></iframe>
           </q-card-section>
-
           <q-separator />
-
           <q-card-actions align="right">
-            <q-btn
-              color="primary"
-              unelevated
-              icon="download"
-              no-caps
-              :label="$t('form.pdf')"
-              @click="downloadPDF"
-            />
+            <q-btn color="primary" icon="download" :label="$t('form.pdf')" @click="downloadPDF" />
           </q-card-actions>
         </q-card>
       </q-dialog>
 
+      <!-- ═══ DIALOGUE CONFIRMATION ═══ -->
       <q-dialog v-model="dialValidation" persistent>
         <q-card class="confirmation-card" style="min-width: 340px; max-width: 480px">
-          <q-card-section class="bg-primary text-white row items-center no-wrap q-py-sm">
-            <q-icon name="verified" size="md" class="q-mr-sm" />
-            <div class="text-subtitle1 text-weight-bold col">{{ $t('form.confirmationTitle') }}</div>
-            <q-btn
-              flat
-              round
-              dense
-              icon="close"
-              color="white"
-              @click="dialValidation = false"
-            />
+          <q-card-section class="immat-header row items-center no-wrap q-py-sm">
+            <q-icon name="verified" size="md" class="q-mr-sm text-white" />
+            <div class="text-subtitle1 text-weight-bold col text-white">
+              {{ $t('form.confirmationTitle') }}
+            </div>
+            <q-btn flat round dense icon="close" color="white" @click="dialValidation = false" />
           </q-card-section>
-
           <q-card-section>
             <div class="confirmation-message text-body2 q-mb-md">
               <q-icon name="info" color="primary" class="q-mr-xs" />
@@ -1272,22 +1463,13 @@
               class="q-mt-sm"
             />
           </q-card-section>
-
           <q-separator />
-
           <q-card-actions align="right" class="q-pa-md">
-            <q-btn
-              flat
-              :label="$t('form.cancel')"
-              color="grey-7"
-              no-caps
-              @click="dialValidation = false"
-            />
+            <q-btn flat :label="$t('form.cancel')" color="grey-7" @click="dialValidation = false" />
             <q-btn
               unelevated
               color="primary"
               icon="send"
-              no-caps
               :label="$t('form.confirm')"
               :disable="form.validation !== true"
               :loading="spinner"
@@ -1299,7 +1481,8 @@
     </q-card>
   </q-dialog>
 
-  <q-dialog v-model="spinner" persistent>
+  <!-- ═══ SPINNER ═══ -->
+  <q-dialog persistent v-model="spinner">
     <q-spinner-cube size="xl" color="primary" />
   </q-dialog>
 </template>
@@ -1337,10 +1520,8 @@ const props = defineProps({
 })
 
 const $q = useQuasar()
-
 const { t, locale } = useI18n()
 const emit = defineEmits(['close'])
-
 const { notifyError, notifySuccess, notifyInfo } = useNotify()
 
 const causeImmaOptions = getCauseImmaOptions()
@@ -1350,7 +1531,6 @@ const open = ref(true)
 const step = ref(1)
 const maxStep = ref(1)
 const formRef = ref(null)
-const displayDate = ref('')
 const spinner = ref(false)
 const pdfDialog = ref(false)
 const dialValidation = ref(false)
@@ -1556,6 +1736,7 @@ const optionsDn = (date) => {
 
 const required = (val) => !!val || 'Ce champ est requis / This field is required'
 const maxSize = 3 * 1024 * 1024
+
 const fileTypeImage = (val) => {
   if (!val) return true
   const file = Array.isArray(val) ? val[0] : val
@@ -1575,7 +1756,8 @@ const succursaleExpanded = ref(false)
 const dynamicTextClass = computed(() => [
   $q.screen.gt.sm ? 'text-h5' : 'custom-mobile-text',
   'text-primary',
-  'text-weight-bold',
+  'text-uppercase',
+  'q-mb-sm',
 ])
 
 const validationOptions = computed(() => [
@@ -1589,161 +1771,39 @@ const recapSections = computed(() => {
   const nz = (v) => (v != null && String(v).trim() !== '' ? String(v) : recapEmpty())
   const nzFile = (f) => f?.name || recapEmpty()
 
-  const step2Items = [
-    {
-      icon: 'corporate_fare',
-      label: t('input.isSuccursale'),
-      value: form.value.isSuccursale ? t('input.yes') : t('input.no'),
-    },
-    ...(form.value.isSuccursale
-      ? [
-          {
-            icon: 'badge',
-            label: t('input.matriculeSiege'),
-            value: nz(form.value.NUM_EMPL_SIEGE),
-          },
-          {
-            icon: 'apartment',
-            label: t('input.raisonSocialeSiege'),
-            value: nz(form.value.RAISON_SOCIALE_SIEGE),
-          },
-          {
-            icon: 'store',
-            label: t('input.nomCommercialSiege'),
-            value: nz(form.value.NOM_COMMERCIAL_SIEGE),
-          },
-        ]
-      : []),
-    {
-      icon: 'source',
-      label: t('input.origineImmatriculation'),
-      value:
-        causeImmaOptions.find((o) => o.value === form.value.CAUSE_IMMA)?.label || '—',
-    },
-    {
-      icon: 'folder',
-      label: t('input.origineDossier'),
-      value:
-        circuitDossierOptions.find((o) => o.value === form.value.CIRCUIT_DOSSIER)?.label || '—',
-    },
-    {
-      icon: 'gavel',
-      label: t('input.formeJuridique'),
-      value: getNatureJuridiqueName(form.value.NATURE_JURC),
-    },
-    {
-      icon: 'work',
-      label: t('input.activiteEconomique'),
-      value: getActiviteName(form.value.CODE_SECT_ACTIVITEC),
-    },
-    {
-      icon: 'groups',
-      label: t('input.nombreTravailleurs'),
-      value: nz(form.value.NBRE_EMPL),
-    },
-    { icon: 'policy', label: t('input.regimeCNPS'), value: nz(form.value.CODE_REGIME) },
-    {
-      icon: 'warning',
-      label: t('input.groupeRisque'),
-      value: nz(form.value.CODE_GPE_RISQUE),
-    },
-    {
-      icon: 'account_balance',
-      label: t('input.centreImpots'),
-      value: getCentreImpotName(form.value.CODE_CENTREIMPOTC),
-    },
-    {
-      icon: 'health_and_safety',
-      label: t('input.centreCNPS'),
-      value: getCentreCnpsName(form.value.CODE_CENTRECNPSC),
-    },
-    {
-      icon: 'map',
-      label: t('input.planLocalisation'),
-      value: nzFile(formFile.value.IDPLANLOCAL),
-    },
-    {
-      icon: 'description',
-      label: t('input.contratbail'),
-      value: nzFile(formFile.value.IDCONTRATBAIL),
-    },
-    {
-      icon: 'list_alt',
-      label: t('input.listeTravailleurs'),
-      value: nzFile(formFile.value.IDLISTTRAV),
-    },
-    { icon: 'receipt', label: t('input.patente'), value: nzFile(formFile.value.IDPATENTE) },
-    {
-      icon: 'request_quote',
-      label: t('input.impotLiberatoire'),
-      value: nzFile(formFile.value.IDIMPOT),
-    },
-    { icon: 'article', label: t('input.statuts'), value: nzFile(formFile.value.IDSTATUTS) },
-  ]
-
   return [
     {
       step: 1,
       title: t('immep.step1'),
       icon: 'business',
       items: [
-        { icon: 'apartment', label: t('input.raisonSociale'), value: nz(form.value.RAISON_SOCIALE) },
         {
-          icon: 'store',
-          label: t('input.nomCommercial'),
-          value: nz(form.value.NOM_COMMERCIAL),
+          icon: 'apartment',
+          label: t('input.raisonSociale'),
+          value: nz(form.value.RAISON_SOCIALE),
         },
+        { icon: 'store', label: t('input.nomCommercial'), value: nz(form.value.NOM_COMMERCIAL) },
         { icon: 'label', label: t('input.sigle'), value: nz(form.value.Sigle) },
         {
           icon: 'place',
           label: t('input.arrondissement'),
           value: getArrondissementName(form.value.CODE_ARRONDC),
         },
-        {
-          icon: 'mail',
-          label: t('input.boitePostale'),
-          value: nz(form.value.BOITE_POSTALE),
-        },
         { icon: 'home', label: t('input.adresse'), value: nz(form.value.ADRESSE_EMPL) },
         { icon: 'location_city', label: t('input.quartier'), value: nz(form.value.NOM_QUARTIER) },
-        { icon: 'signpost', label: t('input.lieuDit'), value: nz(form.value.LIEUDIT_EMPL) },
-        { icon: 'pin', label: t('input.numLogement'), value: nz(form.value.num_case) },
         { icon: 'email', label: t('input.email'), value: nz(form.value.EMAIL) },
         {
           icon: 'phone',
           label: t('input.telephone'),
           value: form.value.TEL ? `+237 ${form.value.TEL}` : recapEmpty(),
         },
-        {
-          icon: 'contact_phone',
-          label: t('input.autreContact'),
-          value: nz(form.value.AUTRE_CONTACT),
-        },
-        {
-          icon: 'event',
-          label: t('input.dateOuverture'),
-          value: nz(form.value.DATE_DEB_SERVICE),
-        },
-        {
-          icon: 'event',
-          label: t('input.dateCreation'),
-          value: nz(form.value.date_creation_empl),
-        },
-        {
-          icon: 'event',
-          label: t('input.dateEmbauche'),
-          value: nz(form.value.DATE_EFFET),
-        },
+        { icon: 'event', label: t('input.dateOuverture'), value: nz(form.value.DATE_DEB_SERVICE) },
         {
           icon: 'numbers',
           label: t('input.numRegistreCommerce'),
           value: nz(form.value.num_registre),
         },
-        {
-          icon: 'numbers',
-          label: t('input.numContribuable'),
-          value: nz(form.value.num_contr),
-        },
+        { icon: 'numbers', label: t('input.numContribuable'), value: nz(form.value.num_contr) },
         {
           icon: 'attach_file',
           label: t('input.registreCommerce'),
@@ -1754,29 +1814,63 @@ const recapSections = computed(() => {
           label: t('input.autorisationOuverture'),
           value: nzFile(formFile.value.IDAUTORISATION),
         },
-        {
-          icon: 'attach_file',
-          label: t('input.carteContribuable'),
-          value: nzFile(formFile.value.IDCONTRIBUABLE),
-        },
       ],
     },
     {
       step: 2,
       title: t('immep.step2'),
       icon: 'location_on',
-      items: step2Items,
+      items: [
+        {
+          icon: 'source',
+          label: t('input.origineImmatriculation'),
+          value: causeImmaOptions.find((o) => o.value === form.value.CAUSE_IMMA)?.label || '—',
+        },
+        {
+          icon: 'folder',
+          label: t('input.origineDossier'),
+          value:
+            circuitDossierOptions.find((o) => o.value === form.value.CIRCUIT_DOSSIER)?.label || '—',
+        },
+        {
+          icon: 'gavel',
+          label: t('input.formeJuridique'),
+          value: getNatureJuridiqueName(form.value.NATURE_JURC),
+        },
+        {
+          icon: 'work',
+          label: t('input.activiteEconomique'),
+          value: getActiviteName(form.value.CODE_SECT_ACTIVITEC),
+        },
+        { icon: 'groups', label: t('input.nombreTravailleurs'), value: nz(form.value.NBRE_EMPL) },
+        {
+          icon: 'account_balance',
+          label: t('input.centreImpots'),
+          value: getCentreImpotName(form.value.CODE_CENTREIMPOTC),
+        },
+        {
+          icon: 'health_and_safety',
+          label: t('input.centreCNPS'),
+          value: getCentreCnpsName(form.value.CODE_CENTRECNPSC),
+        },
+        {
+          icon: 'map',
+          label: t('input.planLocalisation'),
+          value: nzFile(formFile.value.IDPLANLOCAL),
+        },
+        {
+          icon: 'list_alt',
+          label: t('input.listeTravailleurs'),
+          value: nzFile(formFile.value.IDLISTTRAV),
+        },
+      ],
     },
     {
       step: 3,
       title: t('immep.step4'),
       icon: 'person',
       items: [
-        {
-          icon: 'person',
-          label: t('input.nomResponsable'),
-          value: nz(form.value.NOM_PERSEMPL),
-        },
+        { icon: 'person', label: t('input.nomResponsable'), value: nz(form.value.NOM_PERSEMPL) },
         {
           icon: 'person_outline',
           label: t('input.prenomResponsable'),
@@ -1792,11 +1886,6 @@ const recapSections = computed(() => {
           label: t('input.lieuNaissanceResponsable'),
           value: nz(form.value.LOCALITE_NAISS_PERSEMPL),
         },
-        {
-          icon: 'location_city',
-          label: t('input.arrondissementNaissanceResponsable'),
-          value: getArrondissementName(form.value.LieuNaissPe),
-        },
         { icon: 'wc', label: t('input.sexeResponsable'), value: nz(form.value.SEXE_PERSEMPL) },
         {
           icon: 'flag',
@@ -1804,25 +1893,11 @@ const recapSections = computed(() => {
           value: getNationaliteName(form.value.NATIONALITEC),
         },
         {
-          icon: 'home',
-          label: t('input.adresseResponsable'),
-          value: nz(form.value.ADR_PERSEMPL),
-        },
-        {
-          icon: 'mail',
-          label: t('input.boitePostaleResponsable'),
-          value: nz(form.value.BP_PERSEMPL),
-        },
-        {
           icon: 'phone',
           label: t('input.telephoneResponsable'),
           value: form.value.TEL_PERSEMPL ? `+237 ${form.value.TEL_PERSEMPL}` : recapEmpty(),
         },
-        {
-          icon: 'email',
-          label: t('input.emailResponsable'),
-          value: nz(form.value.EMAIL_PERSEMPL),
-        },
+        { icon: 'email', label: t('input.emailResponsable'), value: nz(form.value.EMAIL_PERSEMPL) },
         {
           icon: 'badge',
           label: t('input.pieceIdentiteResponsable'),
@@ -1832,21 +1907,6 @@ const recapSections = computed(() => {
           icon: 'pin',
           label: t('input.numPieceIdentiteResponsable'),
           value: nz(form.value.NUM_PIECE),
-        },
-        {
-          icon: 'event',
-          label: t('input.dateDelivrancePieceIdentiteResponsable'),
-          value: nz(form.value.DATE_PIECE),
-        },
-        {
-          icon: 'place',
-          label: t('input.lieuDelivrancePieceIdentitePromoteur'),
-          value: getArrondissementName(form.value.LIEU_PIECEC),
-        },
-        {
-          icon: 'upload_file',
-          label: t('input.scanPieceIdentiteResponsable'),
-          value: nzFile(formFile.value.fichierIdentiteResponsable),
         },
       ],
     },
@@ -1948,13 +2008,11 @@ const submitForm = async () => {
     notifyError('Veuillez corriger les erreurs du formulaire.')
     return
   }
-
   const bizErr = validateImmatEmpProBusinessRules(form.value)
   if (bizErr) {
     notifyError(bizErr)
     return
   }
-
   spinner.value = true
   notifyInfo('Soumission des données à Energizer.')
   try {
@@ -2102,40 +2160,6 @@ const closeDialog = () => {
   emit('close')
 }
 
-function updateDisplayFromDate(val) {
-  if (val) {
-    const [year, month, day] = val.split('-')
-    displayDate.value = `${day}/${month}/${year}`
-  } else {
-    displayDate.value = ''
-  }
-}
-
-watch(
-  () => form.value.DATE_DEB_SERVICE,
-  (val) => updateDisplayFromDate(val),
-  { immediate: true },
-)
-watch(
-  () => form.value.date_creation_empl,
-  (val) => updateDisplayFromDate(val),
-  { immediate: true },
-)
-watch(
-  () => form.value.DATE_EFFET,
-  (val) => updateDisplayFromDate(val),
-  { immediate: true },
-)
-watch(
-  () => form.value.DATE_NAISS_PERSEMPL,
-  (val) => updateDisplayFromDate(val),
-  { immediate: true },
-)
-watch(
-  () => form.value.DATE_PIECE,
-  (val) => updateDisplayFromDate(val),
-  { immediate: true },
-)
 watch(
   () => form.value.isSuccursale,
   (v) => {
@@ -2145,28 +2169,14 @@ watch(
 </script>
 
 <style scoped>
-/* ====== CARD PRINCIPALE ====== */
+/* ── En-tête principal du dialogue ── */
 .immat-main-card {
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
-  height: min(90vh, 860px);
-  max-height: 94vh;
-  box-shadow: 0 12px 40px rgba(25, 118, 210, 0.15);
+  height: min(88vh, 820px);
+  max-height: 92vh;
 }
 
-/* ====== HEADER ====== */
-.immat-header {
-  background: linear-gradient(135deg, var(--q-primary) 0%, #1976d2 50%, #42a5f5 100%);
-  min-height: unset;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.immat-header-avatar {
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-}
-
-/* ====== FORM CONTAINER ====== */
 .immat-form {
   min-height: 0;
 }
@@ -2175,202 +2185,132 @@ watch(
   height: 0;
   flex: 1 1 auto;
   min-height: 280px;
-  background: #fafbfc;
 }
 
-/* ====== FOOTER ====== */
 .immat-step-footer {
   flex-shrink: 0;
-  background: #ffffff;
-  border-top: 1px solid #e3e8ee;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.04);
+  background: #f5f7fa;
+  border-top: 1px solid #e0e0e0;
 }
 
-/* ====== STEPPER WRAP ====== */
-.immat-stepper-section {
-  padding-left: 20px;
-  padding-right: 20px;
-}
-
-/* ====== STEPPER ====== */
-.immat-stepper {
-  background: transparent;
-}
-
-.immat-stepper :deep(.q-stepper__header) {
-  background: #ffffff;
-  border-bottom: 2px solid #e3e8ee;
+.immat-header {
+  background: linear-gradient(135deg, #1565c0 0%, #1976d2 60%, #42a5f5 100%);
   min-height: unset;
-  padding: 6px 8px;
-  border-radius: 10px 10px 0 0;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+/* ── Stepper ── */
+.immat-stepper :deep(.q-stepper__header) {
+  background: #f5f7fa;
+  border-bottom: 1px solid #e0e0e0;
+  min-height: unset;
+  padding: 2px 4px;
 }
 
 .immat-stepper :deep(.q-stepper__tab) {
-  min-height: 52px;
-  padding: 8px 12px;
-  transition: all 0.2s ease;
-  border-radius: 8px;
-}
-
-.immat-stepper :deep(.q-stepper__tab:hover) {
-  background: rgba(25, 118, 210, 0.06);
+  min-height: 40px;
+  padding: 4px 6px;
 }
 
 .immat-stepper :deep(.q-stepper__title) {
-  font-size: 0.78rem;
-  font-weight: 600;
-  line-height: 1.2;
-  margin-top: 2px;
+  font-size: 0.7rem;
+  line-height: 1.15;
+  margin-top: 0;
   padding: 0 2px;
 }
 
 .immat-stepper :deep(.q-stepper__label) {
-  margin-top: 2px;
+  margin-top: 0;
 }
 
 .immat-stepper :deep(.q-stepper__dot) {
-  width: 28px;
-  min-width: 28px;
-  height: 28px;
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
   font-size: 14px;
-  font-weight: 700;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-}
-
-.immat-stepper :deep(.q-stepper__tab--active .q-stepper__dot),
-.immat-stepper :deep(.q-stepper__tab--done .q-stepper__dot) {
-  box-shadow: 0 2px 10px rgba(25, 118, 210, 0.35);
 }
 
 .immat-stepper :deep(.q-stepper__line) {
-  margin-top: 14px;
+  margin-top: 11px;
 }
 
-.immat-stepper :deep(.q-stepper__step-content) {
-  padding-top: 12px;
-  padding-bottom: 8px;
-}
-
-.immat-stepper :deep(.q-stepper__step-inner) {
-  background: #ffffff;
-  border-radius: 0 0 10px 10px;
-  margin-left: 3cm;
-  margin-right: 3cm;
-  padding: 12px 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-/* ====== SECTION HEADERS ====== */
+/* ── En-têtes de sous-sections ── */
 .step-section-header {
   display: flex;
   align-items: center;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--q-primary);
-  background: linear-gradient(90deg, rgba(25, 118, 210, 0.08) 0%, rgba(25, 118, 210, 0.02) 100%);
-  border-left: 4px solid var(--q-primary);
-  padding: 10px 14px;
-  border-radius: 0 6px 6px 0;
-  margin-bottom: 14px;
-  margin-top: 6px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  letter-spacing: 0.06em;
+  color: #1565c0;
+  background: #e3f2fd;
+  border-left: 3px solid #1976d2;
+  padding: 3px 8px;
+  border-radius: 0 4px 4px 0;
+  margin-bottom: 6px;
+  margin-top: 2px;
 }
 
-/* ====== FIELD GRID ====== */
-.immat-stepper :deep(.immat-field-row) {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  column-gap: 16px;
-  row-gap: 14px;
-  margin-bottom: 8px;
+.step-section-header--blue {
+  color: #0d47a1;
+  background: #e3f2fd;
+  border-left-color: #1565c0;
 }
 
-.immat-stepper :deep(.immat-field-row > .col-12) {
-  grid-column: 1 / -1;
+/* ── Labels avec badge requis ── */
+.req-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
-.immat-date-row {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  column-gap: 16px;
-  row-gap: 14px;
-}
-
-.immat-stepper :deep(.immat-field-cell) {
-  min-width: 0;
-  width: 100%;
-}
-
-/* ====== INPUTS DENSES ====== */
-.immat-stepper :deep(.q-field--outlined .q-field__control) {
-  border-radius: 8px;
-  min-height: 42px;
-  transition: all 0.2s ease;
-}
-
-.immat-stepper :deep(.q-field--outlined .q-field__control:hover) {
-  background: rgba(25, 118, 210, 0.02);
-}
-
-.immat-stepper :deep(.q-field--outlined .q-field__control:before) {
-  border-color: #d1d9e0;
-}
-
-.immat-stepper :deep(.q-field--outlined.q-field--focused .q-field__control:before) {
-  border-color: var(--q-primary);
-  border-width: 2px;
-}
-
-.immat-stepper :deep(.q-field--outlined.q-field--focused .q-field__control:after) {
-  border-color: var(--q-primary);
-}
-
-.immat-stepper :deep(.q-field--dense .q-field__label) {
-  font-size: 13px;
-  font-weight: 500;
-}
-
-.immat-stepper :deep(.q-field--dense .q-field__native) {
-  font-size: 13.5px;
-}
-
-.immat-stepper :deep(.immat-field-cell .q-field__bottom) {
-  padding-top: 4px;
-  min-height: 18px;
-  font-size: 11px;
-}
-
-.immat-stepper :deep(.q-field__hint) {
-  font-size: 11px;
-  color: #6b7785;
-}
-
-/* Readonly fields visual */
-.immat-stepper :deep(.readonly-field .q-field__control) {
-  background: #f5f7fa;
-}
-
-/* ====== REQUIRED BADGE ====== */
-.required-badge {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 1px 8px;
-  background: #e53935;
-  color: white;
+.req-badge {
   font-size: 9px;
+  background: #e53935;
+  color: #fff;
+  padding: 1px 5px;
+  border-radius: 3px;
   font-style: italic;
   font-weight: 600;
-  border-radius: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  vertical-align: middle;
+  white-space: nowrap;
 }
 
-/* ====== EXPANSION ====== */
+/* ── Recap cards ── */
+.recap-card {
+  transition: all 0.3s ease;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.recap-card:hover {
+  transform: translateY(-2px);
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+}
+
+.hover-scale {
+  transition: transform 0.2s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.1);
+}
+
+/* ── Confirmation ── */
+.confirmation-card {
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+}
+
+.confirmation-message {
+  background: #f8f9fa;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #2196f3;
+}
+
+/* ── Expansion succursale ── */
 .immat-expansion {
   border: 1px solid #d1d9e0;
   border-radius: 8px;
@@ -2378,196 +2318,9 @@ watch(
   background: linear-gradient(90deg, rgba(25, 118, 210, 0.03) 0%, transparent 100%);
 }
 
-.immat-expansion :deep(.immat-expansion-header) {
-  background: rgba(25, 118, 210, 0.05);
-  padding: 8px 12px;
-}
-
-.immat-expansion :deep(.q-expansion-item__container) {
-  background: #ffffff;
-}
-
-/* ====== RECAP STEP ====== */
-.recap-container {
-  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
-  border-radius: 12px;
-  padding: 20px !important;
-}
-
-.recap-hero {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  padding: 20px 24px;
-  background: linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(66, 165, 245, 0.04) 100%);
-  border: 1px solid rgba(25, 118, 210, 0.15);
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.06);
-}
-
-.recap-hero-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--q-primary) 0%, #42a5f5 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
-  flex-shrink: 0;
-}
-
-.recap-hero-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.recap-card {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid #e3e8ee !important;
-  background: #ffffff;
-}
-
-.recap-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(25, 118, 210, 0.12) !important;
-  border-color: rgba(25, 118, 210, 0.3) !important;
-}
-
-.recap-card-header {
-  background: linear-gradient(135deg, var(--q-primary) 0%, #1976d2 60%, #42a5f5 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.recap-card-header::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 100px;
-  height: 100%;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 100%);
-  pointer-events: none;
-}
-
-.recap-card-avatar {
-  background: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
-.recap-item {
-  padding: 8px 16px;
-  transition: background 0.2s ease;
-}
-
-.recap-item:hover {
-  background: rgba(25, 118, 210, 0.04);
-}
-
-.recap-label {
-  font-size: 11px;
-  color: #6b7785;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 600;
-  margin-bottom: 2px;
-}
-
-.recap-value {
-  font-size: 13.5px;
-  font-weight: 500;
-  color: #1f2937;
-  word-break: break-word;
-}
-
-/* ====== HOVER EFFECTS ====== */
-.hover-scale {
-  transition: transform 0.2s ease;
-}
-
-.hover-scale:hover {
-  transform: scale(1.15);
-}
-
-/* ====== CONFIRMATION DIALOG ====== */
-.confirmation-card {
-  border-radius: 14px;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
-  overflow: hidden;
-}
-
-.confirmation-message {
-  background: linear-gradient(90deg, rgba(25, 118, 210, 0.06) 0%, rgba(25, 118, 210, 0.02) 100%);
-  padding: 14px 16px;
-  border-radius: 8px;
-  border-left: 4px solid var(--q-primary);
-  display: flex;
-  align-items: flex-start;
-}
-
-/* ====== MOBILE ====== */
+/* ── Mobile ── */
 .custom-mobile-text {
-  font-size: 16px;
+  font-size: 14px;
   line-height: 1.5rem;
-  font-weight: 700;
-}
-
-@media (max-width: 599px) {
-  .immat-stepper :deep(.immat-field-row) {
-    grid-template-columns: 1fr;
-    column-gap: 0;
-  }
-
-  .immat-date-row {
-    grid-template-columns: 1fr;
-    column-gap: 0;
-  }
-
-  .recap-hero {
-    flex-direction: column;
-    text-align: center;
-    padding: 16px;
-  }
-
-  .immat-stepper :deep(.q-stepper__step-inner) {
-    margin-left: 12px;
-    margin-right: 12px;
-    padding: 10px 12px;
-  }
-}
-
-/* ====== DARK MODE ====== */
-.body--dark .immat-scroll-area {
-  background: #1d1d1d;
-}
-
-.body--dark .immat-step-footer {
-  background: #2a2a2a;
-  border-top-color: #3a3a3a;
-}
-
-.body--dark .step-section-header {
-  background: linear-gradient(90deg, rgba(66, 165, 245, 0.15) 0%, rgba(66, 165, 245, 0.05) 100%);
-  color: #64b5f6;
-}
-
-.body--dark .recap-container {
-  background: linear-gradient(180deg, #1d1d1d 0%, #2a2a2a 100%);
-}
-
-.body--dark .recap-card {
-  background: #2a2a2a;
-  border-color: #3a3a3a !important;
-}
-
-.body--dark .recap-label {
-  color: #9ca3af;
-}
-
-.body--dark .recap-value {
-  color: #e5e7eb;
 }
 </style>
