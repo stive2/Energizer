@@ -21,56 +21,6 @@
         <q-btn flat round dense icon="close" color="white" class="q-ml-sm" @click="closeDialog" />
       </q-card-section>
 
-      <!-- ═══ ORIGINE DOSSIER (hors stepper) ═══ -->
-      <q-card-section class="q-pb-xs q-pt-sm q-px-md">
-        <div class="row q-col-gutter-sm">
-          <div class="col-12 col-sm-6">
-            <q-select
-              v-model="form.CAUSE_IMMA"
-              :options="causeImmaOptions"
-              :label="$t('input.origineImmatriculation')"
-              option-label="label"
-              option-value="value"
-              emit-value
-              map-options
-              outlined
-              dense
-              class="full-width"
-              :rules="[required]"
-              @update:model-value="syncHidden"
-            >
-              <template v-slot:label>
-                <span class="req-label">
-                  {{ $t('input.origineImmatriculation') }}<span class="req-badge">*</span>
-                </span>
-              </template>
-            </q-select>
-          </div>
-          <div class="col-12 col-sm-6">
-            <q-select
-              v-model="form.CIRCUIT_DOSSIER"
-              :options="circuitDossierOptions"
-              :label="$t('input.origineDossier')"
-              option-label="label"
-              option-value="value"
-              emit-value
-              map-options
-              outlined
-              dense
-              class="full-width"
-              :rules="[required]"
-              @update:model-value="syncHidden"
-            >
-              <template v-slot:label>
-                <span class="req-label">
-                  {{ $t('input.origineDossier') }}<span class="req-badge">*</span>
-                </span>
-              </template>
-            </q-select>
-          </div>
-        </div>
-      </q-card-section>
-
       <q-separator />
 
       <q-form
@@ -125,6 +75,50 @@
                   {{ $t('immed.step1') }}
                 </div>
                 <div class="row q-col-gutter-sm q-mb-sm">
+                  <div class="col-12 col-sm-6">
+                    <q-select
+                      v-model="form.CAUSE_IMMA"
+                      :options="causeImmaOptions"
+                      :label="$t('input.origineImmatriculation')"
+                      option-label="label"
+                      option-value="value"
+                      emit-value
+                      map-options
+                      outlined
+                      dense
+                      class="full-width"
+                      :rules="[required]"
+                      @update:model-value="syncHidden"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label">
+                          {{ $t('input.origineImmatriculation') }}<span class="req-badge">*</span>
+                        </span>
+                      </template>
+                    </q-select>
+                  </div>
+                  <div class="col-12 col-sm-6">
+                    <q-select
+                      v-model="form.CIRCUIT_DOSSIER"
+                      :options="circuitDossierOptions"
+                      :label="$t('input.origineDossier')"
+                      option-label="label"
+                      option-value="value"
+                      emit-value
+                      map-options
+                      outlined
+                      dense
+                      class="full-width"
+                      :rules="[required]"
+                      @update:model-value="syncHidden"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label">
+                          {{ $t('input.origineDossier') }}<span class="req-badge">*</span>
+                        </span>
+                      </template>
+                    </q-select>
+                  </div>
                   <div class="col-12 col-sm-6">
                     <q-input
                       v-model="form.NOM_PERSEMPL"
