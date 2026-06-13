@@ -14,17 +14,23 @@
       class="nouveau-dossier-assure-info q-mb-md"
     >
       <span>
-        <span class="nouveau-dossier-assure-info__label">{{ t('reception.nouveauDossier.nomAssure') }}</span>
+        <span class="nouveau-dossier-assure-info__label">{{
+          t('reception.nouveauDossier.nomAssure')
+        }}</span>
         <span class="nouveau-dossier-assure-info__value">{{ ctx.nom_complet }}</span>
       </span>
       <q-separator vertical spaced inset />
       <span>
-        <span class="nouveau-dossier-assure-info__label">{{ t('reception.nouveauDossier.numAssure') }}</span>
+        <span class="nouveau-dossier-assure-info__label">{{
+          t('reception.nouveauDossier.numAssure')
+        }}</span>
         <span class="nouveau-dossier-assure-info__value">{{ ctx.numassu }}</span>
       </span>
       <q-separator vertical spaced inset />
       <span>
-        <span class="nouveau-dossier-assure-info__label">{{ t('reception.nouveauDossier.dateNaissance') }}</span>
+        <span class="nouveau-dossier-assure-info__label">{{
+          t('reception.nouveauDossier.dateNaissance')
+        }}</span>
         <span class="nouveau-dossier-assure-info__value">{{ ctx.date_naiss }}</span>
       </span>
     </div>
@@ -68,6 +74,7 @@
             dense
             :required="!row._readonly"
             :readonly="row._readonly"
+            @update:model-value="(val) => !row._readonly && upperRow(row, 'titulaire', val)"
           />
         </div>
         <div>
@@ -131,6 +138,7 @@
             outlined
             dense
             :readonly="row._readonly"
+            @update:model-value="(val) => !row._readonly && upperRow(row, 'observ', val)"
           />
         </div>
         <div class="piece-row-grid__numero">
@@ -204,6 +212,7 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useNouveauDossierStore } from 'src/modules/energizer/stores/nouveauDossierStore.js'
+import { setLegacyUppercaseText } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
 
 const props = defineProps({
   mode: {
@@ -219,6 +228,10 @@ const store = useNouveauDossierStore()
 const isInitial = computed(() => props.mode === 'initial')
 const isReception = computed(() => props.mode === 'reception')
 const ctx = computed(() => store.piecesContext ?? {})
+
+function upperRow(row, field, val) {
+  setLegacyUppercaseText(row, field, val)
+}
 
 const formTitle = computed(() => {
   if (isReception.value) {

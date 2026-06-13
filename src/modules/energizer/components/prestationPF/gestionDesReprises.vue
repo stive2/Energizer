@@ -359,7 +359,8 @@
                 <div class="pf-legacy-cell pf-legacy-cell--stacked">
                   <span class="pf-legacy-label">N° Employeur</span>
                   <q-input v-model="form.txtsaisienumempl" name="txtsaisienumempl" dense outlined hide-bottom-space
-                    bg-color="yellow-1" class="pf-legacy-input" :disable="form.cbxrembempl === 'NON'" />
+                    bg-color="yellow-1" class="pf-legacy-input" :disable="form.cbxrembempl === 'NON'"
+                    @update:model-value="v => upper('txtsaisienumempl', v)" />
                 </div>
               </div>
               <div class="col-12 col-sm-6 col-md-3">
@@ -429,6 +430,7 @@ import { useLiquidationPfStore } from 'src/modules/energizer/stores/liquidationP
 import { usePfModuleTable } from 'src/modules/shared/composables/usePfModuleTable.js'
 import { usePfDossierCatalogTable } from 'src/modules/energizer/composables/usePfDossierCatalogTable.js'
 import { normalizePfRepriseRow } from 'src/modules/energizer/utils/pfDossierSearchUtils.js'
+import { setLegacyUppercaseText } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
 
 defineOptions({ name: 'GestionDesReprises' })
 
@@ -487,6 +489,10 @@ const FORM_INITIAL = {
 }
 
 const form = reactive({ ...FORM_INITIAL })
+
+function upper(field, val) {
+  setLegacyUppercaseText(form, field, val)
+}
 
 const {
   loading,

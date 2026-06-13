@@ -1,10 +1,14 @@
 import { useQuasar } from 'quasar'
+import { stripHtml } from 'src/modules/immatriculations/api/immatAssureResponse.js'
 
 /** Durée par défaut des toasts en haut d’écran (ms). */
 export const NOTIFY_DEFAULT_TIMEOUT = 7500
 
 /** Soumission télé-immat + affichage de l’état de contrôle (ms). */
 export const NOTIFY_CONTROLE_TIMEOUT = 15000
+
+/** État de contrôle généré : message long, fermeture manuelle. */
+export const NOTIFY_CONTROLE_MESSAGE_TIMEOUT = 0
 
 /**
  * @param {import('quasar').QNotifyCreateOptions} [opts]
@@ -74,12 +78,34 @@ export const useNotify = () => {
     })
   }
 
+  /**
+   * Notification après génération de l’état de contrôle (message serveur long + URL).
+   * @param {string} message
+   * @param {import('quasar').QNotifyCreateOptions} [opts]
+   */
+  const notifyControleGenerated = (message, opts = {}) => {
+    const text = stripHtml(message || '').trim()
+    $q.notify({
+      ...baseNotifyOptions({
+        timeout: NOTIFY_CONTROLE_MESSAGE_TIMEOUT,
+        classes: 'app-notify app-notify-controle',
+        actions: [{ label: 'OK', color: 'white', handler: () => {} }],
+        ...opts,
+      }),
+      type: 'positive',
+      message: text || 'État de contrôle généré.',
+      icon: 'assignment_turned_in',
+    })
+  }
+
   return {
     notifySuccess,
     notifyError,
     notifyInfo,
     notifyWarning,
+    notifyControleGenerated,
     NOTIFY_DEFAULT_TIMEOUT,
     NOTIFY_CONTROLE_TIMEOUT,
+    NOTIFY_CONTROLE_MESSAGE_TIMEOUT,
   }
 }

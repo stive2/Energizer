@@ -2,6 +2,8 @@
  * Parse les réponses HTML EnergizerDev (addpiece.jsp, addpieceRecep.jsp, redirects).
  */
 
+import { isEnergizerLegacyLoginPageHtml } from 'src/modules/energizer/utils/energizerLegacySessionDetect.js'
+
 /**
  * @param {string} value
  * @returns {string}
@@ -314,10 +316,5 @@ function readInputValue(html, name) {
  * @returns {boolean}
  */
 export function isLegacySessionExpiredHtml(html) {
-  const raw = String(html ?? '').trim()
-  return (
-    !raw ||
-    /index\.html/i.test(raw) ||
-    (raw.startsWith('<') && /userloginmid|Se connecter|login/i.test(raw) && !/numdossier/i.test(raw))
-  )
+  return isEnergizerLegacyLoginPageHtml(html)
 }

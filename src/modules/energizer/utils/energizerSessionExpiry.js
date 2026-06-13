@@ -1,4 +1,7 @@
-import { isLegacySessionExpiredHtml } from 'src/modules/energizer/api/adapters/parseNouveauDossierLegacyHtml.js'
+import {
+  isEnergizerLegacyLoginPageHtml,
+  isEnergizerLegacyLoginUrl,
+} from 'src/modules/energizer/utils/energizerLegacySessionDetect.js'
 import { isEnergizerLegacyAuthEnabled } from 'src/modules/shared/config/energizerHttp.js'
 import {
   clearPortalSimSession,
@@ -41,19 +44,15 @@ export function createEnergizerSessionExpiredError() {
  */
 export function isEnergizerSessionExpiredResponse(sources = {}) {
   const { data, html, url, redirectUrl, finalUrl } = sources
-  const chunks = [html, url, redirectUrl, finalUrl].filter((value) => typeof value === 'string')
 
-  if (typeof data === 'string') {
-    chunks.push(data)
-  }
-
-  for (const chunk of chunks) {
-    const raw = String(chunk).trim()
-    if (!raw) continue
-    if (/index\.html/i.test(raw)) {
+  for (const chunk of [url, redirectUrl, finalUrl]) {
+    if (typeof chunk === 'string' && isEnergizerLegacyLoginUrl(chunk)) {
       return true
     }
-    if (isLegacySessionExpiredHtml(raw)) {
+  }
+
+  for (const chunk of [html, data]) {
+    if (typeof chunk === 'string' && isEnergizerLegacyLoginPageHtml(chunk)) {
       return true
     }
   }

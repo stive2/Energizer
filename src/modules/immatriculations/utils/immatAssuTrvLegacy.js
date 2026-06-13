@@ -1,4 +1,13 @@
 /** Régime 0 — assuré travailleur obligatoire (tele_imma_assure.jsp?regime=0). */
+import {
+  collectTeleimmasNumericFieldErrors,
+  legacyBpDigits,
+  legacyPhoneDigits,
+  legacyRevenuMensuelDigits,
+} from './immatLegacyCommon.js'
+
+export { legacyPhoneDigits } from './immatLegacyCommon.js'
+
 export const REGIME_TRAVAILLEUR = '0'
 
 const ECAR_MIN_MONTHS = 12 * 14
@@ -158,16 +167,6 @@ function civiliteLabel(val) {
   return String(val)
 }
 
-/** Téléphone / fax — chiffres seuls (GererAssure → colonnes numériques TEL_ASSU / FAX_ASSU). */
-export function legacyPhoneDigits(val) {
-  if (val == null || val === '') return ''
-  const digits = String(val).replace(/\D/g, '')
-  if (digits.startsWith('237') && digits.length > 9) {
-    return digits.slice(3)
-  }
-  return digits
-}
-
 function legacyDigitsOnly(val) {
   if (val == null || val === '') return ''
   return String(val).replace(/\D/g, '')
@@ -262,7 +261,12 @@ function collectImmatPersonValidationErrors(form, step, push) {
   const check2 = step === null || step === 2
   const check3 = step === null || step === 3
   const check4 = step === null || step === 4
+  const check5 = step === null || step === 5
   const check6 = step === null || step === 6
+
+  if (check5 || checkAll) {
+    collectTeleimmasNumericFieldErrors(form, push)
+  }
 
   if (check2 || checkAll) {
     if (!form.LIEU_NAISS_PERS) {
@@ -350,6 +354,7 @@ export function collectRegime0ValidationErrors(form, step = null) {
   const check1 = step === null || step === 1
 
   if (check1 || checkAll) {
+    collectTeleimmasNumericFieldErrors(form, push)
     if (
       form.DATE_EMB_PRE_SALL &&
       monthsBetween(form.DATE_EMB_PRE_SALL, form.DATE_NAISS_PERS) < ECAR_MIN_MONTHS
@@ -434,8 +439,9 @@ export function buildLegacyFormData(form, options = {}) {
 
   f.TEL_PERS = legacyPhoneDigits(f.TEL_PERS)
   f.FAX_PERS = legacyPhoneDigits(f.FAX_PERS)
+  f.BP = legacyBpDigits(f.BP)
   if (f.ActuelRevenu != null && f.ActuelRevenu !== '') {
-    f.ActuelRevenu = legacyDigitsOnly(f.ActuelRevenu)
+    f.ActuelRevenu = legacyRevenuMensuelDigits(f.ActuelRevenu)
   }
   if (f.EFFECTIF_APPROX != null && f.EFFECTIF_APPROX !== '') {
     f.EFFECTIF_APPROX = legacyDigitsOnly(f.EFFECTIF_APPROX)

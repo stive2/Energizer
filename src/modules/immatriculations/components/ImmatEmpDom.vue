@@ -1352,7 +1352,7 @@ const form = ref({
   CODE_REGIME: '9',
   CODE_GPE_RISQUE: 'A',
   objet: 'Empl',
-  laction: 'Créer',
+  laction: 'Creer',
   code_tele: '',
   code_secret: '',
   // Origine
@@ -1459,7 +1459,7 @@ function onCentreImpotsSelected(code) {
 
 function onCentreCnpsSelected() {
   form.value._cnpsManual = true
-  syncImmatEmpDomHiddenFields(form.value)
+  syncImmatEmpDomHiddenFields(form.value, getReferentialsSnapshot())
 }
 
 // ── Validation métier + soumission ──
@@ -1598,7 +1598,7 @@ const closeDialog = () => {
 }
 
 // ── Sync champs cachés (watches sur clés sensibles) ──
-const syncHidden = () => syncImmatEmpDomHiddenFields(form.value)
+const syncHidden = () => syncImmatEmpDomHiddenFields(form.value, getReferentialsSnapshot())
 
 watch(
   () => [

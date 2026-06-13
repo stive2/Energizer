@@ -262,7 +262,7 @@ export function buildRpNoteFraisApiPayload(form) {
     numdossier: toLegacyString(form.numdossier),
     numassu: toLegacyString(form.numassu),
     numnote: toLegacyString(form.numnote),
-    telephone: toLegacyUppercase(form.telephone),
+    telephone: toLegacyString(form.telephone),
     fournisseur: toLegacyUppercase(form.fournisseur),
     numemployeur: toLegacyString(form.numemployeur),
     nomemployeur: toLegacyUppercase(form.nomemployeur),
@@ -299,7 +299,7 @@ export function buildRpTiersBeneficiaireApiPayload(form) {
     prenombenef: toLegacyUppercase(form.prenombenef),
     naissbenef: toLegacyString(form.naissbenef),
     adresse: toLegacyUppercase(form.adresse),
-    tel: toLegacyUppercase(form.tel),
+    tel: toLegacyString(form.tel),
     numpiece: toLegacyUppercase(form.numpiece),
   }
 }

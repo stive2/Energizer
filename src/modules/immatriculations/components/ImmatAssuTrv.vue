@@ -9,7 +9,6 @@
       @close="closeDialog"
       @edit="onEditFromControle"
       @validated="onControleValidated"
-      @preview="onControlePreview"
     />
     <q-card
       v-show="phase === 'form'"
@@ -33,7 +32,7 @@
         <q-btn flat round dense icon="close" color="white" class="q-ml-sm" @click="closeDialog" />
       </q-card-section>
 
-      <q-form ref="formRef" class="col column immat-form" greedy reactive-rules @submit.prevent="submitForm">
+      <q-form ref="formRef" class="col column immat-form" greedy reactive-rules @submit.prevent="dialValidation = true">
         <q-scroll-area class="col immat-scroll-area">
           <q-inner-loading :showing="loadingInit" :label="referentialsLoadingLabel" />
           <q-card-section v-if="referentialsError && !loadingInit" class="q-pb-none">
@@ -324,8 +323,8 @@
                       :label="$t('inputassu.current_income')"
                       outlined
                       dense
-                      type="number"
-                      min="0"
+                      type="tel"
+                      :maxlength="LEGACY_TELEIMMAS_DIGIT_LIMITS.REVENU_MENSUEL"
                       class="full-width"
                       :error="hasFieldError('ActuelRevenu')"
                       :error-message="fieldErrorMsg('ActuelRevenu')"
@@ -1153,8 +1152,18 @@
                       :label="$t('inputassu.postal_box')"
                       outlined
                       dense
+                      type="tel"
+                      :maxlength="LEGACY_TELEIMMAS_DIGIT_LIMITS.BP"
                       class="full-width"
-                      @update:model-value="(val) => (form.BP = val.toUpperCase())"
+                      :error="hasFieldError('BP')"
+                      :error-message="fieldErrorMsg('BP')"
+                      :rules="[
+                        (val) =>
+                          !val ||
+                          String(val).replace(/\D/g, '').length <= LEGACY_TELEIMMAS_DIGIT_LIMITS.BP ||
+                          $t('inputassu.bpMaxDigits', { max: LEGACY_TELEIMMAS_DIGIT_LIMITS.BP }),
+                      ]"
+                      @update:model-value="() => reevaluateField('BP')"
                     />
                   </div>
                 </div>
@@ -1172,9 +1181,13 @@
                       outlined
                       dense
                       type="tel"
-                      mask="+237 ### ### ###"
+                      maxlength="9"
+                      prefix="+237"
                       class="full-width"
-                      :rules="[required]"
+                      :rules="[
+                        required,
+                        (val) => regexPatterns.telephone.test(val) || $t('input.invalidPhone'),
+                      ]"
                     >
                       <template v-slot:label
                         ><span class="req-label"
@@ -1207,8 +1220,18 @@
                       :label="$t('inputassu.fax')"
                       outlined
                       dense
+                      type="tel"
+                      :maxlength="LEGACY_TELEIMMAS_DIGIT_LIMITS.PHONE"
                       class="full-width"
-                      @update:model-value="(val) => (form.FAX_PERS = val.toUpperCase())"
+                      :error="hasFieldError('FAX_PERS')"
+                      :error-message="fieldErrorMsg('FAX_PERS')"
+                      :rules="[
+                        (val) =>
+                          !val ||
+                          String(val).replace(/\D/g, '').length <= LEGACY_TELEIMMAS_DIGIT_LIMITS.PHONE ||
+                          $t('input.invalidPhone'),
+                      ]"
+                      @update:model-value="() => reevaluateField('FAX_PERS')"
                     />
                   </div>
                   <div class="col-12 col-sm-6">
@@ -2059,10 +2082,51 @@
             class="q-px-lg text-weight-bold"
             icon-right="send"
             :label="$t('form.submit')"
-            :loading="spinner"
           />
         </q-card-actions>
       </q-form>
+
+      <!-- ═══ DIALOGUE CONFIRMATION ═══ -->
+      <q-dialog v-model="dialValidation" persistent>
+        <q-card class="confirmation-card" style="min-width: 340px; max-width: 480px">
+          <q-card-section class="immat-header row items-center no-wrap q-py-sm">
+            <q-icon name="verified" size="md" class="q-mr-sm text-white" />
+            <div class="text-subtitle1 text-weight-bold col text-white">
+              {{ $t('form.confirmationTitle') }}
+            </div>
+            <q-btn flat round dense icon="close" color="white" @click="dialValidation = false" />
+          </q-card-section>
+          <q-card-section>
+            <div class="confirmation-message text-body2 q-mb-md">
+              <q-icon name="info" color="primary" class="q-mr-xs" />
+              {{ $t('form.confirmationMessage') }}
+            </div>
+            <div class="text-subtitle2 text-weight-medium q-mb-sm text-primary">
+              {{ $t('immep.confirmSubmit') }}
+            </div>
+            <q-option-group
+              v-model="form.validation"
+              :options="validationOptions"
+              color="primary"
+              inline
+              class="q-mt-sm"
+            />
+          </q-card-section>
+          <q-separator />
+          <q-card-actions align="right" class="q-pa-md">
+            <q-btn flat :label="$t('form.cancel')" color="grey-7" @click="dialValidation = false" />
+            <q-btn
+              unelevated
+              color="primary"
+              icon="send"
+              :label="$t('form.confirm')"
+              :disable="form.validation !== true"
+              :loading="spinner"
+              @click="submitForm"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
 
       <!-- <q-card-actions align="right" class="q-pa-sm">
         <q-btn
@@ -2125,6 +2189,8 @@ import { applyEmployerToForm } from 'src/modules/immatriculations/adapters/emplo
 import ImmatAssuTrvControle from 'src/modules/immatriculations/components/ImmatAssuTrvControle.vue'
 import { selectSmig } from 'src/modules/immatriculations/utils/selectSmig.js'
 import { useQuasar } from 'quasar'
+import { regexPatterns } from 'src/js/regex.js'
+import { LEGACY_TELEIMMAS_DIGIT_LIMITS } from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
 
 /** Taille max pièce jointe — alignée teleImmat / GererAssure (3 Mo). */
 const LEGACY_MAX_FILE_SIZE = 3072000
@@ -2141,7 +2207,7 @@ const $q = useQuasar()
 const { t, locale } = useI18n()
 const emit = defineEmits(['close'])
 
-const { notifyError, notifySuccess, NOTIFY_CONTROLE_TIMEOUT } = useNotify()
+const { notifyError, notifySuccess, notifyControleGenerated } = useNotify()
 
 const open = ref(true)
 const step = ref(1)
@@ -2151,6 +2217,7 @@ const recapContent = ref(null)
 const pdfDialog = ref(false)
 const pdfBlobUrl = ref(null)
 const spinner = ref(false)
+const dialValidation = ref(false)
 const stepErrors = ref({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false })
 const fieldErrors = ref({})
 
@@ -2294,8 +2361,14 @@ function createImmatAssuTrvFormDefaults() {
     certificatsTravail: [],
     nombConj: 0,
     actesMariage: [],
+    validation: false,
   }
 }
+
+const validationOptions = computed(() => [
+  { label: t('input.yes'), value: true },
+  { label: t('input.no'), value: false },
+])
 
 const form = ref(createImmatAssuTrvFormDefaults())
 
@@ -2342,9 +2415,11 @@ async function loadFormBootstrap() {
   }
 }
 
-async function loadExistingDossier(codeTele, codeSecret) {
+async function loadExistingDossier(codeTele, codeSecret, options = {}) {
   try {
-    $q.loading.show({ message: t('immat.controle.loading') })
+    $q.loading.show({
+      message: options.loadingMessage || t('immat.controle.loadingDossier'),
+    })
     const row = await fetchAssureTele(codeTele, codeSecret)
     if (!row) return
     applyAssureTeleToForm(form.value, row, getReferentialsSnapshot())
@@ -2693,6 +2768,7 @@ const goToNextStep = async (nextStep) => {
 }
 
 const submitForm = async () => {
+  dialValidation.value = false
   const ok = await validateCurrentForm(null)
   if (!ok) {
     stepErrors.value[7] = true
@@ -2713,10 +2789,6 @@ const confirmSubmission = async () => {
       console.info('GererAssure FormData (régime 0):', [...formData.entries()])
     }
     const result = await submitTeleImmatAssure(formData)
-    notifySuccess(result.message || t('form.submitted'), {
-      timeout: revalidateFromControle ? undefined : NOTIFY_CONTROLE_TIMEOUT,
-    })
-
     const codeTele = result.codeTele
     const codeSecret = result.codeSecret
 
@@ -2729,84 +2801,39 @@ const confirmSubmission = async () => {
     fromControleEdit.value = false
     controleReloadToken.value += 1
     phase.value = 'controle'
+
+    if (revalidateFromControle) {
+      notifySuccess(result.message || t('form.submitted'))
+    } else {
+      notifyControleGenerated(result.message || t('form.submitted'))
+    }
   } catch (error) {
     const msg = error?.message || String(error)
-    notifyError(t('form.submit_error', { error: msg }))
+    notifyError(msg || t('form.submit_error', { error: '' }))
   } finally {
     spinner.value = false
   }
 }
 
-function onEditFromControle({ codeTele, codeSecret }) {
+async function onEditFromControle({ codeTele, codeSecret }) {
   fromControleEdit.value = true
   controleValidated.value = false
   phase.value = 'form'
+  await loadExistingDossier(codeTele, codeSecret, {
+    loadingMessage: t('immat.controle.loadingDossier'),
+  })
+  form.value.laction = 'Modifier'
+  form.value.valider = 'NON'
   step.value = 7
   maxStep.value = 7
-  loadExistingDossier(codeTele, codeSecret)
+  await nextTick()
 }
 
 function onControleValidated() {
   controleValidated.value = true
 }
 
-async function resetFormForNewImmat() {
-  Object.assign(form.value, createImmatAssuTrvFormDefaults())
-  employerSmigLines.value = []
-  step.value = 1
-  maxStep.value = 1
-  stepErrors.value = { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false }
-  fieldErrors.value = {}
-  controleCredentials.value = { codeTele: '', codeSecret: '' }
-  controleValidated.value = false
-
-  try {
-    const session = await fetchSessionAssureInit({ regime: '0' }).catch(() => null)
-    if (session) {
-      initImmatAssuTrvRegime0(form.value, {
-        date_demande: session.DATE_DEMANDE,
-        date_effet: session.date_effet,
-        taux: session.taux,
-        min_date_effet: session.min_date_effet,
-        smig_annuel: session.smig_annuel,
-        max_cotisation_annuel: session.max_cotisation_annuel,
-      })
-    } else {
-      initImmatAssuTrvRegime0(form.value)
-    }
-  } catch {
-    initImmatAssuTrvRegime0(form.value)
-  }
-}
-
-async function onControlePreview() {
-  await previewDocument()
-  phase.value = 'form'
-  await resetFormForNewImmat()
-}
-
 const downloadPDF = async () => {
-  spinner.value = true
-  try {
-    const element = recapContent.value
-    const opt = {
-      margin: 1,
-      filename: 'immatriculation_form.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-    }
-    const pdf = await html2pdf().from(element).set(opt).toPdf().output('blob')
-    pdfBlobUrl.value = URL.createObjectURL(pdf)
-    pdfDialog.value = true
-  } catch (error) {
-    notifyError(t('pdf.generation_error', error))
-  } finally {
-    spinner.value = false
-  }
-}
-
-const previewDocument = async () => {
   spinner.value = true
   try {
     const element = recapContent.value

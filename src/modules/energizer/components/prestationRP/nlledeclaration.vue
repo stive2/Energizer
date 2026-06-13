@@ -62,6 +62,7 @@
                 v-model="form.numemployeur"
                 label="Numéro Employeur *"
                 outlined dense bg-color="yellow-1"
+                @update:model-value="v => upper('numemployeur', v)"
                 @keydown.enter.prevent="fetchEmployeur"
                 @blur="onEmployeurFieldActivate"
                 :loading="loadingEmployeur"
@@ -108,17 +109,17 @@
             </div>
           </div>
           <div class="row q-col-gutter-xs q-mb-xs">
-            <div class="col-6 col-md-3"><q-input v-model="form.lieuaccident" label="Lieu Accident" outlined dense bg-color="yellow-1" /></div>
+            <div class="col-6 col-md-3"><q-input v-model="form.lieuaccident" label="Lieu Accident" outlined dense bg-color="yellow-1" @update:model-value="v => upper('lieuaccident', v)" /></div>
             <div class="col-6 col-md-3">
               <q-select v-model="form.arrondissement" :options="arrondissementOptions" label="Arrondissement"
                 outlined dense emit-value map-options option-label="label" option-value="value" color="primary" />
             </div>
-            <div class="col-6 col-md-3"><q-input v-model="form.quartier" label="Quartier" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-12 col-md-3"><q-input v-model="form.adresse" label="Rue / Avenue / Boulevard" type="textarea" rows="2" outlined dense bg-color="yellow-1" /></div>
+            <div class="col-6 col-md-3"><q-input v-model="form.quartier" label="Quartier" outlined dense bg-color="yellow-1" @update:model-value="v => upper('quartier', v)" /></div>
+            <div class="col-12 col-md-3"><q-input v-model="form.adresse" label="Rue / Avenue / Boulevard" type="textarea" rows="2" outlined dense bg-color="yellow-1" @update:model-value="v => upper('adresse', v)" /></div>
           </div>
           <div class="row q-col-gutter-xs">
-            <div class="col-12 col-md-6"><q-input v-model="form.causes" label="Causes" type="textarea" rows="2" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-12 col-md-6"><q-input v-model="form.consequences" label="Conséquences" type="textarea" rows="2" outlined dense bg-color="yellow-1" /></div>
+            <div class="col-12 col-md-6"><q-input v-model="form.causes" label="Causes" type="textarea" rows="2" outlined dense bg-color="yellow-1" @update:model-value="v => upper('causes', v)" /></div>
+            <div class="col-12 col-md-6"><q-input v-model="form.consequences" label="Conséquences" type="textarea" rows="2" outlined dense bg-color="yellow-1" @update:model-value="v => upper('consequences', v)" /></div>
           </div>
         </q-step>
 
@@ -130,13 +131,13 @@
                 outlined dense emit-value map-options option-label="label" option-value="value"
                 @update:model-value="v => { form.codesiegel = v }" color="primary" />
             </div>
-            <div class="col-12 col-md-3"><q-input v-model="form.siegelesion" label="Précisions siège lésion" type="textarea" rows="2" outlined dense bg-color="yellow-1" /></div>
+            <div class="col-12 col-md-3"><q-input v-model="form.siegelesion" label="Précisions siège lésion" type="textarea" rows="2" outlined dense bg-color="yellow-1" @update:model-value="v => upper('siegelesion', v)" /></div>
             <div class="col-12 col-md-3">
               <q-select v-model="form.codenatlesion" :options="natureLesionOptions" label="Nature Lésion Codifiée *"
                 outlined dense emit-value map-options option-label="label" option-value="value"
                 @update:model-value="v => { form.codenaturel = v }" color="primary" />
             </div>
-            <div class="col-12 col-md-3"><q-input v-model="form.naturelesion" label="Précisions nature lésion" type="textarea" rows="2" outlined dense bg-color="yellow-1" /></div>
+            <div class="col-12 col-md-3"><q-input v-model="form.naturelesion" label="Précisions nature lésion" type="textarea" rows="2" outlined dense bg-color="yellow-1" @update:model-value="v => upper('naturelesion', v)" /></div>
           </div>
           <div class="row q-col-gutter-xs q-mb-xs">
             <div class="col-6 col-md-2">
@@ -144,7 +145,7 @@
             </div>
             <div class="col-6 col-md-2"><q-select v-model="form.flagformation" :options="ouiNonOptions" label="Formée ? *" outlined dense emit-value map-options color="primary" /></div>
             <div class="col-6 col-md-2"><q-select v-model="form.flaghospitalisation" :options="ouiNonOptions" label="Hospitalisée ? *" outlined dense emit-value map-options color="primary" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.lieuhospitalisation" label="Lieu d'Hospitalisation" outlined dense bg-color="yellow-1" :disable="form.flaghospitalisation !== 'OUI'" /></div>
+            <div class="col-6 col-md-3"><q-input v-model="form.lieuhospitalisation" label="Lieu d'Hospitalisation" outlined dense bg-color="yellow-1" :disable="form.flaghospitalisation !== 'OUI'" @update:model-value="v => upper('lieuhospitalisation', v)" /></div>
             <div class="col-6 col-md-3"><q-select v-model="form.agentmateriel" :options="agentMaterielOptions" label="Agent Matériel *" outlined dense emit-value map-options option-label="label" option-value="value" @update:model-value="v => { form.codeagentmat = v }" color="primary" /></div>
           </div>
           <div class="row q-col-gutter-xs q-mb-xs">
@@ -154,30 +155,30 @@
           </div>
           <div class="sep q-mb-xs">Témoins</div>
           <div class="row q-col-gutter-xs">
-            <div class="col-6 col-md-3"><q-input v-model="form.temoin1" label="Témoin 1" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.identite1" label="Identité T1" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.temoin2" label="Témoin 2" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.identite2" label="Identité T2" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.temoin3" label="Témoin 3" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.identite3" label="Identité T3" outlined dense bg-color="yellow-1" /></div>
+            <div class="col-6 col-md-3"><q-input v-model="form.temoin1" label="Témoin 1" outlined dense bg-color="yellow-1" @update:model-value="v => upper('temoin1', v)" /></div>
+            <div class="col-6 col-md-3"><q-input v-model="form.identite1" label="Identité T1" outlined dense bg-color="yellow-1" @update:model-value="v => upper('identite1', v)" /></div>
+            <div class="col-6 col-md-3"><q-input v-model="form.temoin2" label="Témoin 2" outlined dense bg-color="yellow-1" @update:model-value="v => upper('temoin2', v)" /></div>
+            <div class="col-6 col-md-3"><q-input v-model="form.identite2" label="Identité T2" outlined dense bg-color="yellow-1" @update:model-value="v => upper('identite2', v)" /></div>
+            <div class="col-6 col-md-3"><q-input v-model="form.temoin3" label="Témoin 3" outlined dense bg-color="yellow-1" @update:model-value="v => upper('temoin3', v)" /></div>
+            <div class="col-6 col-md-3"><q-input v-model="form.identite3" label="Identité T3" outlined dense bg-color="yellow-1" @update:model-value="v => upper('identite3', v)" /></div>
           </div>
         </q-step>
 
         <!-- ÉTAPE 4 — Salaires -->
         <q-step :name="4" title="Salaires" icon="account_balance_wallet" :done="step > 4" :error="stepErrors[4]" :disable="!isStepAllowed(4)">
           <div class="row q-col-gutter-xs q-mb-xs">
-            <div class="col-6 col-md-2"><q-input v-model="form.categorie" label="Catégorie *" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.echelon" label="Échelon *" outlined dense bg-color="yellow-1" /></div>
+            <div class="col-6 col-md-2"><q-input v-model="form.categorie" label="Catégorie *" outlined dense bg-color="yellow-1" @update:model-value="v => upper('categorie', v)" /></div>
+            <div class="col-6 col-md-2"><q-input v-model="form.echelon" label="Échelon *" outlined dense bg-color="yellow-1" @update:model-value="v => upper('echelon', v)" /></div>
             <div class="col-6 col-md-4"><q-select v-model="form.secteur" :options="secteurOptions" label="Secteur *" outlined dense emit-value map-options color="primary" /></div>
             <div class="col-6 col-md-2"><q-select v-model="form.zone" :options="zoneOptions" label="Zone *" outlined dense emit-value map-options color="primary" /></div>
             <div class="col-6 col-md-2"><q-input v-model.number="form.salrecons" label="Salaire Reconstitué" type="number" min="0" outlined dense bg-color="yellow-1" /></div>
           </div>
           <div class="row q-col-gutter-xs q-mb-xs">
-            <div class="col-6 col-md-2"><q-input v-model="form.periode1" label="Période (n-1)" outlined dense bg-color="yellow-1" placeholder="MM/AAAA" /></div>
+            <div class="col-6 col-md-2"><q-input v-model="form.periode1" label="Période (n-1)" outlined dense bg-color="yellow-1" placeholder="MM/AAAA" @update:model-value="v => upper('periode1', v)" /></div>
             <div class="col-6 col-md-2"><q-input v-model.number="form.montant1" label="Salaire (n-1)" type="number" min="0" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.periode2" label="Période (n-2)" outlined dense bg-color="yellow-1" placeholder="MM/AAAA" /></div>
+            <div class="col-6 col-md-2"><q-input v-model="form.periode2" label="Période (n-2)" outlined dense bg-color="yellow-1" placeholder="MM/AAAA" @update:model-value="v => upper('periode2', v)" /></div>
             <div class="col-6 col-md-2"><q-input v-model.number="form.montant2" label="Salaire (n-2)" type="number" min="0" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.periode3" label="Période (n-3)" outlined dense bg-color="yellow-1" placeholder="MM/AAAA" /></div>
+            <div class="col-6 col-md-2"><q-input v-model="form.periode3" label="Période (n-3)" outlined dense bg-color="yellow-1" placeholder="MM/AAAA" @update:model-value="v => upper('periode3', v)" /></div>
             <div class="col-6 col-md-2"><q-input v-model.number="form.montant3" label="Salaire (n-3)" type="number" min="0" outlined dense bg-color="yellow-1" /></div>
           </div>
           <div class="row q-col-gutter-xs">
@@ -205,13 +206,13 @@
         <!-- ÉTAPE 6 — Tiers -->
         <q-step :name="6" title="Tiers" icon="gavel" :done="step > 6" :error="stepErrors[6]" :disable="!isStepAllowed(6)">
           <div class="row q-col-gutter-xs">
-            <div class="col-12 col-md-4"><q-input v-model="form.nomtiers" label="Nom / Raison Sociale" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-12 col-md-4"><q-input v-model="form.orgassureur" label="Organisme Assureur" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.numpolice" label="Numéro Police" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.immatriculation" label="Immatriculation" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-12 col-md-4"><q-input v-model="form.adresseassureur" label="Adresse Assureur" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.boitepostale" label="Boîte Postale" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.telephone" label="Téléphone" outlined dense bg-color="yellow-1" /></div>
+            <div class="col-12 col-md-4"><q-input v-model="form.nomtiers" label="Nom / Raison Sociale" outlined dense bg-color="yellow-1" @update:model-value="v => upper('nomtiers', v)" /></div>
+            <div class="col-12 col-md-4"><q-input v-model="form.orgassureur" label="Organisme Assureur" outlined dense bg-color="yellow-1" @update:model-value="v => upper('orgassureur', v)" /></div>
+            <div class="col-6 col-md-2"><q-input v-model="form.numpolice" label="Numéro Police" outlined dense bg-color="yellow-1" @update:model-value="v => upper('numpolice', v)" /></div>
+            <div class="col-6 col-md-2"><q-input v-model="form.immatriculation" label="Immatriculation" outlined dense bg-color="yellow-1" @update:model-value="v => upper('immatriculation', v)" /></div>
+            <div class="col-12 col-md-4"><q-input v-model="form.adresseassureur" label="Adresse Assureur" outlined dense bg-color="yellow-1" @update:model-value="v => upper('adresseassureur', v)" /></div>
+            <div class="col-6 col-md-2"><q-input v-model="form.boitepostale" label="Boîte Postale" outlined dense bg-color="yellow-1" @update:model-value="v => upper('boitepostale', v)" /></div>
+            <div class="col-6 col-md-2"><q-input v-model="form.telephone" label="Téléphone" type="tel" prefix="+237" maxlength="9" outlined dense bg-color="yellow-1" :rules="telephoneRules" /></div>
           </div>
         </q-step>
 
@@ -259,6 +260,7 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useQuasar } from 'quasar'
 import { useLiquidationRpStore } from 'src/modules/energizer/stores/liquidationRpStore.js'
 import {
@@ -274,10 +276,16 @@ import {
   isLegacyDateNotFuture,
   compareLegacyFrDates,
 } from 'src/modules/energizer/utils/liquidationRpDeclarationLegacy.js'
+import {
+  buildLegacyTelephoneRules,
+  setLegacyUppercaseText,
+} from 'src/modules/energizer/utils/energizerFormInputUtils.js'
 
 defineOptions({ name: 'NlleDeclaration' })
 
+const { t } = useI18n()
 const $q = useQuasar()
+const telephoneRules = buildLegacyTelephoneRules(t)
 const rpStore = useLiquidationRpStore()
 
 const formRef = ref(null)
@@ -329,6 +337,10 @@ const FORM_INITIAL = {
 }
 
 const form = reactive({ ...FORM_INITIAL })
+
+function upper(field, val) {
+  setLegacyUppercaseText(form, field, val)
+}
 
 const labelFor = (options, value) => {
   if (!value) return ''

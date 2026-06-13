@@ -104,10 +104,13 @@
               outlined
               stack-label
               autocomplete="current-password"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
               title="Entrez le Mot de Passe"
               :disable="loading"
               hide-bottom-space
-              class="portal-sim-login__input"
+              class="portal-sim-login__input portal-sim-login__input--password"
               @keypress="onKeyPress"
             >
               <template #prepend>
@@ -154,10 +157,13 @@
               outlined
               stack-label
               autocomplete="current-password"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
               title="Saisissez votre mot de passe"
               :disable="loading"
               hide-bottom-space
-              class="portal-sim-login__input"
+              class="portal-sim-login__input portal-sim-login__input--password"
               @keypress="onKeyPress"
             >
               <template #prepend>
@@ -718,6 +724,12 @@ async function onForgotSubmit() {
 .portal-sim-login__input :deep(.q-field__native),
 .portal-sim-login__input :deep(input) {
   font-size: 1rem;
+}
+
+.portal-sim-login__input--password :deep(.q-field__native),
+.portal-sim-login__input--password :deep(.q-field__input),
+.portal-sim-login__input--password :deep(input) {
+  text-transform: none;
 }
 
 .portal-sim-login__input {

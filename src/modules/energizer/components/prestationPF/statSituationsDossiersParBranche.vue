@@ -260,6 +260,7 @@
             placeholder="Rechercher dans le tableau…"
             outlined dense clearable hide-bottom-space
             color="primary" class="table-search"
+            @update:model-value="val => { tableFilter = toLegacyUppercase(val) }"
           >
             <template v-slot:prepend>
               <q-icon name="search" size="xs" color="primary" />
@@ -470,6 +471,7 @@ import { useQuasar } from 'quasar'
 import { useLiquidationPfStore } from 'src/modules/energizer/stores/liquidationPfStore.js'
 import { usePfModuleTable } from 'src/modules/shared/composables/usePfModuleTable.js'
 import { loadPfStatSituationsPage } from 'src/modules/energizer/api/liquidationPfApi.js'
+import { toLegacyUppercase } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
 
 defineOptions({ name: 'StatSituationsDossiersParBranche' })
 

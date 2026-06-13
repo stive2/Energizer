@@ -79,6 +79,11 @@
   margin-right: auto;
 }
 
+.nouveau-dossier-form__secret-input :deep(.q-field__native),
+.nouveau-dossier-form__secret-input :deep(.q-field__input) {
+  text-transform: none;
+}
+
 .nouveau-dossier-form__fields,
 .nouveau-dossier-form .nouveau-dossier-form__fields-row {
   @media (min-width: $breakpoint-md-min) {

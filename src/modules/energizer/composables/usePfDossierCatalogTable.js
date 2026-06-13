@@ -4,6 +4,10 @@ import {
   normalizePfDossierRow,
   normalizePfRepriseRow,
 } from 'src/modules/energizer/utils/pfDossierSearchUtils.js'
+import {
+  handleEnergizerSessionExpired,
+  isEnergizerSessionExpiredError,
+} from 'src/modules/energizer/utils/energizerSessionExpiry.js'
 function normalizePeriodeRow(row = {}) {
   return {
     ...row,
@@ -97,6 +101,9 @@ export function usePfDossierCatalogTable({
       filtersActive.value = false
       refreshDisplay()
     } catch (error) {
+      if (isEnergizerSessionExpiredError(error)) {
+        void handleEnergizerSessionExpired()
+      }
       catalogDossiers.value = []
       dossiers.value = []
       errorMsg.value = error?.message || 'Erreur de chargement des dossiers.'
@@ -128,6 +135,9 @@ export function usePfDossierCatalogTable({
         })
       }
     } catch (error) {
+      if (isEnergizerSessionExpiredError(error)) {
+        void handleEnergizerSessionExpired()
+      }
       dossiers.value = []
       errorMsg.value = error?.message || 'Échec de la recherche des dossiers.'
     } finally {

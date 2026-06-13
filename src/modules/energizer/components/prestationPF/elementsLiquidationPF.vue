@@ -504,7 +504,8 @@
                 <div class="pf-legacy-cell">
                   <span class="pf-legacy-label">Employeur Actuel</span>
                   <q-input v-model="form.txtSaisieemployeuractuel" name="txtSaisieemployeuractuel" dense outlined hide-bottom-space
-                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--wide" />
+                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--wide"
+                    @update:model-value="v => upper('txtSaisieemployeuractuel', v)" />
                 </div>
               </div>
               <div class="col-12 col-md-4">
@@ -642,7 +643,8 @@
                 <div class="pf-legacy-cell">
                   <span class="pf-legacy-label">Matricule Interne</span>
                   <q-input v-model="form.txtsaisiematinterne" name="txtsaisiematinterne" dense outlined hide-bottom-space class="pf-legacy-input"
-                    :rules="[v => !form.chsaisieIj || !!v || 'Matricule interne obligatoire si IJ']" />
+                    :rules="[v => !form.chsaisieIj || !!v || 'Matricule interne obligatoire si IJ']"
+                    @update:model-value="v => upper('txtsaisiematinterne', v)" />
                 </div>
               </div>
             </div>
@@ -679,6 +681,7 @@ import { ref, reactive, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useLiquidationPfStore } from 'src/modules/energizer/stores/liquidationPfStore.js'
 import { usePfDossierCatalogTable } from 'src/modules/energizer/composables/usePfDossierCatalogTable.js'
+import { setLegacyUppercaseText } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
 
 defineOptions({ name: 'ElementsLiquidationPF' })
 
@@ -714,6 +717,10 @@ const FORM_INITIAL = {
   chsalnonsixmoisactivite: false, txtsaisiematinterne: '',
 }
 const form = reactive({ ...FORM_INITIAL })
+
+function upper(field, val) {
+  setLegacyUppercaseText(form, field, val)
+}
 
 const {
   loading, errorMsg, cbxcritere, txtvaleurdeb, dossiers, searchDossiers, resetSearch,

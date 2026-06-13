@@ -12,6 +12,9 @@
     "test": "echo \"No test specified\" && exit 0",
     "dev": "quasar dev",
     "build": "quasar build",
+    "build:prod": "quasar build",
+    "deploy:laragon": "powershell -NoProfile -ExecutionPolicy Bypass -File deploy/laragon/deploy.ps1",
+    "deploy:laragon:copy": "powershell -NoProfile -ExecutionPolicy Bypass -File deploy/laragon/deploy.ps1 -SkipBuild",
     "deploy:teleimmat-jsp": "powershell -NoProfile -ExecutionPolicy Bypass -File teleImmat_0.1/deploy/deploy-jsp-energizer.ps1",
     "postinstall": "quasar prepare"
   },

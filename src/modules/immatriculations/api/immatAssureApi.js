@@ -55,6 +55,9 @@ export async function submitTeleImmatAssure(formData) {
   try {
     return await postGererAssure(formData)
   } catch (error) {
-    throw new Error(getApiErrorMessage(error))
+    if (error?.isAxiosError) {
+      throw new Error(getApiErrorMessage(error))
+    }
+    throw error
   }
 }

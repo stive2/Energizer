@@ -11,6 +11,35 @@ function pfPanelRoute(panel) {
   return { name: 'prestation-pf-saisie-elements', query: { panel } }
 }
 
+/** Correspondance href servlet → id panel (ordre : plus spécifique en premier). */
+const PF_PANEL_BY_HREF = [
+  ['elementsliquidationpf', 'aperiodique'],
+  ['gestiondesreprises', 'reprises'],
+  ['elementsliquidationaf', 'allocations'],
+  ['periodeactivite', 'periodeActivite'],
+  ['gestionpiecemaintientdroit', 'pieceMaintien'],
+  ['statsituationsdossiersparbranche', 'statistiques'],
+]
+
+function resolvePfPanelRoute(norm, href) {
+  for (const [part, panel] of PF_PANEL_BY_HREF) {
+    if (href.includes(part)) {
+      return pfPanelRoute(panel)
+    }
+  }
+
+  if (/^aperiodiques?$/.test(norm)) return pfPanelRoute('aperiodique')
+  if (/saisie des reprises|^reprises$/.test(norm)) return pfPanelRoute('reprises')
+  if (/allocations familliales|allocations familiales/.test(norm)) {
+    return pfPanelRoute('allocations')
+  }
+  if (/periodes? activites?/.test(norm)) return pfPanelRoute('periodeActivite')
+  if (/pieces? de maintien/.test(norm)) return pfPanelRoute('pieceMaintien')
+  if (/statistiques situations/.test(norm)) return pfPanelRoute('statistiques')
+
+  return null
+}
+
 /**
  * Associe une entrée du menu legacy Energizer à une route Vue relookée.
  * @param {{ label?: string, href?: string }} entry
@@ -28,29 +57,8 @@ export function resolveLegacyMenuRoute(entry = {}) {
     return { name: 'energizer-reception-nouveau-dossier' }
   }
 
-  if (/^aperiodiques?$/.test(norm) || /elementsliquidationpf|liquidationpf\/saisie/.test(href)) {
-    return pfPanelRoute('aperiodique')
-  }
-
-  if (/saisie des reprises|^reprises$/.test(norm) || /gestiondesreprises/.test(href)) {
-    return pfPanelRoute('reprises')
-  }
-
-  if (/allocations familliales|allocations familiales/.test(norm) || /elementsliquidationaf/.test(href)) {
-    return pfPanelRoute('allocations')
-  }
-
-  if (/periodes? activites?/.test(norm) || /periodeactivite/.test(href)) {
-    return pfPanelRoute('periodeActivite')
-  }
-
-  if (/pieces? de maintien/.test(norm) || /gestionpiecemaintientdroit/.test(href)) {
-    return pfPanelRoute('pieceMaintien')
-  }
-
-  if (/statistiques situations/.test(norm) || /statsituationsdossiersparbranche/.test(href)) {
-    return pfPanelRoute('statistiques')
-  }
+  const pfRoute = resolvePfPanelRoute(norm, href)
+  if (pfRoute) return pfRoute
 
   if (/gestionliquidationrp/.test(href)) {
     return { name: 'gestion-liquidation-rp' }

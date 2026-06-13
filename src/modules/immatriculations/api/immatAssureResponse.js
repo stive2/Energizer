@@ -31,6 +31,13 @@ function isGererAssureDuplicate(payload) {
   return exec === '1' || exec === 1
 }
 
+/** GererAssure renvoie parfois success:true avec un Msg de cohérence (pas d'enregistrement). */
+function isGererAssureCoherenceMessage(message) {
+  const plain = stripHtml(String(message || ''))
+  if (!plain) return false
+  return /coh[eé]rence/i.test(plain) || /verifiez que\s*:/i.test(plain)
+}
+
 /**
  * Analyse la réponse POST GererAssure (legacy ExtJS ou API REST CNPS).
  * @param {unknown} data — corps axios (JSON parsé ou texte)
@@ -73,7 +80,12 @@ export function parseImmatAssureSubmitResponse(data, rawText = '') {
       payload.Msg ||
       payload.message ||
       payload.msg ||
-      (ok ? 'Enregistrement réussi.' : 'Échec de l’enregistrement.')
+      (ok ? 'Enregistrement réussi.' : '')
+
+    if (!ok && !message) {
+      message =
+        'Échec de l’enregistrement : le serveur n’a pas fourni de détail (vérifiez les pièces jointes obligatoires).'
+    }
 
     if (!ok && typeof message === 'string' && message.includes('ORA-01722')) {
       message =
@@ -89,6 +101,17 @@ export function parseImmatAssureSubmitResponse(data, rawText = '') {
         codeTele: null,
         codeSecret: null,
         duplicate: true,
+      }
+    }
+
+    if (ok && isGererAssureCoherenceMessage(message)) {
+      return {
+        success: false,
+        message: stripHtml(String(message)),
+        nextPage: payload.nextPage || payload.next_page || null,
+        codeTele: null,
+        codeSecret: null,
+        coherence: true,
       }
     }
 

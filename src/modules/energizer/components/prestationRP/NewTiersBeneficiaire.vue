@@ -74,6 +74,8 @@
                 outlined dense
                 bg-color="yellow-1"
                 hint="Vide = création auto"
+                class="input-uppercase"
+                @update:model-value="val => { form.numbenef = toLegacyUppercase(val) }"
               >
                 <template #prepend><q-icon name="tag" color="primary" size="xs" /></template>
               </q-input>
@@ -150,10 +152,12 @@
                 v-model="form.tel"
                 name="tel"
                 label="Téléphone"
+                type="tel"
+                prefix="+237"
+                maxlength="9"
                 outlined dense
                 bg-color="yellow-1"
-                class="input-uppercase"
-                @update:model-value="val => { form.tel = toLegacyUppercase(val) }"
+                :rules="telephoneRules"
               >
                 <template #prepend><q-icon name="phone" color="primary" size="xs" /></template>
               </q-input>
@@ -207,6 +211,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useQuasar } from 'quasar'
 import { useLiquidationRpStore } from 'src/modules/energizer/stores/liquidationRpStore.js'
 import {
@@ -215,10 +220,13 @@ import {
 } from 'src/modules/energizer/utils/liquidationRpTiersBeneficiaireLegacy.js'
 import { isLegacyDateNotFuture } from 'src/modules/energizer/utils/liquidationRpDeclarationLegacy.js'
 import { toLegacyUppercase } from 'src/modules/energizer/utils/liquidationLegacyUtils.js'
+import { buildLegacyTelephoneRules } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
 
 defineOptions({ name: 'NewTiersBeneficiaire' })
 
+const { t } = useI18n()
 const $q = useQuasar()
+const telephoneRules = buildLegacyTelephoneRules(t)
 const rpStore = useLiquidationRpStore()
 
 const formRef = ref(null)

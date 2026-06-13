@@ -6,6 +6,11 @@
 export function getApiErrorMessage(error) {
   if (!error) return 'Erreur réseau inconnue'
 
+  // Erreur métier déjà levée côté client (ex. GererEmployeur success:false) — pas une erreur axios
+  if (error instanceof Error && !error.isAxiosError) {
+    return error.message || 'Erreur inconnue'
+  }
+
   if (error.code === 'ECONNABORTED') {
     return 'Délai dépassé : le serveur CNPS ne répond pas.'
   }

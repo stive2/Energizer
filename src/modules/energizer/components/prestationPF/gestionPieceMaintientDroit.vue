@@ -169,7 +169,8 @@
                   <div class="pf-legacy-cell">
                     <q-input v-model="form.txtsaisienumassu" name="txtsaisienumassu" label="N° Assuré *" placeholder="N° Assuré"
                       stack-label dense outlined hide-bottom-space class="pf-legacy-input"
-                      :rules="[v => !!v || 'Numéro Assuré SVP!!']" />
+                      :rules="[v => !!v || 'Numéro Assuré SVP!!']"
+                      @update:model-value="v => upper('txtsaisienumassu', v)" />
                   </div>
                 </div>
                 <div class="col-12 col-md-4">
@@ -196,7 +197,8 @@
                   <div class="pf-legacy-cell">
                     <q-input v-model="form.txtsaisienumbene" name="txtsaisienumbene" label="N° Bénéficiaire *" placeholder="N° Bénéficiaire"
                       stack-label dense outlined hide-bottom-space class="pf-legacy-input"
-                      :rules="[v => !!v || 'Entrez le Numéro du bénéficiaire SVP']" />
+                      :rules="[v => !!v || 'Entrez le Numéro du bénéficiaire SVP']"
+                      @update:model-value="v => upper('txtsaisienumbene', v)" />
                   </div>
                 </div>
                 <div class="col-12 col-md-4">
@@ -327,6 +329,7 @@ import { useQuasar } from 'quasar'
 import { useLiquidationPfStore } from 'src/modules/energizer/stores/liquidationPfStore.js'
 import { usePfModuleTable } from 'src/modules/shared/composables/usePfModuleTable.js'
 import { usePfDossierCatalogTable } from 'src/modules/energizer/composables/usePfDossierCatalogTable.js'
+import { setLegacyUppercaseText } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
 
 defineOptions({ name: 'GestionPieceMaintientDroit' })
 
@@ -389,6 +392,10 @@ const FORM_INITIAL = {
 }
 
 const form = reactive({ ...FORM_INITIAL })
+
+function upper(field, val) {
+  setLegacyUppercaseText(form, field, val)
+}
 
 const tableColumns = [
   { name: 'index',     label: 'N°',                 field: 'index',     align: 'center', style: 'width:50px' },

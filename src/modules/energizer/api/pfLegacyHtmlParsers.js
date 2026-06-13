@@ -2,6 +2,11 @@
  * Parse HTML EnergizerDev (gestionDesReprises.jsp, periodeActivite.jsp, etc.)
  */
 
+import {
+  createEnergizerSessionExpiredError,
+} from 'src/modules/energizer/utils/energizerSessionExpiry.js'
+import { isEnergizerLegacyLoginPageHtml } from 'src/modules/energizer/utils/energizerLegacySessionDetect.js'
+
 function parseLegacyJsArgList(rawArgs) {
   const args = []
   let current = ''
@@ -47,12 +52,8 @@ export function normalizeLegacyJsValue(v) {
 function assertLegacyHtmlSession(html) {
   const raw = String(html ?? '')
   if (!raw.trim()) return []
-  if (
-    /userloginmid|index\.html|Se connecter/i.test(raw) &&
-    !/javascript:loading\(/i.test(raw) &&
-    !/<table[^>]*id=["']entetebull2/i.test(raw)
-  ) {
-    throw new Error('Session Energizer expirée. Veuillez vous reconnecter.')
+  if (isEnergizerLegacyLoginPageHtml(raw)) {
+    throw createEnergizerSessionExpiredError()
   }
   return raw
 }

@@ -4,10 +4,12 @@ import {
   parseLegacyDate,
   compareDates,
   monthsBetween,
+  yearsBetween,
   syncLegacyHiddenFields,
   isLegacyImageFile,
   legacyPhoneDigits,
 } from './immatAssuTrvLegacy.js'
+import { collectTeleimmasNumericFieldErrors, legacyBpDigits } from './immatLegacyCommon.js'
 
 /** 2e argument de to_number(TAUX, taux)/100 côté servlet GererAssure (masque Oracle, pas le taux %). */
 export const GERER_ASSURE_TAUX_ORACLE_FORMAT = '9.99'
@@ -18,9 +20,14 @@ function collectImmatPersonFieldErrors(form, step, push) {
   const check2 = step === null || step === 2
   const check3 = step === null || step === 3
   const check4 = step === null || step === 4
+  const check5 = step === null || step === 5
   const check6 = step === null || step === 6
 
   syncLegacyHiddenFields(form)
+
+  if (check5 || checkAll) {
+    collectTeleimmasNumericFieldErrors(form, push)
+  }
 
   if (check2 || checkAll) {
     if (!form.LieuNaiss) {
@@ -53,10 +60,22 @@ function collectImmatPersonFieldErrors(form, step, push) {
     if (form.DATE_NAISS_PERSM && compareDates(form.DATE_NAISS_PERSM, form.DATE_NAISS_PERS) === 1) {
       push('DATE_NAISS_PERSM', "Date de naissance de l'assuré antérieure à celle de sa mère.")
     }
+    if (form.DATE_NAISS_PERSM && yearsBetween(form.DATE_NAISS_PERS, form.DATE_NAISS_PERSM) <= 8) {
+      push(
+        'DATE_NAISS_PERSM',
+        "Écart d'âge trop petit entre le travailleur et sa mère (la mère doit avoir au moins 8 ans de plus).",
+      )
+    }
     const pere = (form.NOM_PERE || '').trim()
     if (pere && pere.length > 0 && pere !== 'PND') {
       if (form.DATE_NAISS_PERSP && compareDates(form.DATE_NAISS_PERSP, form.DATE_NAISS_PERS) === 1) {
         push('DATE_NAISS_PERSP', "Date de naissance de l'assuré antérieure à celle de son père.")
+      }
+      if (form.DATE_NAISS_PERSP && yearsBetween(form.DATE_NAISS_PERS, form.DATE_NAISS_PERSP) <= 12) {
+        push(
+          'DATE_NAISS_PERSP',
+          "Écart d'âge trop petit entre le travailleur et son père (le père doit avoir au moins 12 ans de plus).",
+        )
       }
     } else if (form.LOCALITE_NAISS_PERE || form.DATE_NAISS_PERSP) {
       push('NOM_PERE', 'Saisissez à nouveau les informations du père ou bien laissez les vides.')
@@ -574,6 +593,7 @@ export function buildLegacyFormDataVol(form, options = {}) {
   f.CODE_CENTRECNPSC = centreObj?.LIB_CENTRE || ''
   f.TEL_PERS = legacyPhoneDigits(f.TEL_PERS)
   f.FAX_PERS = legacyPhoneDigits(f.FAX_PERS)
+  f.BP = legacyBpDigits(f.BP)
 
   if (options.submissionType === 'temporary') f.valider = 'NON'
   else if (options.submissionType === 'definitive') f.valider = 'OUI'

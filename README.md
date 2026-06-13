@@ -1,43 +1,41 @@
-# energizer (frontend)
+# Energizer IHM (Quasar / Vue 3)
 
-relooking energizer
+Interface relookée CNPS Energizer — déploiement **Laragon** dossier **`C:\laragon\www\sapelli`**.
 
-## Install the dependencies
+## Déploiement (votre PC → serveur 172.17.15.121)
 
-```bash
-yarn
-# or
+### Sur votre PC
+
+```powershell
+cd C:\projets\ProjetsCNPS\RelookEnergizerIHM\Energizer
 npm install
+npm run build
 ```
 
-### Start the app in development mode (hot-code reloading, error reporting, etc.)
+### Sur le serveur (copie manuelle)
+
+1. Contenu de `dist\spa\` → `C:\laragon\www\sapelli\`
+2. `deploy\laragon\apache-energizer.conf` → `C:\laragon\etc\apache2\sites-enabled\sapelli.conf`
+3. Redémarrer Apache (`demarrer-apache.bat` ou Start All Laragon)
+
+**URL :** `http://172.17.15.121:82/#/energizer-login`
+
+> Utilisez **`npm run build`** (pas `build:tomcat`). Le dossier `sapelli` est la racine du site sur le port 82.
+
+Alternative Tomcat : [deploy/tomcat/GUIDE-DEPLOIEMENT-TOMCAT.md](deploy/tomcat/GUIDE-DEPLOIEMENT-TOMCAT.md)
+
+---
+
+## Développement
 
 ```bash
-quasar dev
+npm run dev
 ```
 
-### Lint the files
+## Commandes
 
-```bash
-yarn lint
-# or
-npm run lint
-```
-
-### Format the files
-
-```bash
-yarn format
-# or
-npm run format
-```
-
-### Build the app for production
-
-```bash
-quasar build
-```
-
-### Customize the configuration
-
-See [Configuring quasar.config.js](https://v2.quasar.dev/quasar-cli-vite/quasar-config-js).
+| Commande | Description |
+|----------|-------------|
+| `npm run build` | Build Laragon / sapelli |
+| `npm run deploy:laragon` | Build + copie (si projet sur le serveur) |
+| `npm run build:tomcat` | Build Tomcat (optionnel) |

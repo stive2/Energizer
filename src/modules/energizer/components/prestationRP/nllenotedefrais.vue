@@ -201,10 +201,12 @@
                 v-model="form.telephone"
                 name="telephone"
                 label="Téléphone"
+                type="tel"
+                prefix="+237"
+                maxlength="9"
                 outlined dense
                 bg-color="yellow-1"
-                class="input-uppercase"
-                @update:model-value="val => { form.telephone = toLegacyUppercase(val) }"
+                :rules="telephoneRules"
               >
                 <template #prepend><q-icon name="phone" color="primary" size="xs" /></template>
               </q-input>
@@ -293,6 +295,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useQuasar } from 'quasar'
 import { useLiquidationRpStore } from 'src/modules/energizer/stores/liquidationRpStore.js'
 import { toLegacyUppercase } from 'src/modules/energizer/utils/liquidationLegacyUtils.js'
@@ -302,10 +305,13 @@ import {
   validateNoteFraisForm,
 } from 'src/modules/energizer/utils/liquidationRpNoteFraisLegacy.js'
 import { isLegacyDateNotFuture } from 'src/modules/energizer/utils/liquidationRpDeclarationLegacy.js'
+import { buildLegacyTelephoneRules } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
 
 defineOptions({ name: 'NlleNoteDeFrais' })
 
+const { t } = useI18n()
 const $q = useQuasar()
+const telephoneRules = buildLegacyTelephoneRules(t)
 const rpStore = useLiquidationRpStore()
 
 const formRef = ref(null)

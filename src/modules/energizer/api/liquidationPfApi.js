@@ -49,6 +49,8 @@ import {
   parseStatSituationsFromHtml,
   parseStatCentresFromHtml,
 } from './pfLegacyHtmlParsers.js'
+import { isEnergizerLegacyLoginPageHtml } from 'src/modules/energizer/utils/energizerLegacySessionDetect.js'
+import { createEnergizerSessionExpiredError } from 'src/modules/energizer/utils/energizerSessionExpiry.js'
 
 function legacyPfLiquidationRefererUrl() {
   const base = getEnergizerBaseUrl().replace(/\/$/, '')
@@ -73,6 +75,11 @@ function legacyPeriodeRefererUrl() {
 function legacyPmdRefererUrl() {
   const base = getEnergizerBaseUrl().replace(/\/$/, '')
   return `${base}/${ENERGIZER_LEGACY_JSP.gestionPieceMaintientDroit}`
+}
+
+function legacyPagePrincipaleRefererUrl() {
+  const base = getEnergizerBaseUrl().replace(/\/$/, '')
+  return `${base}/${ENERGIZER_LEGACY_JSP.pagePrincipale}`
 }
 
 function legacyStatRefererUrl() {
@@ -273,11 +280,8 @@ function mapLegacyPfLoadingArgs(args) {
 function parsePfDossiersFromElementsLiquidationHtml(html, mapRow = mapLegacyPfLoadingArgs) {
   const raw = String(html ?? '')
   if (!raw.trim()) return []
-  if (
-    /userloginmid|index\.html|Se connecter/i.test(raw) &&
-    !/javascript:loading\(/i.test(raw)
-  ) {
-    throw new Error('Session Energizer expirée. Veuillez vous reconnecter.')
+  if (isEnergizerLegacyLoginPageHtml(raw)) {
+    throw createEnergizerSessionExpiredError()
   }
 
   const rows = []
@@ -321,9 +325,11 @@ async function listPmdLegacy(params = {}) {
         end: params.end,
       })
   const { data } = await energizerAxios.get(ENERGIZER_LEGACY_JSP.gestionPieceMaintientDroit, {
-    params: legacyParams,
+    params: { _dc: Date.now(), ...legacyParams },
     responseType: 'text',
+    headers: { Referer: legacyPagePrincipaleRefererUrl() },
     skipErrorNotify: true,
+    skipSessionExpiryCheck: true,
   })
   return parseLegacyLoadingRowsFromHtml(data, mapLegacyPmdLoadingArgs)
 }

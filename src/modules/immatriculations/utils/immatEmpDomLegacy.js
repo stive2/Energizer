@@ -8,6 +8,7 @@ import { pays as rawPays } from 'src/modules/shared/data/Pays.js'
 import { arrondissements as rawArrondissements } from 'src/modules/shared/data/Arrondissements.js'
 import { compareDates } from 'src/modules/immatriculations/utils/immatAssuTrvLegacy.js'
 import { toLegacySexe } from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
+import { createImmatEmpProReferentialContext } from 'src/modules/immatriculations/utils/immatEmpProReferentials.js'
 import {
   CAUSE_IMMA_OPTIONS,
   CIRCUIT_DOSSIER_OPTIONS,
@@ -18,35 +19,17 @@ import {
   IMMAT_EMP_DOM_TYPE_EMPLOYEUR,
 } from 'src/modules/immatriculations/data/immatEmpDomLegacyFields.js'
 
-function arrondByCode(code) {
-  if (!code) return null
-  return rawArrondissements.find((a) => String(a.CODE_ARROND) === String(code)) || null
-}
-
-function impotByCode(code) {
-  if (!code) return null
-  return (
-    rawImpots.find(
-      (i) =>
-        String(i.CODE_CENTREIMPOT) === String(code) ||
-        String(i.ABREVIATION) === String(code),
-    ) || null
-  )
-}
-
-function centreByCode(code) {
-  if (!code) return null
-  return centres.find((c) => String(c.CODE_CENTRE) === String(code)) || null
-}
-
-function pieceByNumType(num) {
-  if (!num) return null
-  return rawPieces.find((p) => String(p.NUM_TYPEPIECE) === String(num)) || null
-}
-
-function paysByCode(code) {
-  if (!code) return null
-  return rawPays.find((p) => String(p.code_pays) === String(code)) || null
+function resolveReferentialContext(referentials) {
+  if (referentials?.arrondissements?.length) {
+    return createImmatEmpProReferentialContext(referentials)
+  }
+  return createImmatEmpProReferentialContext({
+    arrondissements: rawArrondissements,
+    impots: rawImpots,
+    pays: rawPays,
+    pieces: rawPieces,
+    centres,
+  })
 }
 
 function appendScalar(fd, key, value) {
@@ -54,15 +37,25 @@ function appendScalar(fd, key, value) {
   fd.append(key, String(value))
 }
 
+function normalizeLaction(value) {
+  const raw = String(value || '').trim()
+  if (!raw || /^cr[eéè]er$/i.test(raw)) return 'Creer'
+  if (/^modif/i.test(raw)) return 'Modifier'
+  return raw
+}
+
 /**
  * @param {Record<string, unknown>} form
+ * @param {object} [referentials]
  */
-export function syncImmatEmpDomHiddenFields(form) {
+export function syncImmatEmpDomHiddenFields(form, referentials) {
+  const ctx = resolveReferentialContext(referentials)
+
   form.TYPE_EMPLOYEUR = IMMAT_EMP_DOM_TYPE_EMPLOYEUR
   form.CODE_REGIME = IMMAT_EMP_DOM_CODE_REGIME
   form.CODE_GPE_RISQUE = IMMAT_EMP_DOM_CODE_GPE_RISQUE
   form.objet = IMMAT_EMP_DOM_OBJET
-  form.laction = form.laction || 'Creer'
+  form.laction = normalizeLaction(form.laction)
 
   const causeOpt = CAUSE_IMMA_OPTIONS.find((o) => o.value === String(form.CAUSE_IMMA))
   form.CAUSEIMMA = form.CAUSE_IMMA ?? causeOpt?.value ?? '0'
@@ -70,7 +63,7 @@ export function syncImmatEmpDomHiddenFields(form) {
   const circuitOpt = CIRCUIT_DOSSIER_OPTIONS.find((o) => o.value === String(form.CIRCUIT_DOSSIER))
   form.CIRCUITDOSSIER = form.CIRCUIT_DOSSIER ?? circuitOpt?.value ?? '3'
 
-  const arrNaiss = arrondByCode(form.LieuNaissPe)
+  const arrNaiss = ctx.byCode(ctx.arrondissements, 'CODE_ARROND', form.LieuNaissPe)
   if (arrNaiss) {
     form.LIEU_NAISS_PERSEMPL = arrNaiss.CODE_ARROND
     form.CODE_DEPA_NAISSEMPL = arrNaiss.CODE_DEPA
@@ -78,7 +71,7 @@ export function syncImmatEmpDomHiddenFields(form) {
     form.CODE_PAYS_NAISSEMPL = arrNaiss.CODE_PAYS
   }
 
-  const arrPiece = arrondByCode(form.LIEU_PIECEC)
+  const arrPiece = ctx.byCode(ctx.arrondissements, 'CODE_ARROND', form.LIEU_PIECEC)
   if (arrPiece) {
     form.LIEU_PIECE = arrPiece.CODE_ARROND
     form.CODE_DEPA_PIECE = arrPiece.CODE_DEPA
@@ -86,7 +79,7 @@ export function syncImmatEmpDomHiddenFields(form) {
     form.CODE_PAYS_PIECE = arrPiece.CODE_PAYS
   }
 
-  const arrRes = arrondByCode(form.CODE_ARRONDC)
+  const arrRes = ctx.byCode(ctx.arrondissements, 'CODE_ARROND', form.CODE_ARRONDC)
   if (arrRes) {
     form.CODE_ARROND = arrRes.CODE_ARROND
     form.CODE_DEPA = arrRes.CODE_DEPA
@@ -94,18 +87,16 @@ export function syncImmatEmpDomHiddenFields(form) {
     form.CODE_PAYS = arrRes.CODE_PAYS
   }
 
-  const nat = paysByCode(form.NATIONALITEC) || (typeof form.NATIONALITEC === 'object' ? form.NATIONALITEC : null)
+  const nat = ctx.byCode(ctx.pays, 'code_pays', form.NATIONALITEC)
   if (nat?.code_pays) {
     form.NATIONALITE = nat.code_pays
     form.NATIONALITEC = nat.nationalite
   } else if (typeof form.NATIONALITEC === 'string') {
-    const p = rawPays.find((x) => x.nationalite === form.NATIONALITEC)
-    if (p) {
-      form.NATIONALITE = p.code_pays
-    }
+    const p = ctx.pays.find((x) => x.nationalite === form.NATIONALITEC)
+    if (p) form.NATIONALITE = p.code_pays
   }
 
-  const tp = pieceByNumType(form.NUM_TYPEPIECE)
+  const tp = ctx.byCode(ctx.pieces, 'NUM_TYPEPIECE', form.NUM_TYPEPIECE)
   if (tp) {
     form.NUM_TYPEPIECE = tp.NUM_TYPEPIECE
     form.typepiece = tp.LIBELLE
@@ -114,16 +105,17 @@ export function syncImmatEmpDomHiddenFields(form) {
     form.typepiece = form.typepiece.LIBELLE
   }
 
-  const imp = impotByCode(form.CODE_CENTREIMPOTC)
+  const imp = ctx.byCode(ctx.impots, 'CODE_CENTREIMPOT', form.CODE_CENTREIMPOTC)
   if (imp) {
     form.CODE_CENTREIMPOT = imp.CODE_CENTREIMPOT
-    form.CODE_CENTRECNPS = imp.CODE_CENTRECNPS
-    if (!form._cnpsManual) {
-      form.CODE_CENTRECNPSC = imp.LIB_CENTRECNPS
+    form.CODE_CENTREIMPOTC = imp.ABREVIATION
+    if (!form._cnpsManual && imp.CODE_CENTRECNPS) {
+      form.CODE_CENTRECNPS = imp.CODE_CENTRECNPS
+      form.CODE_CENTRECNPSC = imp.LIB_CENTRECNPS || form.CODE_CENTRECNPSC
     }
   }
 
-  const ctr = centreByCode(form.CODE_CENTRECNPSC)
+  const ctr = ctx.byCode(ctx.centres, 'CODE_CENTRE', form.CODE_CENTRECNPSC)
   if (ctr) {
     form.CODE_CENTRECNPS = ctr.CODE_CENTRE
     form.CODE_CENTRECNPSC = ctr.LIB_CENTRE
@@ -160,10 +152,11 @@ export function validateImmatEmpDomBusinessRules(form) {
 /**
  * @param {Record<string, unknown>} form
  * @param {Record<string, File|null>} files
- * @param {{ codeTele?: string, codeSecret?: string, dest?: string }} [options]
+ * @param {{ codeTele?: string, codeSecret?: string, dest?: string, referentials?: object }} [options]
  */
 export function buildImmatEmpDomLegacyFormData(form, files, options = {}) {
-  syncImmatEmpDomHiddenFields(form)
+  const ctx = resolveReferentialContext(options.referentials)
+  syncImmatEmpDomHiddenFields(form, options.referentials)
   const fd = new FormData()
 
   appendScalar(fd, 'TYPE_EMPLOYEUR', form.TYPE_EMPLOYEUR)
@@ -186,9 +179,9 @@ export function buildImmatEmpDomLegacyFormData(form, files, options = {}) {
   appendScalar(fd, 'CODE_REGION_NAISSEMPL', form.CODE_REGION_NAISSEMPL)
   appendScalar(fd, 'CODE_DEPA_NAISSEMPL', form.CODE_DEPA_NAISSEMPL)
   appendScalar(fd, 'LIEU_NAISS_PERSEMPL', form.LIEU_NAISS_PERSEMPL)
-  appendScalar(fd, 'LieuNaissPe', arrondByCode(form.LieuNaissPe)?.NOM_ARROND || form.LieuNaissPe)
+  appendScalar(fd, 'LieuNaissPe', ctx.arrondLabel(form.LieuNaissPe))
   appendScalar(fd, 'NATIONALITE', form.NATIONALITE)
-  appendScalar(fd, 'NATIONALITEC', form.NATIONALITEC)
+  appendScalar(fd, 'NATIONALITEC', ctx.paysNationaliteLabel(form.NATIONALITEC))
   appendScalar(fd, 'PROFESSION', form.PROFESSION)
   appendScalar(fd, 'SEXE_PERSEMPL', form.SEXE_PERSEMPL)
   appendScalar(fd, 'NUM_TYPEPIECE', form.NUM_TYPEPIECE)
@@ -198,7 +191,7 @@ export function buildImmatEmpDomLegacyFormData(form, files, options = {}) {
   appendScalar(fd, 'CODE_PAYS_PIECE', form.CODE_PAYS_PIECE)
   appendScalar(fd, 'CODE_REGION_PIECE', form.CODE_REGION_PIECE)
   appendScalar(fd, 'CODE_DEPA_PIECE', form.CODE_DEPA_PIECE)
-  appendScalar(fd, 'LIEU_PIECEC', arrondByCode(form.LIEU_PIECEC)?.NOM_ARROND || form.LIEU_PIECEC)
+  appendScalar(fd, 'LIEU_PIECEC', ctx.arrondLabel(form.LIEU_PIECEC))
   appendScalar(fd, 'LIEU_PIECE', form.LIEU_PIECE)
 
   appendScalar(fd, 'ADRESSE_EMPL', form.ADRESSE_EMPL)
@@ -206,7 +199,7 @@ export function buildImmatEmpDomLegacyFormData(form, files, options = {}) {
   appendScalar(fd, 'TEL', form.TEL)
   appendScalar(fd, 'TEL_PERSEMPL', form.TEL_PERSEMPL)
   appendScalar(fd, 'EMAIL', form.EMAIL)
-  appendScalar(fd, 'CODE_ARRONDC', arrondByCode(form.CODE_ARRONDC)?.NOM_ARROND || form.CODE_ARRONDC)
+  appendScalar(fd, 'CODE_ARRONDC', ctx.arrondLabel(form.CODE_ARRONDC))
   appendScalar(fd, 'CODE_ARROND', form.CODE_ARROND)
   appendScalar(fd, 'CODE_PAYS', form.CODE_PAYS)
   appendScalar(fd, 'CODE_REGION', form.CODE_REGION)
@@ -218,22 +211,27 @@ export function buildImmatEmpDomLegacyFormData(form, files, options = {}) {
   appendScalar(fd, 'DATE_DEB_SERVICE', form.DATE_DEB_SERVICE)
   appendScalar(fd, 'DATE_EFFET', form.DATE_EFFET)
   appendScalar(fd, 'CODE_CENTREIMPOT', form.CODE_CENTREIMPOT)
-  appendScalar(fd, 'CODE_CENTREIMPOTC', impotByCode(form.CODE_CENTREIMPOTC)?.ABREVIATION || form.CODE_CENTREIMPOTC)
+  appendScalar(fd, 'CODE_CENTREIMPOTC', ctx.impotLabel(form.CODE_CENTREIMPOTC))
   appendScalar(fd, 'CODE_CENTRECNPS', form.CODE_CENTRECNPS)
-  appendScalar(fd, 'CODE_CENTRECNPSC', form.CODE_CENTRECNPSC)
+  appendScalar(fd, 'CODE_CENTRECNPSC', ctx.cnpsLabel(form.CODE_CENTRECNPSC))
   appendScalar(fd, 'Dest', options.dest || form.Dest || '')
 
   appendScalar(fd, 'valider', form.validation === true || form.validation === '1' ? '1' : '0')
   appendScalar(fd, 'etatValid', form.validation === true || form.validation === '1' ? '1' : '0')
 
-  if (files.pieceIdentite && form.NUM_TYPEPIECE) {
-    fd.append(String(form.NUM_TYPEPIECE), files.pieceIdentite, files.pieceIdentite.name)
+  const pieceIdentite =
+    files.fichierIdentiteEmployeur ?? files.pieceIdentite ?? files.fichierIdentiteResponsable
+  const planLocalisation = files.IDPLANLOCAL ?? files.planLocalisation
+  const listeTravailleurs = files.IDLISTTRAV ?? files.listeTravailleurs
+
+  if (pieceIdentite && form.NUM_TYPEPIECE) {
+    fd.append(String(form.NUM_TYPEPIECE), pieceIdentite, pieceIdentite.name)
   }
-  if (files.planLocalisation) {
-    fd.append(IMMAT_EMP_DOM_PIECE.PLAN_LOCALISATION, files.planLocalisation, files.planLocalisation.name)
+  if (planLocalisation) {
+    fd.append(IMMAT_EMP_DOM_PIECE.PLAN_LOCALISATION, planLocalisation, planLocalisation.name)
   }
-  if (files.listeTravailleurs) {
-    fd.append(IMMAT_EMP_DOM_PIECE.LISTE_TRAVAILLEURS, files.listeTravailleurs, files.listeTravailleurs.name)
+  if (listeTravailleurs) {
+    fd.append(IMMAT_EMP_DOM_PIECE.LISTE_TRAVAILLEURS, listeTravailleurs, listeTravailleurs.name)
   }
 
   return fd

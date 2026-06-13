@@ -3,26 +3,38 @@
     <q-card-section class="controle-toolbar q-py-xs q-px-md">
       <div class="row items-center no-wrap">
         <q-space />
-        <q-btn
-          flat
-          dense
-          color="primary"
-          icon="print"
-          :label="$t('immat.controle.print')"
-          class="q-mr-sm"
-          :disable="!iframeReady"
-          @click="printControle"
-        />
-        <q-btn
-          v-if="showPreview"
-          flat
-          dense
-          color="secondary"
-          icon="visibility"
-          :label="$t('form.preview')"
-          class="q-mr-sm"
-          @click="$emit('preview')"
-        />
+        <template v-if="showPreview">
+          <q-btn
+            flat
+            dense
+            color="secondary"
+            icon="visibility"
+            :label="$t('form.preview')"
+            class="q-mr-sm"
+            :disable="!controleUrl"
+            @click="openControlePreview"
+          />
+          <q-btn
+            flat
+            dense
+            color="primary"
+            icon="download"
+            :label="$t('pdf.download')"
+            class="q-mr-sm"
+            :disable="!controleUrl"
+            @click="downloadControle"
+          />
+          <q-btn
+            flat
+            dense
+            color="primary"
+            icon="print"
+            :label="$t('immat.controle.print')"
+            class="q-mr-sm"
+            :disable="!iframeReady"
+            @click="printControle"
+          />
+        </template>
         <q-btn flat dense round icon="close" @click="$emit('close')" />
       </div>
     </q-card-section>
@@ -53,12 +65,51 @@
         @error="onIframeError"
       />
     </q-card-section>
+
+    <q-dialog v-model="previewOpen" maximized persistent>
+      <q-card class="column no-wrap controle-preview-card">
+        <q-card-section class="row items-center q-py-sm">
+          <div class="text-h6">{{ $t('immat.controle.previewTitle') }}</div>
+          <q-space />
+          <q-btn
+            flat
+            dense
+            color="primary"
+            icon="print"
+            :label="$t('immat.controle.print')"
+            class="q-mr-xs"
+            @click="printPreviewFrame"
+          />
+          <q-btn
+            flat
+            dense
+            color="primary"
+            icon="download"
+            :label="$t('pdf.download')"
+            class="q-mr-xs"
+            @click="downloadControle"
+          />
+          <q-btn flat round dense icon="close" v-close-popup />
+        </q-card-section>
+        <q-separator />
+        <q-card-section class="col q-pa-none">
+          <iframe
+            ref="previewIframe"
+            :src="controleUrl"
+            class="controle-preview-iframe"
+            title="Aperçu état de contrôle"
+          />
+        </q-card-section>
+      </q-card>
+    </q-dialog>
   </q-card>
 </template>
 
 <script setup>
 import { onBeforeUnmount, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { buildEtatControleAssureUrl } from 'src/modules/immatriculations/api/teleImmatAssureApi.js'
+import { useNotify } from 'src/modules/shared/components/useNotify.js'
 
 const props = defineProps({
   codeTele: { type: String, required: true },
@@ -68,7 +119,10 @@ const props = defineProps({
   reloadToken: { type: Number, default: 0 },
 })
 
-const emit = defineEmits(['close', 'edit', 'validated', 'preview'])
+const emit = defineEmits(['close', 'edit', 'validated'])
+
+const { t } = useI18n()
+const { notifyError } = useNotify()
 
 const error = ref(null)
 const controleUrl = ref('')
@@ -76,6 +130,8 @@ const iframeKey = ref(0)
 const iframeLoading = ref(true)
 const iframeReady = ref(false)
 const controleIframe = ref(null)
+const previewOpen = ref(false)
+const previewIframe = ref(null)
 
 /** Styles injectés dans l’iframe (même origine via proxy Vite). */
 const LEGACY_HIDE_CSS = `
@@ -210,6 +266,45 @@ function printControle() {
   }
 }
 
+function printPreviewFrame() {
+  const win = previewIframe.value?.contentWindow
+  if (win) {
+    win.focus()
+    win.print()
+  } else {
+    printControle()
+  }
+}
+
+function openControlePreview() {
+  if (!controleUrl.value) {
+    notifyError(t('immat.controle.submitNoCode'))
+    return
+  }
+  previewOpen.value = true
+}
+
+async function downloadControle() {
+  if (!controleUrl.value) {
+    notifyError(t('immat.controle.submitNoCode'))
+    return
+  }
+  try {
+    const response = await fetch(controleUrl.value, { credentials: 'include' })
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    const html = await response.text()
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `etat-controle-${props.codeTele || 'assure'}.html`
+    anchor.click()
+    URL.revokeObjectURL(url)
+  } catch {
+    window.open(controleUrl.value, '_blank', 'noopener,noreferrer')
+  }
+}
+
 watch(
   () => [props.codeTele, props.codeSecret, props.reloadToken],
   () => reloadControle(),
@@ -237,7 +332,7 @@ onBeforeUnmount(() => {
 
 .controle-toolbar {
   flex-shrink: 0;
-  border-bottom: 1 solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
   background: #fafafa;
 }
 
@@ -246,10 +341,19 @@ onBeforeUnmount(() => {
   overflow: hidden;
 }
 
-.controle-iframe {
+.controle-iframe,
+.controle-preview-iframe {
   width: 100%;
   min-height: 400px;
   border: 0;
   background: #fff;
+}
+
+.controle-preview-card {
+  height: 100%;
+}
+
+.controle-preview-iframe {
+  height: calc(100vh - 72px);
 }
 </style>

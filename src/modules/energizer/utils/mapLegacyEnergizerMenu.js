@@ -63,11 +63,13 @@ function mapLegacyNode(node, depth = 0) {
 
   const route = resolveLegacyMenuRoute({ label, href })
   if (route) {
+    const hasPanelQuery = route.query != null && Object.keys(route.query).length > 0
     return {
       type: 'item',
       label,
       to: route,
       icon: legacyMenuRouteIcon(route),
+      exact: hasPanelQuery,
     }
   }
 

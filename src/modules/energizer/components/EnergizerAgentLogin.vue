@@ -52,9 +52,12 @@
           stack-label
           dense
           autocomplete="current-password"
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
           :disable="loading"
           hide-bottom-space
-          class="energizer-agent-login__input q-mt-sm"
+          class="energizer-agent-login__input energizer-agent-login__input--password q-mt-sm"
           :rules="[(v) => !!String(v || '').trim() || 'Entrez le mot de passe']"
           @keypress="onKeyPress"
         >
@@ -305,5 +308,10 @@ async function onSubmit() {
 
 .energizer-agent-login__remember :deep(.q-checkbox__label) {
   font-size: 0.8rem;
+}
+
+.energizer-agent-login__input--password :deep(.q-field__native),
+.energizer-agent-login__input--password :deep(.q-field__input) {
+  text-transform: none;
 }
 </style>

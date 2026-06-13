@@ -216,7 +216,8 @@
                   <div class="pf-legacy-cell">
                     <q-input v-model="form.txtsaisiematassu" name="txtsaisiematassu" label="Matricule Assuré" placeholder="Matricule Assuré"
                       stack-label dense outlined hide-bottom-space bg-color="yellow-1" class="pf-legacy-input"
-                      :rules="[v => !!v || 'Veuillez saisir le Numéro Assuré SVP!!!']" />
+                      :rules="[v => !!v || 'Veuillez saisir le Numéro Assuré SVP!!!']"
+                      @update:model-value="v => upper('txtsaisiematassu', v)" />
                   </div>
                 </div>
                 <div class="col-12 col-sm-6 col-md-3">
@@ -258,7 +259,8 @@
                   <div class="pf-legacy-cell">
                     <q-input v-model="form.txtsaisienumempl" name="txtsaisienumempl" label="Numéro Employeur" placeholder="Numéro Employeur"
                       stack-label dense outlined hide-bottom-space bg-color="yellow-1" class="pf-legacy-input"
-                      :rules="[v => !!v || 'Veuillez saisir le Numéro Employeur SVP!!!']" />
+                      :rules="[v => !!v || 'Veuillez saisir le Numéro Employeur SVP!!!']"
+                      @update:model-value="v => upper('txtsaisienumempl', v)" />
                   </div>
                 </div>
               </div>
@@ -288,6 +290,7 @@ import { useLiquidationPfStore } from 'src/modules/energizer/stores/liquidationP
 import { usePfModuleTable } from 'src/modules/shared/composables/usePfModuleTable.js'
 import { usePfDossierCatalogTable } from 'src/modules/energizer/composables/usePfDossierCatalogTable.js'
 import { formatLegacyServerMessage } from 'src/modules/energizer/api/adapters/parseNouveauDossierLegacyHtml.js'
+import { setLegacyUppercaseText } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
 
 defineOptions({ name: 'PeriodeActivite' })
 
@@ -325,6 +328,10 @@ const FORM_INITIAL = {
 }
 
 const form = reactive({ ...FORM_INITIAL })
+
+function upper(field, val) {
+  setLegacyUppercaseText(form, field, val)
+}
 
 const {
   loading,

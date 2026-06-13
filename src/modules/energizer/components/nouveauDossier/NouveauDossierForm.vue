@@ -95,6 +95,7 @@
           :disable="!enabled('nomcomplet')"
           :required="fieldRequired('nomcomplet')"
           :rules="nomcompletRules"
+          @update:model-value="(val) => upper('nomcomplet', val)"
         />
       </div>
 
@@ -106,6 +107,7 @@
           outlined
           dense
           :disable="!enabled('nomtiers')"
+          @update:model-value="(val) => upper('nomtiers', val)"
         />
       </div>
 
@@ -344,6 +346,7 @@
             :disable="!enabled('adresse')"
             :required="fieldRequired('adresse')"
             :rules="adresseRules"
+            @update:model-value="(val) => upper('adresse', val)"
           />
       </div>
 
@@ -351,10 +354,12 @@
           <q-input
             v-model="form.telephone"
             name="telephone"
-            type="number"
             label="Telephone"
             outlined
             dense
+            type="tel"
+            prefix="+237"
+            maxlength="9"
             :disable="!enabled('telephone')"
             :required="fieldRequired('telephone')"
             :rules="telephoneRules"
@@ -543,6 +548,7 @@
               outlined
               dense
               :required="fieldRequired('code_tele_enreg')"
+              @update:model-value="(val) => upper('code_tele_enreg', val)"
               @click="onTeleBlur"
               @blur="onTeleBlur"
               @keyup.enter="onTeleBlur"
@@ -558,6 +564,10 @@
               dense
               :required="fieldRequired('code_secret')"
               type="password"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
+              class="nouveau-dossier-form__secret-input"
               @click="onTeleBlur"
               @blur="onTeleBlur"
               @keyup.enter="onTeleBlur"
@@ -646,6 +656,10 @@ import {
 } from 'src/modules/energizer/utils/nouveauDossierFieldState.js'
 import { normalizeMatriculeEmployeur } from 'src/modules/assure/api/depotPrestationPfUtils.js'
 import { isNouveauDossierFieldRequired } from 'src/modules/energizer/utils/nouveauDossierFormUi.js'
+import {
+  buildLegacyTelephoneRules,
+  setLegacyUppercaseText,
+} from 'src/modules/energizer/utils/energizerFormInputUtils.js'
 
 const { t } = useI18n()
 const store = useNouveauDossierStore()
@@ -728,7 +742,7 @@ const adresseRules = computed(() =>
   active('adresse') ? [required] : [],
 )
 const telephoneRules = computed(() =>
-  active('telephone') ? [required] : [],
+  buildLegacyTelephoneRules(t, { required: active('telephone') }),
 )
 const typeimmasRules = computed(() =>
   active('typeimmas') ? [required] : [],
@@ -736,6 +750,10 @@ const typeimmasRules = computed(() =>
 const revisionRules = computed(() =>
   active('revision') ? [required] : [],
 )
+
+function upper(field, val) {
+  setLegacyUppercaseText(form.value, field, val)
+}
 
 function onNumassuChange(val) {
   if (!(val ?? '').trim()) {
