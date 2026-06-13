@@ -1,5 +1,7 @@
 import { useI18n } from 'vue-i18n'
 import { isValidMatriculeEmployeur } from 'src/modules/assure/api/depotPrestationPfUtils.js'
+import { isValidCameroonPhone } from 'src/js/regex.js'
+import { LEGACY_FORM_FILE_MAX_SIZE } from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
 
 export function useDepotPrestationPfRules() {
   const { t } = useI18n()
@@ -15,6 +17,11 @@ export function useDepotPrestationPfRules() {
     if (!val) return true
     return isValidMatriculeEmployeur(val) || t('errors.invalid_cnps_format')
   }
+
+  const validateTelephone = (val) =>
+    (val != null && String(val).trim() !== '' && isValidCameroonPhone(val)) ||
+    t('input.invalidPhone')
+
   const optionsDn = (date) => {
     const today = new Date()
     const yyyy = today.getFullYear()
@@ -25,9 +32,13 @@ export function useDepotPrestationPfRules() {
 
   const fileTypesPieces = (val) => {
     if (!val) return true
-    const name = typeof val === 'string' ? val : val.name
+    const file = Array.isArray(val) ? val[0] : val
+    const name = typeof val === 'string' ? val : file?.name
+    if (file?.size > LEGACY_FORM_FILE_MAX_SIZE) {
+      return t('form.file_too_large')
+    }
     return (
-      /\.(gif|jpe?g|pdf|xlsx?)$/i.test(name) ||
+      /\.(gif|jpe?g|png|pdf|xlsx?|docx?)$/i.test(name || '') ||
       t('modules.assure.depotPf.errors.fileType')
     )
   }
@@ -36,7 +47,9 @@ export function useDepotPrestationPfRules() {
     required,
     validateEmail,
     validateMatriculeCNPS,
+    validateTelephone,
     optionsDn,
     fileTypesPieces,
+    legacyFileMaxSize: LEGACY_FORM_FILE_MAX_SIZE,
   }
 }

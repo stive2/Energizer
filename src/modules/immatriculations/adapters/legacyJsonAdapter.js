@@ -69,10 +69,14 @@ export function normalizeSessionAssureInitRow(row = {}) {
  */
 export function parseLegacyNextPage(nextPage) {
   if (!nextPage || typeof nextPage !== 'string') return {}
+  const raw = String(nextPage).trim()
   try {
-    const url = nextPage.startsWith('http')
-      ? new URL(nextPage)
-      : new URL(nextPage, 'http://legacy.local/')
+    const normalized = raw.includes('&codeTele=') && !raw.includes('?')
+      ? raw.replace(/&codeTele=/, '?codeTele=')
+      : raw
+    const url = normalized.startsWith('http')
+      ? new URL(normalized)
+      : new URL(normalized, 'http://legacy.local/')
     const params = url.searchParams
     const codeTele =
       params.get('numAssu') ||
@@ -80,8 +84,11 @@ export function parseLegacyNextPage(nextPage) {
       params.get('codeTele') ||
       undefined
     const codeSecret = params.get('codeSecret') || undefined
-    return { codeTele, codeSecret }
+    if (codeTele || codeSecret) return { codeTele, codeSecret }
   } catch {
-    return {}
+    /* fallback regex ci-dessous */
   }
+  const codeTele = raw.match(/(?:^|[?&])codeTele=([^&\s]+)/i)?.[1]
+  const codeSecret = raw.match(/(?:^|[?&])codeSecret=([^&\s]+)/i)?.[1]
+  return { codeTele, codeSecret }
 }

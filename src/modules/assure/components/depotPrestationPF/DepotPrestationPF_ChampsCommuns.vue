@@ -67,9 +67,10 @@
         :label="t('inputassu.phone')"
         outlined
         dense
-        mask="+237 ### ### ###"
-        unmasked-value
-        :rules="[required]"
+        type="tel"
+        prefix="+237"
+        maxlength="9"
+        :rules="[required, validateTelephone]"
       />
       <q-input
         v-model="store.common.matrInteText"
@@ -157,7 +158,7 @@ import { normalizeMatriculeEmployeur } from 'src/modules/assure/api/depotPrestat
 
 const { t } = useI18n()
 const store = useDepotPrestationPfStore()
-const { required, validateEmail, validateMatriculeCNPS } = useDepotPrestationPfRules()
+const { required, validateEmail, validateMatriculeCNPS, validateTelephone } = useDepotPrestationPfRules()
 const { notifySuccess, notifyError } = useNotify()
 
 const centresFiltered = ref([...rawCentres])

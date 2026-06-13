@@ -5,9 +5,12 @@
       :code-tele="controleCredentials.codeTele"
       :code-secret="controleCredentials.codeSecret"
       :show-preview="controleValidated"
+      :validating="validatingControle"
       :reload-token="controleReloadToken"
       @close="closeDialog"
       @edit="onEditFromControle"
+      @modify="onModifierFromControle"
+      @validate="onValidateFromControle"
       @validated="onControleValidated"
     />
     <q-card
@@ -354,7 +357,7 @@
                       class="full-width"
                       :counter-label="counterLabelFn"
                       max-files="1"
-                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png,.pdf"
+                      :accept="LEGACY_IMMAT_FILE_ACCEPT"
                       :max-file-size="LEGACY_MAX_FILE_SIZE"
                       :hint="fileHintWithSize($t('inputassu.annual_income_declaration'))"
                       :rules="[required]"
@@ -386,7 +389,7 @@
                       class="full-width"
                       :counter-label="counterLabelFn"
                       max-files="1"
-                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png,.pdf"
+                      :accept="LEGACY_IMMAT_FILE_ACCEPT"
                       :max-file-size="LEGACY_MAX_FILE_SIZE"
                       :rules="[required]"
                       :error="hasFieldError('file507')"
@@ -746,7 +749,7 @@
                       dense
                       class="full-width"
                       max-files="1"
-                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png,.pdf,.docx"
+                      :accept="LEGACY_IMMAT_FILE_ACCEPT"
                       :max-file-size="LEGACY_MAX_FILE_SIZE"
                       :hint="fileMaxSizeHint"
                       :rules="[required]"
@@ -772,7 +775,7 @@
                       dense
                       class="full-width"
                       max-files="1"
-                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png,.pdf,.docx"
+                      :accept="LEGACY_IMMAT_FILE_ACCEPT"
                       :max-file-size="LEGACY_MAX_FILE_SIZE"
                       :hint="fileMaxSizeHint"
                       :rules="[required]"
@@ -1204,10 +1207,7 @@
                       maxlength="9"
                       prefix="+237"
                       class="full-width"
-                      :rules="[
-                        required,
-                        (val) => regexPatterns.telephone.test(val) || $t('input.invalidPhone'),
-                      ]"
+                      :rules="phoneRules"
                     >
                       <template v-slot:label>
                         <span class="req-label">
@@ -1245,12 +1245,7 @@
                       class="full-width"
                       :error="hasFieldError('FAX_PERS')"
                       :error-message="fieldErrorMsg('FAX_PERS')"
-                      :rules="[
-                        (val) =>
-                          !val ||
-                          String(val).replace(/\D/g, '').length <= LEGACY_TELEIMMAS_DIGIT_LIMITS.PHONE ||
-                          $t('input.invalidPhone'),
-                      ]"
+                      :rules="phoneRulesOptional"
                       @update:model-value="() => reevaluateField('FAX_PERS')"
                     />
                   </div>
@@ -1327,7 +1322,7 @@
                         outlined
                         dense
                         class="full-width"
-                        accept=".jpg,.jpeg,.png,.pdf"
+                        :accept="LEGACY_IMMAT_FILE_ACCEPT"
                         :max-file-size="LEGACY_MAX_FILE_SIZE"
                         :rules="[(val) => !!val || $t('input.requis')]"
                         :error="stepErrors[6] && !form.actesNaissance[index - 1]"
@@ -1378,7 +1373,7 @@
                         outlined
                         dense
                         class="full-width"
-                        accept=".jpg,.jpeg,.png,.pdf"
+                        :accept="LEGACY_IMMAT_FILE_ACCEPT"
                         :max-file-size="LEGACY_MAX_FILE_SIZE"
                         :rules="[(val) => !!val || $t('input.requis')]"
                         :error="stepErrors[6] && !form.certificatsTravail[index - 1]"
@@ -1437,7 +1432,7 @@
                         outlined
                         dense
                         class="full-width"
-                        accept=".jpg,.jpeg,.png,.pdf"
+                        :accept="LEGACY_IMMAT_FILE_ACCEPT"
                         :max-file-size="LEGACY_MAX_FILE_SIZE"
                         :rules="[(val) => !!val || $t('input.requis')]"
                         :error="stepErrors[6] && !form.actesMariage[index - 1]"
@@ -2373,6 +2368,7 @@ import {
 import { useI18n } from 'vue-i18n'
 import html2pdf from 'html2pdf.js'
 import { submitTeleImmatAssure } from 'src/modules/immatriculations/api/immatAssureApi.js'
+import { resolveImmatSubmitNotifyMessage } from 'src/modules/immatriculations/api/immatAssureResponse.js'
 import {
   fetchAssureTele,
   fetchImmatAssuVolReferentials,
@@ -2385,11 +2381,15 @@ import {
 } from 'src/modules/immatriculations/adapters/assureTeleAdapter.js'
 import ImmatAssuTrvControle from 'src/modules/immatriculations/components/ImmatAssuTrvControle.vue'
 import { useQuasar } from 'quasar'
-import { regexPatterns } from 'src/js/regex.js'
-import { LEGACY_TELEIMMAS_DIGIT_LIMITS } from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
+import { buildLegacyTelephoneRules } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
+import {
+  LEGACY_IMMAT_ASSURE_FILE_ACCEPT,
+  LEGACY_TELEIMMAS_DIGIT_LIMITS,
+} from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
 
 /** Taille max pièce jointe — alignée teleImmat / GererAssure (3 Mo). */
 const LEGACY_MAX_FILE_SIZE = 3072000
+const LEGACY_IMMAT_FILE_ACCEPT = LEGACY_IMMAT_ASSURE_FILE_ACCEPT
 
 const $q = useQuasar()
 const props = defineProps({
@@ -2399,6 +2399,8 @@ const props = defineProps({
 })
 
 const { t, locale } = useI18n()
+const phoneRules = buildLegacyTelephoneRules(t, { required: true })
+const phoneRulesOptional = buildLegacyTelephoneRules(t, { required: false })
 const emit = defineEmits(['close'])
 
 const { notifyError, notifySuccess, notifyControleGenerated } = useNotify()
@@ -2419,6 +2421,7 @@ const phase = ref('form')
 const controleCredentials = ref({ codeTele: '', codeSecret: '' })
 const controleValidated = ref(false)
 const controleReloadToken = ref(0)
+const validatingControle = ref(false)
 const fromControleEdit = ref(false)
 const volSmigLines = ref([])
 
@@ -2491,7 +2494,7 @@ function createImmatAssuVolFormDefaults() {
     max_cotisation_annuel: '',
     Dest: 'dossiers/assure/immas/',
     laction: 'Créer',
-    valider: 'OUI',
+    valider: 'NON',
     minDateAffi: '',
     file504: null,
     file507: null,
@@ -3111,9 +3114,9 @@ const confirmSubmission = async () => {
     phase.value = 'controle'
 
     if (revalidateFromControle) {
-      notifySuccess(result.message || t('form.submitted'))
+      notifySuccess(resolveImmatSubmitNotifyMessage(result, t('form.submitted')))
     } else {
-      notifyControleGenerated(result.message || t('form.submitted'))
+      notifyControleGenerated(resolveImmatSubmitNotifyMessage(result, t('form.submitted')))
     }
   } catch (error) {
     const msg = error?.message || String(error)
@@ -3135,6 +3138,40 @@ async function onEditFromControle({ codeTele, codeSecret }) {
   step.value = 7
   maxStep.value = 7
   await nextTick()
+}
+
+function onModifierFromControle() {
+  fromControleEdit.value = true
+  controleValidated.value = false
+  phase.value = 'form'
+  form.value.laction = 'Modifier'
+  form.value.valider = 'NON'
+  step.value = 7
+  maxStep.value = 7
+}
+
+async function onValidateFromControle() {
+  validatingControle.value = true
+  try {
+    const formData = buildLegacyFormDataVol(form.value, { submissionType: 'definitive' })
+    const result = await submitTeleImmatAssure(formData)
+    form.value.code_tele = result.codeTele || form.value.code_tele
+    form.value.code_secret = result.codeSecret || form.value.code_secret
+    form.value.laction = 'Modifier'
+    form.value.valider = 'OUI'
+    controleCredentials.value = {
+      codeTele: result.codeTele || form.value.code_tele,
+      codeSecret: result.codeSecret || form.value.code_secret,
+    }
+    controleValidated.value = true
+    controleReloadToken.value += 1
+    notifySuccess(resolveImmatSubmitNotifyMessage(result, t('form.submitted')))
+  } catch (error) {
+    const msg = error?.message || String(error)
+    notifyError(msg || t('form.submit_error', { error: '' }))
+  } finally {
+    validatingControle.value = false
+  }
 }
 
 function onControleValidated() {

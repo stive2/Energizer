@@ -607,6 +607,7 @@ export default {
     pieceIdentiteResponsable: "Pièce d'identité du promoteur / responsable",
     /** Scan multipart — name=NUM_TYPEPIECE (imma_employeur1.js PIECEIDENT) */
     scanPieceIdentiteResponsable: "Scan de la pièce d'identité (copie gif, jpg ou pdf)",
+    fichierIdentiteResponsable: "Copie de la pièce d'identité (gif, jpg ou pdf)",
     numPieceIdentiteResponsable: "Numéro de la pièce d'identité du promoteur / responsable",
     dateDelivrancePieceIdentiteResponsable:
       "Date de délivrance de la pièce d'identité du promoteur / responsable",
@@ -732,6 +733,7 @@ export default {
     validation: {
       requiredFields: 'Veuillez corriger les champs en rouge avant de continuer.',
     },
+    searchEmployer: "Rechercher l'employeur à partir du matricule CNPS",
 
     step8: "Informations sur l'affiliation",
     controle: {
@@ -782,6 +784,9 @@ export default {
       footerTagline:
         'You Will Never Live Alone ©1967-2010 CNPS/DSI BP 441 YAOUNDE TEL : 22 23 40 11',
       print: 'Imprimer',
+      modify: 'Modifier',
+      validateInfo: 'Valider vos informations',
+      validatedTitle: 'État de contrôle validé',
       edit: 'Modifier / Valider',
       validate: 'Valider les informations',
       editLink: 'Modifier/Valider vos informations',

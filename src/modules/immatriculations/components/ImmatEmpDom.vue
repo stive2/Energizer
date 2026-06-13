@@ -542,10 +542,7 @@
                       prefix="+237"
                       dense
                       class="full-width"
-                      :rules="[
-                        required,
-                        (val) => regexPatterns.telephone.test(val) || $t('input.invalidPhone'),
-                      ]"
+                      :rules="phoneRules"
                     >
                       <template v-slot:label>
                         <span class="req-label"
@@ -565,10 +562,7 @@
                       maxlength="9"
                       dense
                       class="full-width"
-                      :rules="[
-                        required,
-                        (val) => regexPatterns.telephone.test(val) || $t('input.invalidPhone'),
-                      ]"
+                      :rules="phoneRules"
                     >
                       <template v-slot:label>
                         <span class="req-label"
@@ -1026,7 +1020,11 @@
 <script setup>
 import { ref, computed, defineProps, defineEmits, watch, onMounted } from 'vue'
 import { useNotify } from 'src/modules/shared/components/useNotify.js'
+import { buildLegacyTelephoneRules } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
 import { regexPatterns } from 'src/js/regex.js'
+import {
+  LEGACY_FORM_FILE_MAX_SIZE,
+} from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
 import { useI18n } from 'vue-i18n'
 import { useQuasar } from 'quasar'
 import html2pdf from 'html2pdf.js'
@@ -1051,9 +1049,9 @@ const causeImmaOptions = CAUSE_IMMA_OPTIONS
 const circuitDossierOptions = CIRCUIT_DOSSIER_OPTIONS
 
 // ── Validation fichiers (cohérent avec legacy JS) ──
-const RE_FILE_ID = /\.(gif|jpe?g|png)$/i
-const RE_FILE_PLAN = /\.(gif|jpe?g|png|docx?)$/i
-const RE_FILE_LIST = /\.(xls|xlsx|docx?)$/i
+const RE_FILE_ID = /\.(gif|jpe?g|png|pdf)$/i
+const RE_FILE_PLAN = /\.(gif|jpe?g|png|docx?|pdf)$/i
+const RE_FILE_LIST = /\.(xls|xlsx|docx?|pdf)$/i
 
 function normalizeFile(val) {
   if (!val) return null
@@ -1417,7 +1415,8 @@ const formFile = ref({
   IDLISTTRAV: null,
 })
 
-const maxSize = 3 * 1024 * 1024
+const maxSize = LEGACY_FORM_FILE_MAX_SIZE
+const phoneRules = buildLegacyTelephoneRules(t, { required: true })
 
 // ── Contrainte dates (pas de date future) ──
 const optionsDn = (date) => {

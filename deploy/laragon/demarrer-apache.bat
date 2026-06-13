@@ -3,12 +3,16 @@ chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 set "HTTPD="
+for /f "delimiters=" %%H in ('dir /s /b "C:\laragon2\bin\apache\httpd.exe" 2^>nul') do (
+  set "HTTPD=%%H"
+  goto :found
+)
 for /f "delimiters=" %%H in ('dir /s /b "C:\laragon\bin\apache\httpd.exe" 2^>nul') do (
   set "HTTPD=%%H"
   goto :found
 )
 
-echo [ERREUR] httpd.exe introuvable sous C:\laragon\bin\apache
+echo [ERREUR] httpd.exe introuvable sous C:\laragon2\bin\apache
 pause
 exit /b 1
 
@@ -16,6 +20,7 @@ exit /b 1
 for %%D in ("%HTTPD%") do set "HTTPD_BIN=%%~dpD"
 
 echo Apache trouve : %HTTPD%
+echo DocumentRoot attendu : C:\laragon2\www\sapelli
 echo Dossier conf : %HTTPD_BIN%conf\
 
 if not exist "%HTTPD_BIN%conf\httpd.conf" (

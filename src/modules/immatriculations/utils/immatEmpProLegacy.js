@@ -1,5 +1,5 @@
 import { compareDates } from 'src/modules/immatriculations/utils/immatAssuTrvLegacy.js'
-import { toLegacySexe } from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
+import { toLegacySexe, appendLegacyFormField } from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
 import { createImmatEmpProReferentialContext } from 'src/modules/immatriculations/utils/immatEmpProReferentials.js'
 import {
   CAUSE_IMMA_OPTIONS,
@@ -10,8 +10,7 @@ import {
 } from 'src/modules/immatriculations/data/immatEmpProLegacyFields.js'
 
 function appendScalar(fd, key, value) {
-  if (value === null || value === undefined || value === '') return
-  fd.append(key, String(value))
+  appendLegacyFormField(fd, key, value)
 }
 
 /**

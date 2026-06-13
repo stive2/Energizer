@@ -2,39 +2,13 @@
   <q-card class="controle-card column no-wrap">
     <q-card-section class="controle-toolbar q-py-xs q-px-md">
       <div class="row items-center no-wrap">
+        <div v-if="!showPreview" class="text-subtitle2 text-weight-medium text-primary">
+          {{ $t('immat.controle.subtitle') }}
+        </div>
+        <div v-else class="text-subtitle2 text-weight-medium text-positive">
+          {{ $t('immat.controle.validatedTitle') }}
+        </div>
         <q-space />
-        <template v-if="showPreview">
-          <q-btn
-            flat
-            dense
-            color="secondary"
-            icon="visibility"
-            :label="$t('form.preview')"
-            class="q-mr-sm"
-            :disable="!controleUrl"
-            @click="openControlePreview"
-          />
-          <q-btn
-            flat
-            dense
-            color="primary"
-            icon="download"
-            :label="$t('pdf.download')"
-            class="q-mr-sm"
-            :disable="!controleUrl"
-            @click="downloadControle"
-          />
-          <q-btn
-            flat
-            dense
-            color="primary"
-            icon="print"
-            :label="$t('immat.controle.print')"
-            class="q-mr-sm"
-            :disable="!iframeReady"
-            @click="printControle"
-          />
-        </template>
         <q-btn flat dense round icon="close" @click="$emit('close')" />
       </div>
     </q-card-section>
@@ -66,6 +40,37 @@
       />
     </q-card-section>
 
+    <q-separator v-if="!error" />
+    <q-card-actions v-if="!error" align="right" class="controle-footer q-pa-md">
+      <template v-if="!showPreview">
+        <q-btn
+          flat
+          color="primary"
+          icon="edit"
+          :label="$t('immat.controle.modify')"
+          @click="$emit('modify')"
+        />
+        <q-btn
+          unelevated
+          color="primary"
+          icon="verified"
+          :label="$t('immat.controle.validateInfo')"
+          :loading="validating"
+          @click="$emit('validate')"
+        />
+      </template>
+      <template v-else>
+        <q-btn
+          unelevated
+          color="primary"
+          icon="visibility"
+          :label="$t('form.preview')"
+          :disable="!controleUrl"
+          @click="openControlePreview"
+        />
+      </template>
+    </q-card-actions>
+
     <q-dialog v-model="previewOpen" maximized persistent>
       <q-card class="column no-wrap controle-preview-card">
         <q-card-section class="row items-center q-py-sm">
@@ -84,10 +89,11 @@
             flat
             dense
             color="primary"
-            icon="download"
+            icon="picture_as_pdf"
             :label="$t('pdf.download')"
             class="q-mr-xs"
-            @click="downloadControle"
+            :loading="pdfLoading"
+            @click="downloadControlePdf"
           />
           <q-btn flat round dense icon="close" v-close-popup />
         </q-card-section>
@@ -98,6 +104,7 @@
             :src="controleUrl"
             class="controle-preview-iframe"
             title="Aperçu état de contrôle"
+            @load="onPreviewIframeLoad"
           />
         </q-card-section>
       </q-card>
@@ -108,18 +115,21 @@
 <script setup>
 import { onBeforeUnmount, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import html2pdf from 'html2pdf.js'
 import { buildEtatControleAssureUrl } from 'src/modules/immatriculations/api/teleImmatAssureApi.js'
 import { useNotify } from 'src/modules/shared/components/useNotify.js'
 
 const props = defineProps({
   codeTele: { type: String, required: true },
   codeSecret: { type: String, default: '' },
+  /** true = validation définitive : bouton Aperçu uniquement */
   showPreview: { type: Boolean, default: false },
+  validating: { type: Boolean, default: false },
   /** Incrémenter pour recharger l’iframe après modification Quasar. */
   reloadToken: { type: Number, default: 0 },
 })
 
-const emit = defineEmits(['close', 'edit', 'validated'])
+const emit = defineEmits(['close', 'edit', 'modify', 'validate', 'validated'])
 
 const { t } = useI18n()
 const { notifyError } = useNotify()
@@ -132,12 +142,15 @@ const iframeReady = ref(false)
 const controleIframe = ref(null)
 const previewOpen = ref(false)
 const previewIframe = ref(null)
+const previewReady = ref(false)
+const pdfLoading = ref(false)
 
 /** Styles injectés dans l’iframe (même origine via proxy Vite). */
 const LEGACY_HIDE_CSS = `
   a[href*="index.jsp"],
   a[href="../index.jsp"],
-  a[href*="index.jsp?Page"] {
+  a[href*="index.jsp?Page"],
+  a[href*="tele_imma_assure.jsp"] {
     display: none !important;
   }
 `
@@ -225,6 +238,7 @@ function reloadControle() {
   error.value = null
   iframeLoading.value = true
   iframeReady.value = false
+  previewReady.value = false
   try {
     controleUrl.value = buildEtatControleAssureUrl(props.codeTele, props.codeSecret)
     iframeKey.value += 1
@@ -246,6 +260,18 @@ function onIframeLoad() {
     }
   } catch {
     /* Origine croisée : pas d’accès au DOM — fonctionnement iframe brut. */
+  }
+}
+
+function onPreviewIframeLoad() {
+  previewReady.value = true
+  try {
+    const doc = previewIframe.value?.contentDocument
+    if (doc) {
+      patchIframeDocument(doc)
+    }
+  } catch {
+    /* ignore */
   }
 }
 
@@ -281,27 +307,45 @@ function openControlePreview() {
     notifyError(t('immat.controle.submitNoCode'))
     return
   }
+  previewReady.value = false
   previewOpen.value = true
 }
 
-async function downloadControle() {
+function resolvePreviewBody() {
+  return (
+    previewIframe.value?.contentDocument?.body ||
+    controleIframe.value?.contentDocument?.body ||
+    null
+  )
+}
+
+async function downloadControlePdf() {
   if (!controleUrl.value) {
     notifyError(t('immat.controle.submitNoCode'))
     return
   }
+  pdfLoading.value = true
   try {
-    const response = await fetch(controleUrl.value, { credentials: 'include' })
-    if (!response.ok) throw new Error(`HTTP ${response.status}`)
-    const html = await response.text()
-    const blob = new Blob([html], { type: 'text/html;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = `etat-controle-${props.codeTele || 'assure'}.html`
-    anchor.click()
-    URL.revokeObjectURL(url)
+    if (!previewReady.value && !previewOpen.value) {
+      previewOpen.value = true
+      await new Promise((resolve) => setTimeout(resolve, 1200))
+    }
+    const body = resolvePreviewBody()
+    if (!body) {
+      throw new Error(t('pdf.generation_error'))
+    }
+    const opt = {
+      margin: 0.4,
+      filename: `etat-controle-${props.codeTele || 'assure'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, logging: false },
+      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' },
+    }
+    await html2pdf().from(body).set(opt).save()
   } catch {
-    window.open(controleUrl.value, '_blank', 'noopener,noreferrer')
+    notifyError(t('pdf.generation_error'))
+  } finally {
+    pdfLoading.value = false
   }
 }
 
@@ -314,6 +358,7 @@ watch(
 onBeforeUnmount(() => {
   try {
     teardownIframeDocument(controleIframe.value?.contentDocument)
+    teardownIframeDocument(previewIframe.value?.contentDocument)
   } catch {
     /* ignore */
   }
@@ -333,6 +378,11 @@ onBeforeUnmount(() => {
 .controle-toolbar {
   flex-shrink: 0;
   border-bottom: 1px solid #e0e0e0;
+  background: #fafafa;
+}
+
+.controle-footer {
+  flex-shrink: 0;
   background: #fafafa;
 }
 

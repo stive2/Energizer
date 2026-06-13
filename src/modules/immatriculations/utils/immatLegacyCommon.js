@@ -9,6 +9,33 @@ export const LEGACY_TELEIMMAS_DIGIT_LIMITS = {
   REVENU_MENSUEL: 6,
 }
 
+/** Taille max pièce jointe — alignée teleImmat / GererAssure (3 Mo). */
+export const LEGACY_FORM_FILE_MAX_SIZE = 3072000
+
+/** Pièces jointes assuré — images + PDF, max 3 Mo (aligné ImmatAssuTrv / GererAssure). */
+export const LEGACY_IMMAT_ASSURE_FILE_ACCEPT =
+  '.gif,.jpg,.jpeg,.png,.pdf,image/gif,image/jpeg,image/png,application/pdf'
+
+/** Pièces jointes avec documents bureautique (employeur, dépôt PF). */
+export const LEGACY_FORM_DOCUMENT_FILE_ACCEPT =
+  '.gif,.jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,image/gif,image/jpeg,image/png,application/pdf'
+
+const LEGACY_IMAGE_PDF_FILE_EXT = /\.(gif|jpe?g|png|pdf)$/i
+
+export function normalizeLegacyUploadFile(val) {
+  if (!val) return null
+  return Array.isArray(val) ? val[0] : val
+}
+
+export function isLegacyImageOrPdfFile(file) {
+  const f = normalizeLegacyUploadFile(file)
+  return f && LEGACY_IMAGE_PDF_FILE_EXT.test(f.name || '')
+}
+
+export function isLegacyImmatAssureUploadFile(file) {
+  return isLegacyImageOrPdfFile(file)
+}
+
 /** Chiffres seuls, longueur plafonnée (optionnelle). */
 export function legacyBoundedDigits(val, maxLen) {
   if (val == null || val === '') return ''
@@ -75,3 +102,31 @@ export function toLegacySexe(val) {
   if (v === 'M' || v === 'MASCULIN') return 'M'
   return val
 }
+
+/**
+ * Ajoute un champ scalaire au FormData GererAssure.
+ * Le servlet legacy (teleImmat_0.1) appelle souvent .replaceAll() sans test null :
+ * les champs vides doivent être envoyés comme "" (comme le formulaire ExtJS), pas omis.
+ */
+export function appendLegacyFormField(fd, key, value) {
+  if (value != null && typeof value === 'object') return
+  fd.append(key, value == null ? '' : String(value))
+}
+
+/** Envoie tous les scalaires du formulaire (champs vides → ""), comme ExtJS teleImmat. */
+export function appendLegacyFormFields(fd, form, keys) {
+  for (const key of keys) {
+    appendLegacyFormField(fd, key, form?.[key])
+  }
+}
+
+/**
+ * Prénoms optionnels côté UI legacy (imma_assure.js / imma_employeur0.js) :
+ * doivent être envoyés vides au servlet, jamais omis (évite NPE replaceAll).
+ */
+export const LEGACY_OPTIONAL_PRENOM_FIELD_KEYS = [
+  'PRENOM_PERS',
+  'PRENOM_PERE',
+  'PRENOM_MERE',
+  'PRENOM_PERSEMPL',
+]

@@ -160,10 +160,10 @@
                 dense
                 :style="$q.screen.gt.sm ? 'width: 500px' : 'width: 100%'"
                 type="tel"
-                mask="+237 ### ### ###"
-                unmasked-value
+                prefix="+237"
+                maxlength="9"
                 class="q-mr-sm q-mb-sm"
-                :rules="[required]"
+                :rules="phoneRules"
               >
                 <template v-slot:label>
                   {{ $t('inputassu.phone') }}
@@ -422,6 +422,7 @@ import {
   parseNombreEnfantsSousControleAccouchement,
 } from 'src/modules/assure/utils/depotPrestationPfAccouchement.js';
 import { regexPatterns } from 'src/js/regex.js';
+import { buildLegacyTelephoneRules } from 'src/modules/energizer/utils/energizerFormInputUtils.js';
 import Prestation21 from 'src/modules/assure/components/Prestations/Prestation21.vue';
 import Prestation31 from 'src/modules/assure/components/Prestations/Prestation31.vue';
 
@@ -1045,6 +1046,7 @@ const fetchEmployerExamen = async () => {
 };
 
 const required = (val) => !!val || t('input.requis');
+const phoneRules = buildLegacyTelephoneRules(t, { required: true });
 
 const validateEmail = (val) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

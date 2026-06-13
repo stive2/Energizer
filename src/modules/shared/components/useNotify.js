@@ -84,7 +84,10 @@ export const useNotify = () => {
    * @param {import('quasar').QNotifyCreateOptions} [opts]
    */
   const notifyControleGenerated = (message, opts = {}) => {
-    const text = stripHtml(message || '').trim()
+    let text = stripHtml(message || '').trim()
+    if (text) {
+      text = text.split(/CLIQUER SUR LE LIEN/i)[0]?.trim() || text
+    }
     $q.notify({
       ...baseNotifyOptions({
         timeout: NOTIFY_CONTROLE_MESSAGE_TIMEOUT,

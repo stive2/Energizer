@@ -44,9 +44,21 @@ try {
         Copy-Item -Path (Join-Path $wwwPath '*') -Destination $backupDir -Recurse -Force
     }
 
+    # Nettoyage complet avant copie — évite index.html / assets obsolètes mélangés
+    if (Test-Path $wwwPath) {
+        Get-ChildItem -Path $wwwPath -Force | Remove-Item -Recurse -Force
+    }
     New-Item -ItemType Directory -Force -Path $wwwPath | Out-Null
     Write-Host "Déploiement vers $wwwPath …" -ForegroundColor Cyan
     Copy-Item -Path (Join-Path $distSpa '*') -Destination $wwwPath -Recurse -Force
+
+    $indexPath = Join-Path $wwwPath 'index.html'
+    if (Test-Path $indexPath) {
+        $indexInfo = Get-Item $indexPath
+        Write-Host "index.html déployé : $($indexInfo.LastWriteTime)" -ForegroundColor DarkGray
+    } else {
+        Write-Warning "index.html introuvable dans $wwwPath — vérifiez que vous copiez le contenu de dist\spa\ (pas le dossier spa lui-même)."
+    }
 
     if ($config.InstallApacheVhost) {
         $vhostSrc = $config.ApacheVhostSource
@@ -65,7 +77,12 @@ try {
     Write-Host ""
     Write-Host "Déploiement terminé." -ForegroundColor Green
     Write-Host "URL : http://172.17.15.121:82/#/energizer-login" -ForegroundColor Green
-    Write-Host "Dossier www : C:\laragon\www\sapelli" -ForegroundColor DarkGray
+    Write-Host "Dossier www : $wwwPath" -ForegroundColor DarkGray
+    Write-Host ""
+    Write-Host "Si le navigateur affiche encore l'ancienne version :" -ForegroundColor Yellow
+    Write-Host "  1. Redémarrez Apache (demarrer-apache.bat ou Laragon Stop/Start)" -ForegroundColor Yellow
+    Write-Host "  2. Recharge forcée : Ctrl+Shift+R (ou navigation privée)" -ForegroundColor Yellow
+    Write-Host "  3. Vérifiez que dist\spa\index.html est bien copié À LA RACINE de sapelli\" -ForegroundColor Yellow
 }
 finally {
     Pop-Location

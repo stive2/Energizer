@@ -26,6 +26,24 @@ export function parseCredentialsFromGererAssureMsg(msg) {
   return { codeTele, codeSecret }
 }
 
+/**
+ * Message court après GererAssure (codes uniquement, sans lien legacy).
+ * @param {string} [msg]
+ * @param {{ codeTele?: string|null, codeSecret?: string|null }} [credentials]
+ */
+export function formatGererAssureCredentialsMessage(msg, credentials = {}) {
+  const fromMsg = parseCredentialsFromGererAssureMsg(msg)
+  const codeTele = credentials.codeTele || fromMsg.codeTele
+  const codeSecret = credentials.codeSecret || fromMsg.codeSecret
+  if (codeTele && codeSecret) {
+    return `Votre code de pré-immatriculation est : ${codeTele},\nVotre code secret est : ${codeSecret}`
+  }
+  const plain = stripHtml(msg)
+  if (!plain) return ''
+  const cut = plain.split(/CLIQUER SUR LE LIEN/i)[0]?.trim() || plain
+  return cut.replace(/\s+/g, ' ').trim()
+}
+
 function isGererAssureDuplicate(payload) {
   const exec = payload.exec ?? payload.Exec
   return exec === '1' || exec === 1
@@ -147,10 +165,36 @@ export function enrichSubmitCredentials(parsed) {
   if (!parsed) return parsed
   const fromPage = parseLegacyNextPage(parsed.nextPage)
   const fromMsg = parseCredentialsFromGererAssureMsg(parsed.message)
+  const codeTele = parsed.codeTele || fromPage.codeTele || fromMsg.codeTele || null
+  const codeSecret = parsed.codeSecret || fromPage.codeSecret || fromMsg.codeSecret || null
+  const shortMessage = formatGererAssureCredentialsMessage(parsed.message, {
+    codeTele,
+    codeSecret,
+  })
   return {
     ...parsed,
-    codeTele: parsed.codeTele || fromPage.codeTele || fromMsg.codeTele || null,
-    codeSecret: parsed.codeSecret || fromPage.codeSecret || fromMsg.codeSecret || null,
+    codeTele,
+    codeSecret,
     message: stripHtml(parsed.message),
+    shortMessage,
   }
+}
+
+/**
+ * Message de notification après GererAssure (codes uniquement, jamais le lien legacy).
+ * @param {ReturnType<typeof enrichSubmitCredentials>} result
+ * @param {string} [fallback]
+ */
+export function resolveImmatSubmitNotifyMessage(result, fallback = '') {
+  if (!result) return fallback
+  const short = String(result.shortMessage || '').trim()
+  if (short) return short
+  const rebuilt = formatGererAssureCredentialsMessage(result.message, {
+    codeTele: result.codeTele,
+    codeSecret: result.codeSecret,
+  })
+  if (rebuilt) return rebuilt
+  const plain = stripHtml(result.message)
+  if (!plain) return fallback
+  return plain.split(/CLIQUER SUR LE LIEN/i)[0]?.trim() || plain
 }

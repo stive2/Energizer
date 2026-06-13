@@ -4,92 +4,17 @@ import {
   parseLegacyDate,
   compareDates,
   monthsBetween,
-  yearsBetween,
   syncLegacyHiddenFields,
   isLegacyImageFile,
   legacyPhoneDigits,
+  collectImmatPersonValidationErrors,
 } from './immatAssuTrvLegacy.js'
-import { collectTeleimmasNumericFieldErrors, legacyBpDigits } from './immatLegacyCommon.js'
+import { appendLegacyFormField, legacyBpDigits } from './immatLegacyCommon.js'
+import { selectSmig } from './selectSmig.js'
+import { normalizeSessionAssureInitRow } from '../adapters/legacyJsonAdapter.js'
 
 /** 2e argument de to_number(TAUX, taux)/100 côté servlet GererAssure (masque Oracle, pas le taux %). */
 export const GERER_ASSURE_TAUX_ORACLE_FORMAT = '9.99'
-
-/** Erreurs communes assuré / parents — voir immatAssuTrvLegacy.collectImmatPersonValidationErrors */
-function collectImmatPersonFieldErrors(form, step, push) {
-  const checkAll = step === null || step === 7
-  const check2 = step === null || step === 2
-  const check3 = step === null || step === 3
-  const check4 = step === null || step === 4
-  const check5 = step === null || step === 5
-  const check6 = step === null || step === 6
-
-  syncLegacyHiddenFields(form)
-
-  if (check5 || checkAll) {
-    collectTeleimmasNumericFieldErrors(form, push)
-  }
-
-  if (check2 || checkAll) {
-    if (!form.LieuNaiss) {
-      push('LieuNaiss', "L'arrondissement de naissance de l'assuré est obligatoire.")
-    }
-    if (form.NUM_TYPEPIECE && !form.pieceIdentite) {
-      push('pieceIdentite', "La pièce d'identité est obligatoire.")
-    }
-    if (form.NUM_TYPEPIECE && form.NUM_TYPEPIECE !== '99' && !form.declarationHonneur) {
-      push('declarationHonneur', "La déclaration sur l'honneur est obligatoire.")
-    }
-    const refDate = form.DATE_DEMANDE || formatDateFr()
-    if (monthsBetween(refDate, form.DATE_NAISS_PERS) < 12 * 14) {
-      push('DATE_NAISS_PERS', 'Vous avez moins de 14 ans à ce jour.')
-    }
-    if (form.pieceIdentite && !isLegacyImageFile(form.pieceIdentite)) {
-      push('pieceIdentite', "La pièce d'identité doit être une image (gif, jpeg, jpg, png).")
-    }
-    if (
-      form.NUM_TYPEPIECE &&
-      form.NUM_TYPEPIECE !== '99' &&
-      form.declarationHonneur &&
-      !isLegacyImageFile(form.declarationHonneur)
-    ) {
-      push('declarationHonneur', "La déclaration sur l'honneur doit être une image (gif, jpeg, jpg, png).")
-    }
-  }
-
-  if (check3 || check4 || checkAll) {
-    if (form.DATE_NAISS_PERSM && compareDates(form.DATE_NAISS_PERSM, form.DATE_NAISS_PERS) === 1) {
-      push('DATE_NAISS_PERSM', "Date de naissance de l'assuré antérieure à celle de sa mère.")
-    }
-    if (form.DATE_NAISS_PERSM && yearsBetween(form.DATE_NAISS_PERS, form.DATE_NAISS_PERSM) <= 8) {
-      push(
-        'DATE_NAISS_PERSM',
-        "Écart d'âge trop petit entre le travailleur et sa mère (la mère doit avoir au moins 8 ans de plus).",
-      )
-    }
-    const pere = (form.NOM_PERE || '').trim()
-    if (pere && pere.length > 0 && pere !== 'PND') {
-      if (form.DATE_NAISS_PERSP && compareDates(form.DATE_NAISS_PERSP, form.DATE_NAISS_PERS) === 1) {
-        push('DATE_NAISS_PERSP', "Date de naissance de l'assuré antérieure à celle de son père.")
-      }
-      if (form.DATE_NAISS_PERSP && yearsBetween(form.DATE_NAISS_PERS, form.DATE_NAISS_PERSP) <= 12) {
-        push(
-          'DATE_NAISS_PERSP',
-          "Écart d'âge trop petit entre le travailleur et son père (le père doit avoir au moins 12 ans de plus).",
-        )
-      }
-    } else if (form.LOCALITE_NAISS_PERE || form.DATE_NAISS_PERSP) {
-      push('NOM_PERE', 'Saisissez à nouveau les informations du père ou bien laissez les vides.')
-    }
-  }
-
-  if (check6 || checkAll) {
-    if (form.SEXE_PERS === 'FEMININ' && Number(form.nombConj) > 1) {
-      push('nombConj', "Une assurée ne peut avoir qu'un seul conjoint déclaré.")
-    }
-  }
-}
-import { selectSmig } from './selectSmig.js'
-import { normalizeSessionAssureInitRow } from '../adapters/legacyJsonAdapter.js'
 
 export const REGIME_VOLONTAIRE = '1'
 
@@ -473,7 +398,7 @@ export function collectRegime1ValidationErrors(form, step = null) {
   const push = (field, message) => errors.push({ field, message })
 
   syncOrigineHidden(form)
-  collectImmatPersonFieldErrors(form, step, push)
+  collectImmatPersonValidationErrors(form, step, push)
 
   const checkAll = step === null || step === 7
   const check1 = step === null || step === 1
@@ -523,12 +448,12 @@ export function collectRegime1ValidationErrors(form, step = null) {
     if (!form.file504) {
       push('file504', 'La déclaration annuelle de revenu est obligatoire.')
     } else if (!isLegacyImageFile(form.file504)) {
-      push('file504', 'La déclaration annuelle de revenu doit être une image (gif, jpeg, jpg, png).')
+      push('file504', 'La déclaration annuelle de revenu doit être une image (gif, jpeg, jpg, png) ou un PDF.')
     }
     if (!form.file507) {
       push('file507', "La déclaration sur l'honneur (non salarié) est obligatoire.")
     } else if (!isLegacyImageFile(form.file507)) {
-      push('file507', "La déclaration sur l'honneur doit être une image (gif, jpeg, jpg, png).")
+      push('file507', "La déclaration sur l'honneur doit être une image (gif, jpeg, jpg, png) ou un PDF.")
     }
     if (
       form.DATE_DEBUT_AFFI &&
@@ -554,12 +479,6 @@ export function validateRegime1BusinessFieldMap(form, step = null) {
 export function validateRegime1Business(form, step = null) {
   const errors = collectRegime1ValidationErrors(form, step)
   return errors[0]?.message ?? null
-}
-
-function appendScalar(fd, key, value) {
-  if (value === null || value === undefined || value === '') return
-  if (typeof value === 'object') return
-  fd.append(key, String(value))
 }
 
 export function buildLegacyFormDataVol(form, options = {}) {
@@ -598,8 +517,8 @@ export function buildLegacyFormDataVol(form, options = {}) {
   if (options.submissionType === 'temporary') f.valider = 'NON'
   else if (options.submissionType === 'definitive') f.valider = 'OUI'
 
-  LEGACY_VOL_TEXT_FIELDS.forEach((key) => appendScalar(fd, key, f[key]))
-  appendScalar(fd, 'codeCentrePrefText', f.codeCentrePrefText)
+  LEGACY_VOL_TEXT_FIELDS.forEach((key) => appendLegacyFormField(fd, key, f[key]))
+  appendLegacyFormField(fd, 'codeCentrePrefText', f.codeCentrePrefText)
 
   if (f.file504) fd.append('504', f.file504, f.file504.name)
   if (f.file507) fd.append('507', f.file507, f.file507.name)

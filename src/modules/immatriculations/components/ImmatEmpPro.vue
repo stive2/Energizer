@@ -257,10 +257,7 @@
                       type="tel"
                       maxlength="9"
                       class="full-width"
-                      :rules="[
-                        required,
-                        (val) => regexPatterns.telephone.test(val) || t('input.invalidPhone'),
-                      ]"
+                      :rules="phoneRules"
                     >
                       <template v-slot:label>
                         <span class="req-label"
@@ -1155,10 +1152,7 @@
                       maxlength="9"
                       prefix="+237"
                       class="full-width"
-                      :rules="[
-                        required,
-                        (val) => regexPatterns.telephone.test(val) || t('input.invalidPhone'),
-                      ]"
+                      :rules="phoneRules"
                     >
                       <template v-slot:prepend><q-icon name="phone" color="primary" /></template>
                       <template v-slot:label>
@@ -1282,7 +1276,7 @@
                       v-model="formFile.fichierIdentiteResponsable"
                       outlined
                       dense
-                      :label="pieceIdentiteScanLabel"
+                      :label="fichierIdentiteResponsableLabel"
                       class="full-width"
                       accept=".gif,.jpg,.jpeg,.png,.pdf"
                       :max-total-size="maxSize"
@@ -1292,8 +1286,10 @@
                       max-files="1"
                       :hint="$t('input.max_size_hint')"
                     >
-                      <template v-slot:prepend><q-icon name="badge" color="primary" /></template>
-                      <template v-slot:label>{{ pieceIdentiteScanLabel }}</template>
+                      <template v-slot:prepend
+                        ><q-icon name="upload_file" color="primary"
+                      /></template>
+                      <template v-slot:label>{{ fichierIdentiteResponsableLabel }}</template>
                     </q-file>
                   </div>
                 </div>
@@ -1492,6 +1488,11 @@ import { ref, computed, defineProps, defineEmits, watch, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useNotify } from 'src/modules/shared/components/useNotify.js'
 import { regexPatterns } from 'src/js/regex.js'
+import { buildLegacyTelephoneRules } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
+import {
+  isLegacyImageOrPdfFile,
+  LEGACY_FORM_FILE_MAX_SIZE,
+} from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
 import { useI18n } from 'vue-i18n'
 import html2pdf from 'html2pdf.js'
 import { submitGererEmployeur } from 'src/modules/immatriculations/api/immatEmployeurApi.js'
@@ -1735,13 +1736,12 @@ const optionsDn = (date) => {
 }
 
 const required = (val) => !!val || 'Ce champ est requis / This field is required'
-const maxSize = 3 * 1024 * 1024
+const maxSize = LEGACY_FORM_FILE_MAX_SIZE
+const phoneRules = buildLegacyTelephoneRules(t, { required: true })
 
 const fileTypeImage = (val) => {
   if (!val) return true
-  const file = Array.isArray(val) ? val[0] : val
-  if (!file) return true
-  return /\.(gif|jpe?g|png)$/i.test(file.name) || 'Type de fichier non autorise (gif/jpg/png)'
+  return isLegacyImageOrPdfFile(val) || 'Type de fichier non autorise (gif/jpg/png/pdf)'
 }
 
 const fileTypeDoc = (val) => {
@@ -2079,13 +2079,13 @@ const getPieceName = (code) => {
   return item?.LIBELLE || String(code)
 }
 
-const pieceIdentiteScanLabel = computed(() => {
+/** Libellé dynamique du scan — aligné legacy imma_employeur1.js (fieldLabel = LIBELLE). */
+const fichierIdentiteResponsableLabel = computed(() => {
   const libelle = getPieceName(form.value.NUM_TYPEPIECE)
-  const base = t('input.scanPieceIdentiteResponsable')
-  if (form.value.NUM_TYPEPIECE && libelle && libelle !== String(form.value.NUM_TYPEPIECE)) {
-    return `${base} — ${libelle}`
+  if (libelle && libelle !== String(form.value.NUM_TYPEPIECE)) {
+    return libelle
   }
-  return base
+  return t('input.fichierIdentiteResponsable')
 })
 
 function onTypePieceSelected() {

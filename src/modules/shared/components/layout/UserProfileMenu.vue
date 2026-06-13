@@ -107,7 +107,13 @@
                   :label="t('layout.profile.phone')"
                   outlined
                   dense
+                  type="tel"
+                  prefix="+237"
+                  maxlength="9"
                   class="q-mb-md"
+                  :rules="[
+                    (val) => !val || isValidCameroonPhone(val) || t('input.invalidPhone'),
+                  ]"
                 />
                 <q-btn
                   type="submit"
@@ -216,6 +222,7 @@
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue'
+import { isValidCameroonPhone } from 'src/js/regex.js'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 

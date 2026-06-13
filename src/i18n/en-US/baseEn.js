@@ -588,6 +588,7 @@ export default {
     emailResponsable: 'Promoter / manager email *',
     pieceIdentiteResponsable: 'Promoter / manager ID document',
     scanPieceIdentiteResponsable: 'ID document scan (gif, jpg or pdf copy)',
+    fichierIdentiteResponsable: 'ID document copy (gif, jpg or pdf)',
     numPieceIdentiteResponsable: 'Promoter / manager ID document number',
     dateDelivrancePieceIdentiteResponsable: 'Promoter / manager ID document issue date',
     lieuDelivrancePieceIdentitePromoteur: 'Promoter / manager ID document issue place',
@@ -709,6 +710,7 @@ export default {
     validation: {
       requiredFields: 'Please fix the highlighted fields before continuing.',
     },
+    searchEmployer: 'Search employer by CNPS registration number',
     controle: {
       title: 'Insured pre-registration form',
       subtitle: 'Control report — tele-registration',
@@ -757,6 +759,9 @@ export default {
       footerTagline:
         'You Will Never Live Alone ©1967-2010 CNPS/DSI BP 441 YAOUNDE TEL : 22 23 40 11',
       print: 'Print',
+      modify: 'Edit',
+      validateInfo: 'Validate your information',
+      validatedTitle: 'Validated control report',
       edit: 'Edit / Validate',
       validate: 'Validate information',
       editLink: 'Edit/Validate your information',

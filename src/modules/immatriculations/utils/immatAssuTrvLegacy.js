@@ -1,5 +1,6 @@
 /** Régime 0 — assuré travailleur obligatoire (tele_imma_assure.jsp?regime=0). */
 import {
+  appendLegacyFormField,
   collectTeleimmasNumericFieldErrors,
   legacyBpDigits,
   legacyPhoneDigits,
@@ -244,7 +245,7 @@ export function initImmatAssuTrvRegime0(form, session = {}) {
   })
 }
 
-const IMAGE_EXT = /\.(gif|jpe?g|png)$/i
+const IMAGE_EXT = /\.(gif|jpe?g|png|pdf)$/i
 
 export function isLegacyImageFile(file) {
   return file && IMAGE_EXT.test(file.name || '')
@@ -254,7 +255,7 @@ export function isLegacyImageFile(file) {
  * Validations communes assuré / parents (régime 0 et 1).
  * @param {(field: string, message: string) => void} push
  */
-function collectImmatPersonValidationErrors(form, step, push) {
+export function collectImmatPersonValidationErrors(form, step, push) {
   syncLegacyHiddenFields(form)
 
   const checkAll = step === null || step === 7
@@ -309,7 +310,7 @@ function collectImmatPersonValidationErrors(form, step, push) {
 
   if (check2 || checkAll) {
     if (form.pieceIdentite && !isLegacyImageFile(form.pieceIdentite)) {
-      push('pieceIdentite', "La pièce d'identité doit être une image (gif, jpeg, jpg, png).")
+      push('pieceIdentite', "La pièce d'identité doit être une image (gif, jpeg, jpg, png) ou un PDF.")
     }
     if (
       form.NUM_TYPEPIECE &&
@@ -317,7 +318,7 @@ function collectImmatPersonValidationErrors(form, step, push) {
       form.declarationHonneur &&
       !isLegacyImageFile(form.declarationHonneur)
     ) {
-      push('declarationHonneur', "La déclaration sur l'honneur doit être une image (gif, jpeg, jpg, png).")
+      push('declarationHonneur', "La déclaration sur l'honneur doit être une image (gif, jpeg, jpg, png) ou un PDF.")
     }
   }
 
@@ -383,7 +384,7 @@ export function collectRegime0ValidationErrors(form, step = null) {
       push('ActuelRevenu', `Le salaire est inférieur au smig ${smig} F CFA.`)
     }
     if (form.avisEmbauche && !isLegacyImageFile(form.avisEmbauche)) {
-      push('avisEmbauche', "L'avis d'embauche doit être une image (gif, jpeg, jpg, png).")
+      push('avisEmbauche', "L'avis d'embauche doit être une image (gif, jpeg, jpg, png) ou un PDF.")
     }
   }
 
@@ -406,12 +407,6 @@ export function validateRegime0BusinessFieldMap(form, step = null) {
 export function validateRegime0Business(form, step = null) {
   const errors = collectRegime0ValidationErrors(form, step)
   return errors[0]?.message ?? null
-}
-
-function appendScalar(fd, key, value) {
-  if (value === null || value === undefined || value === '') return
-  if (typeof value === 'object') return
-  fd.append(key, String(value))
 }
 
 /**
@@ -456,8 +451,8 @@ export function buildLegacyFormData(form, options = {}) {
   if (options.submissionType === 'temporary') f.valider = 'NON'
   else if (options.submissionType === 'definitive') f.valider = 'OUI'
 
-  LEGACY_TEXT_FIELDS.forEach((key) => appendScalar(fd, key, f[key]))
-  appendScalar(fd, 'codeCentrePrefText', f.codeCentrePrefText)
+  LEGACY_TEXT_FIELDS.forEach((key) => appendLegacyFormField(fd, key, f[key]))
+  appendLegacyFormField(fd, 'codeCentrePrefText', f.codeCentrePrefText)
 
   if (f.avisEmbauche) fd.append('110', f.avisEmbauche, f.avisEmbauche.name)
   if (f.pieceIdentite && f.NUM_TYPEPIECE) {

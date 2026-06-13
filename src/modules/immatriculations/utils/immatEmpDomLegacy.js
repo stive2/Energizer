@@ -7,7 +7,7 @@ import { pieces as rawPieces } from 'src/modules/shared/data/Pieces.js'
 import { pays as rawPays } from 'src/modules/shared/data/Pays.js'
 import { arrondissements as rawArrondissements } from 'src/modules/shared/data/Arrondissements.js'
 import { compareDates } from 'src/modules/immatriculations/utils/immatAssuTrvLegacy.js'
-import { toLegacySexe } from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
+import { appendLegacyFormField, toLegacySexe } from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
 import { createImmatEmpProReferentialContext } from 'src/modules/immatriculations/utils/immatEmpProReferentials.js'
 import {
   CAUSE_IMMA_OPTIONS,
@@ -33,8 +33,7 @@ function resolveReferentialContext(referentials) {
 }
 
 function appendScalar(fd, key, value) {
-  if (value === null || value === undefined || value === '') return
-  fd.append(key, String(value))
+  appendLegacyFormField(fd, key, value)
 }
 
 function normalizeLaction(value) {

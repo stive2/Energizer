@@ -1,4 +1,4 @@
-import { regexPatterns } from 'src/js/regex.js'
+import { isValidCameroonPhone } from 'src/js/regex.js'
 import { toLegacyString, toLegacyUppercase } from './liquidationLegacyUtils.js'
 
 export { toLegacyUppercase }
@@ -43,9 +43,7 @@ export function buildLegacyTelephoneRules(t, { required = false } = {}) {
   if (required) {
     rules.push((val) => (val != null && String(val).trim() !== '') || t('input.requis'))
   }
-  rules.push(
-    (val) => !val || regexPatterns.telephone.test(String(val)) || t('input.invalidPhone'),
-  )
+  rules.push((val) => !val || isValidCameroonPhone(val) || t('input.invalidPhone'))
   return rules
 }
 

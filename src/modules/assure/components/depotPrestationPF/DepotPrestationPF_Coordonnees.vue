@@ -70,11 +70,13 @@
 
         dense
 
-        mask="+237 ### ### ###"
+        type="tel"
 
-        unmasked-value
+        prefix="+237"
 
-        :rules="[required]"
+        maxlength="9"
+
+        :rules="[required, validateTelephone]"
 
       />
 
@@ -194,7 +196,7 @@ const { t } = useI18n()
 
 const store = useDepotPrestationPfStore()
 
-const { required, validateEmail, validateMatriculeCNPS } = useDepotPrestationPfRules()
+const { required, validateEmail, validateMatriculeCNPS, validateTelephone } = useDepotPrestationPfRules()
 
 const { notifySuccess, notifyError } = useNotify()
 

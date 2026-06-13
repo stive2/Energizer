@@ -1,6 +1,6 @@
 # Energizer IHM (Quasar / Vue 3)
 
-Interface relookée CNPS Energizer — déploiement **Laragon** dossier **`C:\laragon\www\sapelli`**.
+Interface relookée CNPS Energizer — déploiement **Laragon2** dossier **`C:\laragon2\www\sapelli`**.
 
 ## Déploiement (votre PC → serveur 172.17.15.121)
 
@@ -14,9 +14,13 @@ npm run build
 
 ### Sur le serveur (copie manuelle)
 
-1. Contenu de `dist\spa\` → `C:\laragon\www\sapelli\`
-2. `deploy\laragon\apache-energizer.conf` → `C:\laragon\etc\apache2\sites-enabled\sapelli.conf`
-3. Redémarrer Apache (`demarrer-apache.bat` ou Start All Laragon)
+1. Contenu de `dist\spa\` → **`C:\laragon2\www\sapelli\`**
+2. `deploy\laragon\apache-energizer.conf` → **`C:\laragon2\etc\apache2\sites-enabled\sapelli.conf`**
+3. Redémarrer Apache Laragon2 (`demarrer-apache.bat` ou Laragon2 Stop/Start)
+
+**URL :** `http://172.17.15.121:82/#/energizer-login`
+
+> Apache actif sur le serveur = **Laragon2**. Ne pas déployer dans `C:\laragon\www\sapelli` (ancien chemin).
 
 **URL :** `http://172.17.15.121:82/#/energizer-login`
 
