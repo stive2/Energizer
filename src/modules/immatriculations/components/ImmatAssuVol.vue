@@ -1,17 +1,28 @@
 <template>
   <q-dialog v-model="open" persistent full-width>
+    <ImmatAssuTrvControle
+      v-show="phase === 'controle'"
+      :code-tele="controleCredentials.codeTele"
+      :code-secret="controleCredentials.codeSecret"
+      :show-preview="controleValidated"
+      :validating="validatingControle"
+      :reload-token="controleReloadToken"
+      @close="closeDialog"
+      @edit="onEditFromControle"
+      @modify="onModifierFromControle"
+      @validate="onValidateFromControle"
+      @validated="onControleValidated"
+    />
     <q-card
+      v-show="phase === 'form'"
       :style="$q.screen.gt.sm ? 'width: 960px; max-width: 98vw' : 'width: 100%'"
-      class="immat-main-card"
+      class="immat-main-card column no-wrap"
     >
       <!-- ═══ EN-TÊTE ═══ -->
-      <q-card-section class="immat-header row items-center no-wrap q-pa-md">
-        <q-icon name="how_to_reg" size="32px" class="q-mr-md text-white" />
-        <div class="col">
-          <div class="text-h6 text-white text-weight-bold">{{ $t(service.name) }}</div>
-          <div class="text-caption text-blue-2">
-            {{ $t('immat.subtitle_vol', 'Immatriculation en ligne — Régime Volontaire') }}
-          </div>
+      <q-card-section class="immat-header row items-center no-wrap q-px-md q-py-xs">
+        <q-icon name="how_to_reg" size="22px" class="q-mr-sm text-white" />
+        <div class="col text-subtitle1 text-white text-weight-bold">
+          {{ $t(service.name) }}
         </div>
         <q-chip
           :label="form.regimeAffiC || 'Volontaire'"
@@ -56,10 +67,31 @@
         <input type="hidden" name="valider" :value="form.valider" />
       </div>
 
-      <q-scroll-area style="height: 700px">
-        <!-- ═══ FORMULAIRE STEPPER ═══ -->
-        <q-card-section class="q-pa-sm">
-          <q-form ref="formRef" @submit.prevent="submitForm">
+      <q-form
+        ref="formRef"
+        class="col column immat-form"
+        greedy
+        reactive-rules
+        @submit.prevent="dialValidation = true"
+      >
+        <q-scroll-area class="col immat-scroll-area">
+          <q-inner-loading :showing="loadingInit" :label="referentialsLoadingLabel" />
+          <q-card-section v-if="referentialsError && !loadingInit" class="q-pb-none">
+            <q-banner rounded class="bg-negative text-white">
+              <template #avatar><q-icon name="cloud_off" /></template>
+              {{ referentialsError }}
+              <template #action>
+                <q-btn
+                  flat
+                  color="white"
+                  :label="$t('form.retry')"
+                  icon="refresh"
+                  @click="loadFormBootstrap"
+                />
+              </template>
+            </q-banner>
+          </q-card-section>
+          <q-card-section class="q-pa-sm">
             <q-stepper
               v-model="step"
               :vertical="!$q.screen.gt.sm"
@@ -82,13 +114,52 @@
                 :error="stepErrors[1]"
                 :disable="!isStepAllowed(1)"
               >
-                <!-- Sous-section : Affiliation -->
+                <!-- Bandeau session (imma_assure.js — Date du jour, Affiliation, SMIG) -->
+                <div class="row q-col-gutter-sm q-mb-sm vol-session-band">
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.DATE_DEMANDE"
+                      name="DATE_DEMANDE"
+                      :label="$t('inputassu.request_date')"
+                      outlined
+                      dense
+                      readonly
+                      filled
+                      class="full-width immat-readonly-field"
+                    />
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.regimeAffiC"
+                      name="regimeAffiC"
+                      :label="$t('inputassu.affiliation_regime')"
+                      outlined
+                      dense
+                      readonly
+                      filled
+                      class="full-width immat-readonly-field"
+                    />
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <q-input
+                      v-model="form.SMIG_VALUE"
+                      name="SMIG_VALUE"
+                      :label="$t('inputassu.minimum_wage')"
+                      outlined
+                      dense
+                      readonly
+                      filled
+                      class="full-width immat-readonly-field"
+                    />
+                  </div>
+                </div>
+
+                <!-- Informations sur l'affiliation (info_regime_assure.js — régime 1) -->
                 <div class="step-section-header">
                   <q-icon name="account_balance_wallet" class="q-mr-xs" />
                   {{ $t('immat.section.affiliation', "Informations sur l'affiliation") }}
                 </div>
                 <div class="row q-col-gutter-sm q-mb-sm">
-                  <!-- Source de revenu -->
                   <div class="col-12 col-sm-6">
                     <q-select
                       v-model="form.ORIGINE_REVENU"
@@ -96,12 +167,17 @@
                       :label="$t('inputassu.revenue_source')"
                       :options="origineRevenuList"
                       option-label="LIB_ORIGINEREV"
-                      emit-value
-                      map-options
                       outlined
                       dense
                       class="full-width"
+                      use-input
+                      input-debounce="0"
+                      :disable="!referentialsReady"
+                      @filter="filterOrigineRevenu"
+                      @update:model-value="onOrigineRevenuChange"
                       :rules="[required]"
+                      :error="hasFieldError('ORIGINE_REVENU')"
+                      :error-message="fieldErrorMsg('ORIGINE_REVENU')"
                     >
                       <template v-slot:label>
                         <span class="req-label">
@@ -110,28 +186,6 @@
                       </template>
                     </q-select>
                   </div>
-                  <!-- Date normale d'affiliation -->
-                  <div class="col-12 col-sm-6">
-                    <q-input
-                      v-model="form.DATE_DEBUT_AFFI"
-                      name="DATE_DEBUT_AFFI"
-                      :label="$t('inputassu.normal_affiliation_date')"
-                      :hint="$t('inputassu.normal_affiliation_date')"
-                      outlined
-                      dense
-                      class="full-width"
-                      readonly
-                      :rules="[required]"
-                    >
-                      <template v-slot:label>
-                        <span class="req-label">
-                          {{ $t('inputassu.normal_affiliation_date')
-                          }}<span class="req-badge">*</span>
-                        </span>
-                      </template>
-                    </q-input>
-                  </div>
-                  <!-- Détails source de revenu -->
                   <div class="col-12 col-sm-6">
                     <q-input
                       v-model="form.DETAILS_ORIGINEREV"
@@ -141,7 +195,9 @@
                       dense
                       class="full-width"
                       :rules="[required]"
-                      @update:model-value="(val) => (form.DETAILS_ORIGINEREV = val.toUpperCase())"
+                      :error="hasFieldError('DETAILS_ORIGINEREV')"
+                      :error-message="fieldErrorMsg('DETAILS_ORIGINEREV')"
+                      @blur="onDetailsOrigineBlur"
                     >
                       <template v-slot:label>
                         <span class="req-label">
@@ -151,7 +207,45 @@
                       </template>
                     </q-input>
                   </div>
-                  <!-- Date sollicitée d'affiliation -->
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      v-model="form.MONTANT_REV_ANNUEL"
+                      name="MONTANT_REV_ANNUEL"
+                      :label="$t('inputassu.declared_annual_income')"
+                      outlined
+                      dense
+                      class="full-width"
+                      type="number"
+                      :rules="[required, validateRevenuAnnuel]"
+                      :error="hasFieldError('MONTANT_REV_ANNUEL')"
+                      :error-message="fieldErrorMsg('MONTANT_REV_ANNUEL')"
+                      @blur="onMontantRevAnnuelChange"
+                      @update:model-value="onMontantRevAnnuelChange"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label">
+                          {{ $t('inputassu.declared_annual_income')
+                          }}<span class="req-badge">*</span>
+                        </span>
+                      </template>
+                    </q-input>
+                  </div>
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      v-model="form.TAUX"
+                      name="TAUX"
+                      :label="$t('inputassu.contribution_rate')"
+                      outlined
+                      dense
+                      readonly
+                      class="full-width"
+                      :rules="[required]"
+                    >
+                      <template v-slot:append>
+                        <q-icon name="percent" class="text-grey-8" />
+                      </template>
+                    </q-input>
+                  </div>
                   <div class="col-12 col-sm-6">
                     <q-input
                       v-model="form.DATE_DEBUT_AFFI_SOLL"
@@ -160,11 +254,14 @@
                       outlined
                       dense
                       class="full-width"
-                      readonly
-                      :rules="[required]"
-                      :error="stepErrors[1] && !form.DATE_DEBUT_AFFI_SOLL"
+                      :rules="[required, validateDateAffiSoll]"
+                      :error="hasFieldError('DATE_DEBUT_AFFI_SOLL')"
+                      :error-message="fieldErrorMsg('DATE_DEBUT_AFFI_SOLL')"
+                      :disable="!form.CODE_ORIGINEREV"
                       :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
-                      :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
+                      :hint="dateAffiSollHint"
+                      @focus="onDateAffiSollFocus"
+                      @blur="onDateDebutAffiSollBlur"
                     >
                       <template v-slot:append>
                         <q-icon name="event" class="cursor-pointer" color="primary">
@@ -188,50 +285,39 @@
                       </template>
                     </q-input>
                   </div>
-                </div>
-
-                <!-- Sous-section : Cotisation -->
-                <div class="step-section-header">
-                  <q-icon name="attach_money" class="q-mr-xs" />
-                  {{ $t('immat.section.cotisation', 'Revenus & Cotisation') }}
-                </div>
-                <div class="row q-col-gutter-sm q-mb-sm">
-                  <!-- Revenu annuel déclaré -->
                   <div class="col-12 col-sm-6">
                     <q-input
-                      v-model="form.MONTANT_REV_ANNUEL"
-                      name="MONTANT_REV_ANNUEL"
-                      :label="$t('inputassu.declared_annual_income')"
+                      v-model="form.DATE_DEBUT_AFFI"
+                      name="DATE_DEBUT_AFFI"
+                      :label="$t('inputassu.normal_affiliation_date')"
                       outlined
                       dense
+                      readonly
                       class="full-width"
-                      type="number"
-                      min="100000"
                       :rules="[required]"
-                      @update:model-value="onMontantRevAnnuelChange"
                     >
                       <template v-slot:label>
                         <span class="req-label">
-                          {{ $t('inputassu.declared_annual_income')
+                          {{ $t('inputassu.normal_affiliation_date')
                           }}<span class="req-badge">*</span>
                         </span>
                       </template>
                     </q-input>
                   </div>
-                  <!-- Assiette de cotisation -->
                   <div class="col-12 col-sm-6">
                     <q-input
                       v-model="form.ASSIETTE_COTISATION"
                       name="ASSIETTE_COTISATION"
                       :label="$t('inputassu.contribution_base')"
-                      :hint="$t('inputassu.contribution_base')"
                       outlined
                       dense
-                      class="full-width"
                       type="number"
-                      min="0"
-                      readonly
-                      :rules="[required, validateAssieteCotisation]"
+                      class="full-width"
+                      :rules="[required, validateAssietteDigits, validateAssieteCotisation]"
+                      :error="hasFieldError('ASSIETTE_COTISATION')"
+                      :error-message="fieldErrorMsg('ASSIETTE_COTISATION')"
+                      :hint="assietteCotisationHint"
+                      @blur="onAssietteCotisationBlur"
                     >
                       <template v-slot:label>
                         <span class="req-label">
@@ -240,81 +326,24 @@
                       </template>
                     </q-input>
                   </div>
-                  <!-- Taux de cotisation -->
-                  <div class="col-12 col-sm-6">
-                    <q-input
-                      v-model="form.TAUX"
-                      name="TAUX"
-                      :label="$t('inputassu.contribution_rate')"
-                      :hint="$t('inputassu.contribution_rate')"
-                      outlined
-                      dense
-                      class="full-width"
-                      type="number"
-                      min="0"
-                      readonly
-                      :rules="[required]"
-                    >
-                      <template v-slot:append>
-                        <q-icon name="percent" class="text-grey-8" />
-                      </template>
-                      <template v-slot:label>
-                        <span class="req-label">
-                          {{ $t('inputassu.contribution_rate') }}<span class="req-badge">*</span>
-                        </span>
-                      </template>
-                    </q-input>
-                  </div>
-                  <!-- SMIG -->
-                  <div class="col-12 col-sm-6">
-                    <q-input
-                      v-model="form.SMIG_VALUE"
-                      name="SMIG_VALUE"
-                      :label="$t('inputassu.minimum_wage')"
-                      :hint="$t('inputassu.minimum_wage')"
-                      outlined
-                      dense
-                      class="full-width"
-                      type="number"
-                      min="0"
-                      readonly
-                      :rules="[required]"
-                    >
-                      <template v-slot:label>
-                        <span class="req-label">
-                          {{ $t('inputassu.minimum_wage') }}<span class="req-badge">*</span>
-                        </span>
-                      </template>
-                    </q-input>
-                  </div>
-                  <!-- Montant de cotisation -->
                   <div class="col-12 col-sm-6">
                     <q-input
                       v-model="form.MONTANT_COTISATION"
                       name="MONTANT_COTISATION"
                       :label="$t('inputassu.contribution_amount')"
-                      :hint="$t('inputassu.contribution_amount')"
                       outlined
                       dense
-                      class="full-width"
-                      type="number"
-                      min="0"
                       readonly
+                      class="full-width"
                       :rules="[required]"
-                    >
-                      <template v-slot:label>
-                        <span class="req-label">
-                          {{ $t('inputassu.contribution_amount') }}<span class="req-badge">*</span>
-                        </span>
-                      </template>
-                    </q-input>
+                    />
                   </div>
                 </div>
 
-                <!-- Sous-section : Pièces justificatives affiliation -->
+                <!-- Document principal -->
                 <div class="step-section-header">
                   <q-icon name="attach_file" class="q-mr-xs" />
-                  {{ $t('immat.section.docs_affiliation', 'Pièces justificatives') }}
+                  {{ $t('immat.section.main_document', 'Document principal') }}
                 </div>
                 <div class="row q-col-gutter-sm q-mb-sm">
                   <!-- Déclaration revenus annuels (504) -->
@@ -325,12 +354,17 @@
                       :label="$t('inputassu.annual_income_declaration')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       :counter-label="counterLabelFn"
                       max-files="1"
-                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png,.pdf"
-                      max-file-size="3072000"
+                      :accept="LEGACY_IMMAT_FILE_ACCEPT"
+                      :max-file-size="LEGACY_MAX_FILE_SIZE"
+                      :hint="fileHintWithSize($t('inputassu.annual_income_declaration'))"
                       :rules="[required]"
+                      :error="hasFieldError('file504')"
+                      :error-message="fieldErrorMsg('file504')"
+                      @update:model-value="() => reevaluateField('file504')"
                       @rejected="onRejected"
                     >
                       <template v-slot:prepend>
@@ -349,16 +383,20 @@
                     <q-file
                       v-model="form.file507"
                       name="507"
-                      :label="$t('inputassu.honor_declaration')"
-                      :hint="$t('inputassu.honor_declaration')"
+                      :label="$t('inputassu.honor_declaration_hint')"
+                      :hint="fileHintWithSize($t('inputassu.honor_declaration_hint'))"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       :counter-label="counterLabelFn"
                       max-files="1"
-                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png,.pdf"
-                      max-file-size="3072000"
+                      :accept="LEGACY_IMMAT_FILE_ACCEPT"
+                      :max-file-size="LEGACY_MAX_FILE_SIZE"
                       :rules="[required]"
+                      :error="hasFieldError('file507')"
+                      :error-message="fieldErrorMsg('file507')"
+                      @update:model-value="() => reevaluateField('file507')"
                       @rejected="onRejected"
                     >
                       <template v-slot:prepend>
@@ -366,22 +404,13 @@
                       </template>
                       <template v-slot:label>
                         <span class="req-label">
-                          {{ $t('inputassu.honor_declaration') }}<span class="req-badge">*</span>
+                          {{ $t('inputassu.honor_declaration_hint')
+                          }}<span class="req-badge">*</span>
                         </span>
                       </template>
                     </q-file>
                   </div>
                 </div>
-
-                <q-stepper-navigation class="q-mt-sm">
-                  <q-btn
-                    unelevated
-                    color="primary"
-                    icon-right="arrow_forward"
-                    :label="$t('form.next')"
-                    @click="goToNextStep(2)"
-                  />
-                </q-stepper-navigation>
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -391,17 +420,17 @@
                 :name="2"
                 :title="$t('immat.step2')"
                 icon="person"
-                :done="step > 2"
+                :done="step > 2 || step < 2"
                 :error="stepErrors[2]"
                 :disable="!isStepAllowed(2)"
               >
                 <!-- Sous-section : Identité -->
                 <div class="step-section-header">
-                  <q-icon name="badge" class="q-mr-xs" />
+                  <q-icon name="perm_identity" class="q-mr-xs" />
                   {{ $t('immat.section.identity', "Identité de l'assuré") }}
                 </div>
                 <div class="row q-col-gutter-sm q-mb-sm">
-                  <div class="col-12 col-sm-6">
+                  <div class="col-12 col-sm-4">
                     <q-input
                       v-model="form.DATE_DEMANDE"
                       name="DATE_DEMANDE"
@@ -412,7 +441,7 @@
                       class="full-width"
                     />
                   </div>
-                  <div class="col-12 col-sm-6">
+                  <div class="col-12 col-sm-4">
                     <q-input
                       v-model="form.regimeAffiC"
                       name="regimeAffiC"
@@ -422,6 +451,28 @@
                       readonly
                       class="full-width"
                     />
+                  </div>
+                  <div class="col-12 col-sm-4">
+                    <q-select
+                      v-model="form.SEXE_PERS"
+                      name="SEXE_PERS"
+                      :label="$t('inputassu.gender')"
+                      :options="sexeOptions"
+                      emit-value
+                      map-options
+                      option-value="value"
+                      option-label="label"
+                      outlined
+                      dense
+                      class="full-width"
+                      :rules="[required]"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label">
+                          {{ $t('inputassu.gender') }}<span class="req-badge">*</span>
+                        </span>
+                      </template>
+                    </q-select>
                   </div>
                   <div class="col-12 col-sm-6">
                     <q-input
@@ -452,37 +503,18 @@
                     />
                   </div>
                   <div class="col-12 col-sm-6">
-                    <q-select
-                      v-model="form.SEXE_PERS"
-                      name="SEXE_PERS"
-                      :label="$t('inputassu.gender')"
-                      :options="sexeOptions"
-                      emit-value
-                      map-options
-                      option-value="value"
-                      option-label="label"
-                      outlined
-                      dense
-                      class="full-width"
-                      :rules="[required]"
-                    >
-                      <template v-slot:label>
-                        <span class="req-label">
-                          {{ $t('inputassu.gender') }}<span class="req-badge">*</span>
-                        </span>
-                      </template>
-                    </q-select>
-                  </div>
-                  <div class="col-12 col-sm-6">
                     <q-input
                       v-model="form.DATE_NAISS_PERS"
+                      name="DATE_NAISS_PERS"
                       :label="$t('inputassu.date_of_birth')"
                       outlined
                       dense
                       class="full-width"
                       :rules="[required]"
-                      :error="stepErrors[2] && !form.DATE_NAISS_PERS"
+                      :error="hasFieldError('DATE_NAISS_PERS')"
+                      :error-message="fieldErrorMsg('DATE_NAISS_PERS')"
                       :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
+                      @blur="() => reevaluateField('DATE_NAISS_PERS')"
                       :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
                     >
                       <template #append>
@@ -493,6 +525,7 @@
                               :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                               :options="optionsDn"
                               color="primary"
+                              @update:model-value="() => reevaluateField('DATE_NAISS_PERS')"
                             />
                           </q-popup-proxy>
                         </q-icon>
@@ -514,9 +547,6 @@
                       :rules="[required]"
                       @update:model-value="(val) => (form.LOCALITE_NAISS = val.toUpperCase())"
                     >
-                      <template v-slot:prepend>
-                        <q-icon name="place" />
-                      </template>
                       <template v-slot:label>
                         <span class="req-label">
                           {{ $t('inputassu.place_of_birth') }}<span class="req-badge">*</span>
@@ -527,6 +557,7 @@
                   <div class="col-12 col-sm-6">
                     <q-select
                       v-model="form.LieuNaiss"
+                      v-bind="arrondissementSelectProps"
                       :label="$t('inputassu.birth_district')"
                       :hint="$t('inputassu.birth_district')"
                       :options="arrondissements"
@@ -538,8 +569,12 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
                       @filter="filterArrondissement"
                       :rules="[required]"
+                      :error="hasFieldError('LieuNaiss')"
+                      :error-message="fieldErrorMsg('LieuNaiss')"
+                      @update:model-value="() => reevaluateField('LieuNaiss')"
                     >
                       <template v-slot:label>
                         <span class="req-label">
@@ -560,6 +595,10 @@
                       outlined
                       dense
                       class="full-width"
+                      use-input
+                      input-debounce="0"
+                      :disable="!referentialsReady"
+                      @filter="filterMatrimonial"
                       :rules="[required]"
                     >
                       <template v-slot:label>
@@ -582,6 +621,7 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
                       @filter="filterPays"
                       :rules="[required]"
                     >
@@ -595,9 +635,9 @@
                 </div>
 
                 <!-- Sous-section : Pièce d'identité -->
-                <div class="step-section-header step-section-header--blue">
+                <div class="step-section-header">
                   <q-icon name="credit_card" class="q-mr-xs" />
-                  {{ $t('immat.section.identity_doc', "Pièce d'identité") }}
+                  {{ $t('immat.section.id_doc', "Pièce d'identité") }}
                 </div>
                 <div class="row q-col-gutter-sm q-mb-sm">
                   <div class="col-12 col-sm-6">
@@ -614,8 +654,10 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
                       @filter="filterPieces"
                       :rules="[required]"
+                      @update:model-value="() => reevaluateField('typepiece')"
                     >
                       <template v-slot:label>
                         <span class="req-label">
@@ -676,6 +718,7 @@
                   <div class="col-12 col-sm-6">
                     <q-select
                       v-model="form.LIEU_PIECEC"
+                      v-bind="arrondissementSelectProps"
                       :label="$t('inputassu.place_issuance_identity_document')"
                       :options="arrondissements"
                       option-label="NOM_ARROND"
@@ -687,6 +730,7 @@
                       emit-value
                       map-options
                       :hint="$t('inputassu.place_issuance_identity_document')"
+                      :disable="!referentialsReady"
                       @filter="filterArrondissement"
                       :rules="[required]"
                     >
@@ -705,15 +749,20 @@
                       :label="form.typepiece?.LIBELLE || $t('inputassu.identity_document_type')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       max-files="1"
-                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png"
-                      max-file-size="3072000"
+                      :accept="LEGACY_IMMAT_FILE_ACCEPT"
+                      :max-file-size="LEGACY_MAX_FILE_SIZE"
+                      :hint="fileMaxSizeHint"
                       :rules="[required]"
+                      :error="hasFieldError('pieceIdentite')"
+                      :error-message="fieldErrorMsg('pieceIdentite')"
+                      @update:model-value="() => reevaluateField('pieceIdentite')"
                       @rejected="onRejected"
                     >
                       <template v-slot:prepend>
-                        <q-icon name="attach_file" color="primary" />
+                        <q-icon name="upload_file" color="primary" />
                       </template>
                     </q-file>
                   </div>
@@ -727,37 +776,24 @@
                       :label="$t('inputassu.declaration_on_honor')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       max-files="1"
-                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png"
-                      max-file-size="3072000"
+                      :accept="LEGACY_IMMAT_FILE_ACCEPT"
+                      :max-file-size="LEGACY_MAX_FILE_SIZE"
+                      :hint="fileMaxSizeHint"
                       :rules="[required]"
+                      :error="hasFieldError('declarationHonneur')"
+                      :error-message="fieldErrorMsg('declarationHonneur')"
+                      @update:model-value="() => reevaluateField('declarationHonneur')"
                       @rejected="onRejected"
                     >
                       <template v-slot:prepend>
-                        <q-icon name="attach_file" color="primary" />
+                        <q-icon name="upload_file" color="primary" />
                       </template>
                     </q-file>
                   </div>
                 </div>
-
-                <q-stepper-navigation class="q-mt-sm">
-                  <q-btn
-                    unelevated
-                    color="primary"
-                    icon-right="arrow_forward"
-                    :label="$t('form.next')"
-                    @click="goToNextStep(3)"
-                  />
-                  <q-btn
-                    flat
-                    icon="arrow_back"
-                    color="primary"
-                    :label="$t('form.previous')"
-                    class="q-ml-sm"
-                    @click="step = 1"
-                  />
-                </q-stepper-navigation>
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -766,24 +802,32 @@
               <q-step
                 :name="3"
                 :title="$t('immat.step3')"
-                icon="person"
-                :done="step > 3"
+                icon="man"
+                :done="step > 3 || step < 3"
                 :error="stepErrors[3]"
                 :disable="!isStepAllowed(3)"
               >
                 <div class="step-section-header step-section-header--blue">
                   <q-icon name="man" class="q-mr-xs" />
-                  {{ $t('immat.section.father', 'Informations sur le père') }}
+                  {{ $t('immat.step3') }}
                 </div>
                 <div class="row q-col-gutter-sm q-mb-sm">
                   <div class="col-12 col-sm-6">
                     <q-input
                       v-model="form.NOM_PERE"
+                      name="NOM_PERE"
                       :label="$t('inputassu.last_name')"
                       outlined
                       dense
                       class="full-width"
-                      @update:model-value="(val) => (form.NOM_PERE = val.toUpperCase())"
+                      :error="hasFieldError('NOM_PERE')"
+                      :error-message="fieldErrorMsg('NOM_PERE')"
+                      @update:model-value="
+                        (val) => {
+                          form.NOM_PERE = val.toUpperCase()
+                          reevaluateField('NOM_PERE')
+                        }
+                      "
                     />
                   </div>
                   <div class="col-12 col-sm-6">
@@ -799,13 +843,16 @@
                   <div class="col-12 col-sm-6">
                     <q-input
                       v-model="form.DATE_NAISS_PERSP"
+                      name="DATE_NAISS_PERSP"
                       :label="$t('inputassu.date_of_birth')"
                       outlined
                       dense
                       class="full-width"
-                      :rules="[]"
+                      :error="hasFieldError('DATE_NAISS_PERSP')"
+                      :error-message="fieldErrorMsg('DATE_NAISS_PERSP')"
                       :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
                       :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
+                      @blur="() => reevaluateField('DATE_NAISS_PERSP')"
                     >
                       <template #append>
                         <q-icon name="event" class="cursor-pointer" color="primary">
@@ -815,6 +862,7 @@
                               :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                               :options="optionsDn"
                               color="primary"
+                              @update:model-value="() => reevaluateField('DATE_NAISS_PERSP')"
                             />
                           </q-popup-proxy>
                         </q-icon>
@@ -834,6 +882,7 @@
                   <div class="col-12 col-sm-6">
                     <q-select
                       v-model="form.LieuNaissPere"
+                      v-bind="arrondissementSelectProps"
                       :label="$t('inputassu.birth_district')"
                       :hint="$t('inputassu.birth_district')"
                       :options="arrondissements"
@@ -845,10 +894,11 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
                       @filter="filterArrondissement"
                     />
                   </div>
-                  <div class="col-12 col-sm-6">
+                  <div class="col-12 col-sm-3">
                     <q-select
                       v-model="form.etatP"
                       name="etatP"
@@ -863,7 +913,7 @@
                       class="full-width"
                     />
                   </div>
-                  <div v-if="form.etatP === 'Décédé'" class="col-12 col-sm-6">
+                  <div v-if="form.etatP === 'Décédé'" class="col-12 col-sm-3">
                     <q-input
                       v-model="form.DATE_DECES_PERSP"
                       name="DATE_DECES_PERSP"
@@ -890,24 +940,6 @@
                     </q-input>
                   </div>
                 </div>
-
-                <q-stepper-navigation class="q-mt-sm">
-                  <q-btn
-                    unelevated
-                    color="primary"
-                    icon-right="arrow_forward"
-                    :label="$t('form.next')"
-                    @click="goToNextStep(4)"
-                  />
-                  <q-btn
-                    flat
-                    icon="arrow_back"
-                    color="primary"
-                    :label="$t('form.previous')"
-                    class="q-ml-sm"
-                    @click="step = 2"
-                  />
-                </q-stepper-navigation>
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -916,14 +948,14 @@
               <q-step
                 :name="4"
                 :title="$t('immat.step4')"
-                icon="person"
-                :done="step > 4"
+                icon="woman"
+                :done="step > 4 || step < 4"
                 :error="stepErrors[4]"
                 :disable="!isStepAllowed(4)"
               >
                 <div class="step-section-header step-section-header--pink">
                   <q-icon name="woman" class="q-mr-xs" />
-                  {{ $t('immat.section.mother', 'Informations sur la mère') }}
+                  {{ $t('immat.step4') }}
                 </div>
                 <div class="row q-col-gutter-sm q-mb-sm">
                   <div class="col-12 col-sm-6">
@@ -956,13 +988,17 @@
                   <div class="col-12 col-sm-6">
                     <q-input
                       v-model="form.DATE_NAISS_PERSM"
+                      name="DATE_NAISS_PERSM"
                       :label="$t('inputassu.date_of_birth')"
                       outlined
                       dense
                       class="full-width"
                       :rules="[required]"
+                      :error="hasFieldError('DATE_NAISS_PERSM')"
+                      :error-message="fieldErrorMsg('DATE_NAISS_PERSM')"
                       :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
                       :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
+                      @blur="() => reevaluateField('DATE_NAISS_PERSM')"
                     >
                       <template #append>
                         <q-icon name="event" class="cursor-pointer" color="primary">
@@ -972,6 +1008,7 @@
                               :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                               :options="optionsDn"
                               color="primary"
+                              @update:model-value="() => reevaluateField('DATE_NAISS_PERSM')"
                             />
                           </q-popup-proxy>
                         </q-icon>
@@ -1003,6 +1040,7 @@
                   <div class="col-12 col-sm-6">
                     <q-select
                       v-model="form.LieuNaissMere"
+                      v-bind="arrondissementSelectProps"
                       :label="$t('inputassu.birth_district')"
                       :hint="$t('inputassu.birth_district')"
                       :options="arrondissements"
@@ -1014,6 +1052,7 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
                       @filter="filterArrondissement"
                       :rules="[required]"
                     >
@@ -1024,7 +1063,7 @@
                       </template>
                     </q-select>
                   </div>
-                  <div class="col-12 col-sm-6">
+                  <div class="col-12 col-sm-3">
                     <q-select
                       v-model="form.etatM"
                       name="etatM"
@@ -1046,7 +1085,7 @@
                       </template>
                     </q-select>
                   </div>
-                  <div v-if="form.etatM === 'Décédé'" class="col-12 col-sm-6">
+                  <div v-if="form.etatM === 'Décédé'" class="col-12 col-sm-3">
                     <q-input
                       v-model="form.DATE_DECES_PERSM"
                       :label="$t('inputassu.date_death')"
@@ -1072,24 +1111,6 @@
                     </q-input>
                   </div>
                 </div>
-
-                <q-stepper-navigation class="q-mt-sm">
-                  <q-btn
-                    unelevated
-                    color="primary"
-                    icon-right="arrow_forward"
-                    :label="$t('form.next')"
-                    @click="goToNextStep(5)"
-                  />
-                  <q-btn
-                    flat
-                    icon="arrow_back"
-                    color="primary"
-                    :label="$t('form.previous')"
-                    class="q-ml-sm"
-                    @click="step = 3"
-                  />
-                </q-stepper-navigation>
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -1098,19 +1119,20 @@
               <q-step
                 :name="5"
                 :title="$t('immat.step5')"
-                icon="home"
-                :done="step > 5"
+                icon="contact_phone"
+                :done="step > 5 || step < 5"
                 :error="stepErrors[5]"
                 :disable="!isStepAllowed(5)"
               >
                 <div class="step-section-header">
                   <q-icon name="home" class="q-mr-xs" />
-                  {{ $t('immat.section.contact', 'Contact & Résidence') }}
+                  {{ $t('immat.section.residence', 'Résidence') }}
                 </div>
                 <div class="row q-col-gutter-sm q-mb-sm">
                   <div class="col-12 col-sm-6">
                     <q-select
                       v-model="form.CODE_VILLEC"
+                      v-bind="arrondissementSelectProps"
                       :label="$t('inputassu.city_of_residence')"
                       :options="arrondissements"
                       option-label="NOM_ARROND"
@@ -1121,6 +1143,7 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
                       @filter="filterArrondissement"
                       :rules="[required]"
                     >
@@ -1143,34 +1166,6 @@
                   </div>
                   <div class="col-12 col-sm-6">
                     <q-input
-                      v-model="form.TEL_PERS"
-                      :label="$t('inputassu.phone')"
-                      outlined
-                      dense
-                      class="full-width"
-                      type="tel"
-                      mask="+237 ### ### ###"
-                      :rules="[required]"
-                    >
-                      <template v-slot:label>
-                        <span class="req-label">
-                          {{ $t('inputassu.phone') }}<span class="req-badge">*</span>
-                        </span>
-                      </template>
-                    </q-input>
-                  </div>
-                  <div class="col-12 col-sm-6">
-                    <q-input
-                      v-model="form.FAX_PERS"
-                      :label="$t('inputassu.fax')"
-                      outlined
-                      dense
-                      class="full-width"
-                      @update:model-value="(val) => (form.FAX_PERS = val.toUpperCase())"
-                    />
-                  </div>
-                  <div class="col-12 col-sm-6">
-                    <q-input
                       v-model="form.Adresse"
                       :label="$t('inputassu.address')"
                       outlined
@@ -1181,17 +1176,61 @@
                   </div>
                   <div class="col-12 col-sm-6">
                     <q-input
+                      v-model="form.BP"
+                      :label="$t('inputassu.postal_box')"
+                      outlined
+                      dense
+                      type="tel"
+                      :maxlength="LEGACY_TELEIMMAS_DIGIT_LIMITS.BP"
+                      class="full-width"
+                      :error="hasFieldError('BP')"
+                      :error-message="fieldErrorMsg('BP')"
+                      :rules="[
+                        (val) =>
+                          !val ||
+                          String(val).replace(/\D/g, '').length <= LEGACY_TELEIMMAS_DIGIT_LIMITS.BP ||
+                          $t('inputassu.bpMaxDigits', { max: LEGACY_TELEIMMAS_DIGIT_LIMITS.BP }),
+                      ]"
+                      @update:model-value="() => reevaluateField('BP')"
+                    />
+                  </div>
+                </div>
+
+                <div class="step-section-header">
+                  <q-icon name="contact_phone" class="q-mr-xs" />
+                  {{ $t('immat.section.contacts', 'Contacts') }}
+                </div>
+                <div class="row q-col-gutter-sm q-mb-sm">
+                  <div class="col-12 col-sm-6">
+                    <q-input
+                      v-model="form.TEL_PERS"
+                      :label="$t('inputassu.phone')"
+                      outlined
+                      dense
+                      type="tel"
+                      maxlength="9"
+                      prefix="+237"
+                      class="full-width"
+                      :rules="phoneRules"
+                    >
+                      <template v-slot:label>
+                        <span class="req-label">
+                          {{ $t('inputassu.phone') }}<span class="req-badge">*</span>
+                        </span>
+                      </template>
+                    </q-input>
+                  </div>
+                  <div class="col-12 col-sm-6">
+                    <q-input
                       v-model="form.EMAIL_PERS"
                       :label="$t('inputassu.email')"
                       outlined
                       dense
-                      class="full-width"
                       type="email"
+                      class="full-width"
                       :rules="[required, validateEmail]"
                     >
-                      <template v-slot:prepend>
-                        <q-icon name="email" />
-                      </template>
+                      <template v-slot:prepend><q-icon name="email" /></template>
                       <template v-slot:label>
                         <span class="req-label">
                           {{ $t('inputassu.email') }}<span class="req-badge">*</span>
@@ -1201,19 +1240,23 @@
                   </div>
                   <div class="col-12 col-sm-6">
                     <q-input
-                      v-model="form.BP"
-                      :label="$t('inputassu.postal_box')"
+                      v-model="form.FAX_PERS"
+                      :label="$t('inputassu.fax')"
                       outlined
                       dense
+                      type="tel"
+                      :maxlength="LEGACY_TELEIMMAS_DIGIT_LIMITS.PHONE"
                       class="full-width"
-                      @update:model-value="(val) => (form.BP = val.toUpperCase())"
+                      :error="hasFieldError('FAX_PERS')"
+                      :error-message="fieldErrorMsg('FAX_PERS')"
+                      :rules="phoneRulesOptional"
+                      @update:model-value="() => reevaluateField('FAX_PERS')"
                     />
                   </div>
                   <div class="col-12 col-sm-6">
                     <q-select
                       v-model="form.CODE_CENTRECNPSC"
                       :label="$t('inputassu.centreCNPS')"
-                      :hint="$t('inputassu.centreCNPS')"
                       :options="centres"
                       option-label="LIB_CENTRE"
                       outlined
@@ -1223,6 +1266,8 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
+                      :hint="$t('inputassu.centreCNPS')"
                       @filter="filterCentreCNPS"
                       :rules="[required]"
                     >
@@ -1234,24 +1279,6 @@
                     </q-select>
                   </div>
                 </div>
-
-                <q-stepper-navigation class="q-mt-sm">
-                  <q-btn
-                    unelevated
-                    color="primary"
-                    icon-right="arrow_forward"
-                    :label="$t('form.next')"
-                    @click="goToNextStep(6)"
-                  />
-                  <q-btn
-                    flat
-                    icon="arrow_back"
-                    color="primary"
-                    :label="$t('form.previous')"
-                    class="q-ml-sm"
-                    @click="step = 4"
-                  />
-                </q-stepper-navigation>
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -1261,17 +1288,16 @@
                 :name="6"
                 :title="$t('immat.step6')"
                 icon="folder_open"
-                :done="step > 6"
+                :done="step > 6 || step < 6"
                 :error="stepErrors[6]"
                 :disable="!isStepAllowed(6)"
               >
                 <div class="step-section-header">
-                  <q-icon name="folder_open" class="q-mr-xs" />
-                  {{ $t('immat.section.docs_complementaires', 'Pièces complémentaires') }}
+                  <q-icon name="child_care" class="q-mr-xs" />
+                  {{ $t('immat.section.children', 'Enfants') }}
                 </div>
                 <div class="row q-col-gutter-sm q-mb-sm">
-                  <!-- Enfants -->
-                  <div class="col-12 col-sm-6">
+                  <div class="col-12 col-sm-3">
                     <q-input
                       v-model="form.nombEnfa"
                       :label="$t('inputassu.number_of_children')"
@@ -1283,37 +1309,48 @@
                       @update:model-value="resetFileField('actesNaissance')"
                     />
                   </div>
-                  <div v-if="form.nombEnfa > 0" class="col-12">
-                    <q-file
+                  <template v-if="form.nombEnfa > 0">
+                    <div
                       v-for="index in parseInt(form.nombEnfa)"
                       :key="`birth-cert-${index}`"
-                      v-model="form.actesNaissance[index - 1]"
-                      :label="$t('inputassu.birth_certificate_child', { number: index })"
-                      :hint="$t('inputassu.birth_certificate_child', { number: index })"
-                      outlined
-                      dense
-                      class="full-width q-mb-sm"
-                      accept=".jpg, .png, .pdf"
-                      max-file-size="3072000"
-                      :rules="[(val) => !!val || $t('input.requis')]"
-                      :error="stepErrors[6] && !form.actesNaissance[index - 1]"
-                      @update:model-value="onFileSelected('actesNaissance', index - 1)"
-                      @rejected="onRejected"
+                      class="col-12 col-sm-3"
                     >
-                      <template v-slot:prepend>
-                        <q-icon name="attach_file" color="primary" />
-                      </template>
-                      <template v-slot:label>
-                        <span class="req-label">
-                          {{ $t('inputassu.birth_certificate_child', { number: index })
-                          }}<span class="req-badge">*</span>
-                        </span>
-                      </template>
-                    </q-file>
-                  </div>
+                      <q-file
+                        v-model="form.actesNaissance[index - 1]"
+                        :label="$t('inputassu.birth_certificate_child', { number: index })"
+                        :hint="
+                          fileHintWithSize(
+                            $t('inputassu.birth_certificate_child', { number: index }),
+                          )
+                        "
+                        outlined
+                        dense
+                        clearable
+                        class="full-width"
+                        :accept="LEGACY_IMMAT_FILE_ACCEPT"
+                        :max-file-size="LEGACY_MAX_FILE_SIZE"
+                        :rules="[(val) => !!val || $t('input.requis')]"
+                        :error="stepErrors[6] && !form.actesNaissance[index - 1]"
+                        @rejected="onRejected"
+                      >
+                        <template v-slot:label>
+                          <span class="req-label">
+                            {{ $t('inputassu.birth_certificate_child', { number: index })
+                            }}<span class="req-badge">*</span>
+                          </span>
+                        </template>
+                        <template v-slot:prepend><q-icon name="attach_file" /></template>
+                      </q-file>
+                    </div>
+                  </template>
+                </div>
 
-                  <!-- Certificats de travail -->
-                  <div class="col-12 col-sm-6">
+                <div class="step-section-header">
+                  <q-icon name="work_history" class="q-mr-xs" />
+                  {{ $t('immat.section.work_certs', 'Certificats de travail') }}
+                </div>
+                <div class="row q-col-gutter-sm q-mb-sm">
+                  <div class="col-12 col-sm-3">
                     <q-input
                       v-model="form.nombCert"
                       :label="$t('inputassu.number_of_work_certificates')"
@@ -1326,95 +1363,99 @@
                       @update:model-value="resetFileField('certificatsTravail')"
                     />
                   </div>
-                  <div v-if="form.nombCert > 0" class="col-12">
-                    <q-file
+                  <template v-if="form.nombCert > 0">
+                    <div
                       v-for="index in parseInt(form.nombCert)"
                       :key="`work-cert-${index}`"
-                      v-model="form.certificatsTravail[index - 1]"
-                      :label="$t('inputassu.work_certificates', { number: index })"
-                      :hint="$t('inputassu.works_certificates', { number: index })"
-                      outlined
-                      dense
-                      class="full-width q-mb-sm"
-                      accept=".jpg, .png, .pdf"
-                      max-file-size="3072000"
-                      :rules="[(val) => !!val || $t('input.requis')]"
-                      :error="stepErrors[6] && !form.nombCert[index - 1]"
-                      @update:model-value="onFileSelected('certificatsTravail')"
-                      @rejected="onRejected"
+                      class="col-12 col-sm-3"
                     >
-                      <template v-slot:prepend>
-                        <q-icon name="attach_file" color="primary" />
-                      </template>
-                      <template v-slot:label>
-                        <span class="req-label">
-                          {{ $t('inputassu.work_certificates', { count: form.nombCert })
-                          }}<span class="req-badge">*</span>
-                        </span>
-                      </template>
-                    </q-file>
-                  </div>
+                      <q-file
+                        v-model="form.certificatsTravail[index - 1]"
+                        :label="$t('inputassu.work_certificates', { number: index })"
+                        :hint="
+                          fileHintWithSize($t('inputassu.work_certificates', { number: index }))
+                        "
+                        outlined
+                        dense
+                        clearable
+                        class="full-width"
+                        :accept="LEGACY_IMMAT_FILE_ACCEPT"
+                        :max-file-size="LEGACY_MAX_FILE_SIZE"
+                        :rules="[(val) => !!val || $t('input.requis')]"
+                        :error="stepErrors[6] && !form.certificatsTravail[index - 1]"
+                        @rejected="onRejected"
+                      >
+                        <template v-slot:label>
+                          <span class="req-label">
+                            {{ $t('inputassu.work_certificates', { number: index })
+                            }}<span class="req-badge">*</span>
+                          </span>
+                        </template>
+                        <template v-slot:prepend><q-icon name="attach_file" /></template>
+                      </q-file>
+                    </div>
+                  </template>
+                </div>
 
-                  <!-- Conjoints -->
-                  <div class="col-12 col-sm-6">
+                <div class="step-section-header">
+                  <q-icon name="favorite" class="q-mr-xs" />
+                  {{ $t('immat.section.marriage', 'Actes de mariage') }}
+                </div>
+                <div class="row q-col-gutter-sm">
+                  <div class="col-12 col-sm-3">
                     <q-input
                       v-model="form.nombConj"
+                      name="nombConj"
                       :label="$t('inputassu.number_of_spouses')"
                       type="number"
                       outlined
                       dense
                       class="full-width"
                       min="0"
-                      @update:model-value="resetFileField('actesMariage')"
+                      @update:model-value="
+                        (v) => {
+                          form.nombConj = v
+                          resetFileField('actesMariage')
+                          reevaluateField('nombConj')
+                        }
+                      "
                     />
                   </div>
-                  <div v-if="form.nombConj > 0" class="col-12">
-                    <q-file
+                  <template v-if="form.nombConj > 0">
+                    <div
                       v-for="index in parseInt(form.nombConj)"
                       :key="`mar-cert-${index}`"
-                      v-model="form.actesMariage[index - 1]"
-                      :label="$t('inputassu.marriages_certificates', { number: index })"
-                      :hint="$t('inputassu.marriages_certificates', { number: index })"
-                      outlined
-                      dense
-                      class="full-width q-mb-sm"
-                      accept=".jpg, .png, .pdf"
-                      max-file-size="3072000"
-                      :rules="[(val) => !!val || $t('input.requis')]"
-                      :error="stepErrors[6] && !form.actesMariage[index - 1]"
-                      @update:model-value="onFileSelected('actesMariage', index - 1)"
-                      @rejected="onRejected"
+                      class="col-12 col-sm-3"
                     >
-                      <template v-slot:prepend>
-                        <q-icon name="attach_file" color="primary" />
-                      </template>
-                      <template v-slot:label>
-                        <span class="req-label">
-                          {{ $t('inputassu.marriage_certificates', { count: form.nombConj })
-                          }}<span class="req-badge">*</span>
-                        </span>
-                      </template>
-                    </q-file>
-                  </div>
+                      <q-file
+                        v-model="form.actesMariage[index - 1]"
+                        :label="$t('inputassu.marriages_certificates', { number: index })"
+                        :hint="
+                          fileHintWithSize(
+                            $t('inputassu.marriages_certificates', { number: index }),
+                          )
+                        "
+                        outlined
+                        dense
+                        clearable
+                        class="full-width"
+                        :accept="LEGACY_IMMAT_FILE_ACCEPT"
+                        :max-file-size="LEGACY_MAX_FILE_SIZE"
+                        :rules="[(val) => !!val || $t('input.requis')]"
+                        :error="stepErrors[6] && !form.actesMariage[index - 1]"
+                        @rejected="onRejected"
+                      >
+                        <template v-slot:label>
+                          <span class="req-label">
+                            {{ $t('inputassu.marriages_certificates', { number: index })
+                            }}<span class="req-badge">*</span>
+                          </span>
+                        </template>
+                        <template v-slot:prepend><q-icon name="attach_file" /></template>
+                      </q-file>
+                    </div>
+                  </template>
                 </div>
-
-                <q-stepper-navigation class="q-mt-sm">
-                  <q-btn
-                    unelevated
-                    color="primary"
-                    icon-right="arrow_forward"
-                    :label="$t('form.next')"
-                    @click="goToNextStep(7)"
-                  />
-                  <q-btn
-                    flat
-                    icon="arrow_back"
-                    color="primary"
-                    :label="$t('form.previous')"
-                    class="q-ml-sm"
-                    @click="step = 5"
-                  />
-                </q-stepper-navigation>
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -1428,18 +1469,18 @@
                 :error="stepErrors[7]"
                 :disable="!isStepAllowed(7)"
               >
-                <div class="q-pa-md" ref="recapContent">
-                  <!-- En-tête avec barre de progression -->
+                <div class="q-pa-sm" ref="recapContent">
                   <div class="text-center q-mb-md">
+                    <q-icon name="fact_check" size="36px" color="positive" />
                     <div :class="dynamicTextClass">{{ $t('immat.step7') }}</div>
+                    <q-linear-progress
+                      :value="1"
+                      size="6px"
+                      color="positive"
+                      class="q-mt-sm rounded-borders"
+                      animation-speed="100"
+                    />
                   </div>
-                  <q-linear-progress
-                    :value="1"
-                    size="8px"
-                    color="positive"
-                    class="q-mb-lg rounded-borders"
-                    animation-speed="100"
-                  />
 
                   <!-- Grille des sections -->
                   <div class="row q-col-gutter-lg">
@@ -1451,19 +1492,18 @@
                         class="recap-card q-mb-md"
                         :class="{ 'shadow-10': $q.dark.isActive, 'shadow-2': !$q.dark.isActive }"
                       >
-                        <q-card-section class="bg-gradient-primary text-white">
+                        <q-card-section class="bg-gradient-primary text-white q-py-sm">
                           <div class="row items-center no-wrap">
-                            <q-icon name="account_balance_wallet" size="md" class="q-mr-md" />
-                            <div>
-                              <div class="text-h6 text-weight-bold">{{ $t('immat.step8') }}</div>
+                            <q-icon name="account_balance_wallet" size="sm" class="q-mr-sm" />
+                            <div class="text-subtitle1 text-weight-bold col">
+                              {{ $t('immat.step8') }}
                             </div>
-                            <q-space />
                             <q-btn
                               flat
                               round
                               color="white"
                               icon="edit"
-                              size="sm"
+                              size="xs"
                               @click="step = 1"
                               class="hover-scale"
                             >
@@ -1625,19 +1665,18 @@
                         class="recap-card q-mb-md"
                         :class="{ 'shadow-10': $q.dark.isActive, 'shadow-2': !$q.dark.isActive }"
                       >
-                        <q-card-section class="bg-gradient-secondary text-white">
+                        <q-card-section class="bg-gradient-secondary text-white q-py-sm">
                           <div class="row items-center no-wrap">
-                            <q-icon name="person" size="md" class="q-mr-md" />
-                            <div>
-                              <div class="text-h6 text-weight-bold">{{ $t('immat.step2') }}</div>
+                            <q-icon name="person" size="sm" class="q-mr-sm" />
+                            <div class="text-subtitle1 text-weight-bold col">
+                              {{ $t('immat.step2') }}
                             </div>
-                            <q-space />
                             <q-btn
                               flat
                               round
                               color="white"
                               icon="edit"
-                              size="sm"
+                              size="xs"
                               @click="step = 2"
                               class="hover-scale"
                             >
@@ -2078,19 +2117,18 @@
                         class="recap-card q-mb-md"
                         :class="{ 'shadow-10': $q.dark.isActive, 'shadow-2': !$q.dark.isActive }"
                       >
-                        <q-card-section class="bg-gradient-warning text-white">
+                        <q-card-section class="bg-gradient-warning text-white q-py-sm">
                           <div class="row items-center no-wrap">
-                            <q-icon name="folder" size="md" class="q-mr-md" />
-                            <div>
-                              <div class="text-h6 text-weight-bold">{{ $t('immat.step6') }}</div>
+                            <q-icon name="folder" size="sm" class="q-mr-sm" />
+                            <div class="text-subtitle1 text-weight-bold col">
+                              {{ $t('immat.step6') }}
                             </div>
-                            <q-space />
                             <q-btn
                               flat
                               round
                               color="white"
                               icon="edit"
-                              size="sm"
+                              size="xs"
                               @click="step = 6"
                               class="hover-scale"
                             >
@@ -2210,49 +2248,84 @@
                       </q-card>
                     </div>
                   </div>
-
-                  <!-- Actions finales -->
-                  <q-card flat class="bg-grey-1 q-mt-md">
-                    <q-card-section class="text-center">
-                      <q-stepper-navigation class="justify-center">
-                        <q-btn
-                          type="submit"
-                          unelevated
-                          color="primary"
-                          size="md"
-                          class="q-px-md q-py-sm text-weight-bold"
-                          icon="send"
-                        >
-                          {{ $t('form.submit') }}
-                        </q-btn>
-                        <q-btn
-                          flat
-                          icon="arrow_back"
-                          color="primary"
-                          :label="$t('form.previous')"
-                          class="q-ml-md"
-                          size="md"
-                          @click="step = 6"
-                        />
-                        <q-btn
-                          flat
-                          color="secondary"
-                          icon="visibility"
-                          size="md"
-                          class="q-ml-md"
-                          @click="previewDocument"
-                        >
-                          {{ $t('form.preview') }}
-                        </q-btn>
-                      </q-stepper-navigation>
-                    </q-card-section>
-                  </q-card>
                 </div>
               </q-step>
             </q-stepper>
-          </q-form>
-        </q-card-section>
-      </q-scroll-area>
+          </q-card-section>
+        </q-scroll-area>
+
+        <q-separator />
+        <q-card-actions align="right" class="immat-step-footer q-pa-sm">
+          <q-btn
+            v-if="step > 1"
+            flat
+            color="primary"
+            :label="$t('form.previous')"
+            icon="arrow_back"
+            @click="goToPreviousStep"
+          />
+          <q-space />
+          <q-btn
+            v-if="step < 7"
+            color="primary"
+            unelevated
+            :label="$t('form.next')"
+            icon-right="arrow_forward"
+            @click="goToNextStep(step + 1)"
+          />
+          <q-btn
+            v-else
+            type="submit"
+            color="primary"
+            unelevated
+            class="q-px-lg text-weight-bold"
+            icon-right="send"
+            :label="$t('form.submit')"
+          />
+        </q-card-actions>
+      </q-form>
+
+      <!-- ═══ DIALOGUE CONFIRMATION ═══ -->
+      <q-dialog v-model="dialValidation" persistent>
+        <q-card class="confirmation-card" style="min-width: 340px; max-width: 480px">
+          <q-card-section class="immat-header row items-center no-wrap q-py-sm">
+            <q-icon name="verified" size="md" class="q-mr-sm text-white" />
+            <div class="text-subtitle1 text-weight-bold col text-white">
+              {{ $t('form.confirmationTitle') }}
+            </div>
+            <q-btn flat round dense icon="close" color="white" @click="dialValidation = false" />
+          </q-card-section>
+          <q-card-section>
+            <div class="confirmation-message text-body2 q-mb-md">
+              <q-icon name="info" color="primary" class="q-mr-xs" />
+              {{ $t('form.confirmationMessage') }}
+            </div>
+            <div class="text-subtitle2 text-weight-medium q-mb-sm text-primary">
+              {{ $t('immep.confirmSubmit') }}
+            </div>
+            <q-option-group
+              v-model="form.validation"
+              :options="validationOptions"
+              color="primary"
+              inline
+              class="q-mt-sm"
+            />
+          </q-card-section>
+          <q-separator />
+          <q-card-actions align="right" class="q-pa-md">
+            <q-btn flat :label="$t('form.cancel')" color="grey-7" @click="dialValidation = false" />
+            <q-btn
+              unelevated
+              color="primary"
+              icon="send"
+              :label="$t('form.confirm')"
+              :disable="form.validation !== true"
+              :loading="spinner"
+              @click="submitForm"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
     </q-card>
 
     <!-- ═══ DIALOGUE PDF PREVIEW ═══ -->
@@ -2277,134 +2350,67 @@
     <q-dialog persistent v-model="spinner">
       <q-spinner-cube size="xl" color="primary" />
     </q-dialog>
-
-    <!-- ═══ DIALOGUE DE CONFIRMATION ═══ -->
-    <q-dialog v-model="showConfirmationDialog" persistent>
-      <q-card class="confirmation-card" style="min-width: 500px">
-        <q-card-section class="bg-primary text-white text-center q-pa-md">
-          <q-icon name="help_outline" size="35px" class="q-mb-sm" />
-          <div class="text-h6 text-weight-bold">{{ $t('form.confirmationTitle') }}</div>
-        </q-card-section>
-        <q-card-section style="max-height: 50vh" class="scroll q-pa-md">
-          <div class="submission-types q-mt-lg">
-            <div class="text-h6 text-weight-bold q-mb-md text-grey-8">
-              <q-icon name="radio_button_checked" class="q-mr-sm" />
-              {{ $t('form.selectSubmissionType') }}
-            </div>
-            <!-- Option temporaire -->
-            <q-card
-              flat
-              bordered
-              class="submission-option q-mb-md"
-              :class="{ 'selected-option': submissionType === 'temporary' }"
-              @click="submissionType = 'temporary'"
-            >
-              <q-card-section class="q-pa-md">
-                <div class="row items-center">
-                  <q-radio
-                    v-model="submissionType"
-                    val="temporary"
-                    color="orange"
-                    class="q-mr-md"
-                  />
-                  <div class="col">
-                    <div class="text-subtitle1 text-weight-bold text-orange-8">
-                      <q-icon name="schedule" class="q-mr-xs" />
-                      {{ $t('form.temporarySubmission') }}
-                    </div>
-                    <p class="text-caption text-grey-7 q-ma-none q-mt-sm">
-                      {{ $t('form.temporarySubmissionDescription') }}
-                    </p>
-                  </div>
-                </div>
-              </q-card-section>
-            </q-card>
-            <!-- Option définitive -->
-            <q-card
-              flat
-              bordered
-              class="submission-option"
-              :class="{ 'selected-option': submissionType === 'definitive' }"
-              @click="submissionType = 'definitive'"
-            >
-              <q-card-section class="q-pa-md">
-                <div class="row items-center">
-                  <q-radio
-                    v-model="submissionType"
-                    val="definitive"
-                    color="green"
-                    class="q-mr-md"
-                  />
-                  <div class="col">
-                    <div class="text-subtitle1 text-weight-bold text-green-8">
-                      <q-icon name="check_circle" class="q-mr-xs" />
-                      {{ $t('form.definitiveSubmission') }}
-                    </div>
-                    <p class="text-caption text-grey-7 q-ma-none q-mt-sm">
-                      {{ $t('form.definitiveSubmissionDescription') }}
-                    </p>
-                  </div>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
-        </q-card-section>
-        <q-card-actions class="q-pa-lg" align="center">
-          <q-btn
-            :label="$t('form.confirm')"
-            color="positive"
-            unelevated
-            size="md"
-            :disable="!submissionType"
-            :icon="submissionType === 'temporary' ? 'schedule' : 'send'"
-            @click="confirmSubmission"
-            class="q-px-xl"
-          />
-          <q-btn
-            :label="$t('form.cancel')"
-            color="grey-7"
-            size="md"
-            icon="close"
-            @click="showConfirmationDialog = false"
-            class="q-ml-md"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
   </q-dialog>
 </template>
 
 <script setup>
-import { ref, computed, watch, defineProps, onMounted, defineEmits } from 'vue'
+import { ref, computed, watch, defineProps, onMounted, defineEmits, nextTick } from 'vue'
 import { useNotify } from 'src/modules/shared/components/useNotify.js'
-import { arrondissements as rawArrondissements } from 'src/modules/shared/data/Arrondissements.js'
-import { pays as rawPays } from 'src/modules/shared/data/Pays.js'
-import { pieces as rawPieces } from 'src/modules/shared/data/Pieces.js'
-import { centres as rawCentres } from 'src/modules/shared/data/Centres.js'
-import { matrimonial as rawMatrimonial } from 'src/modules/immatriculations/data/Matrimonial.js'
-import { origineRevenu as rawOrigineRevenu } from 'src/modules/immatriculations/data/OrigineRevenu.js'
 import {
   initImmatAssuVolRegime1,
+  syncGererAssureTauxVolFields,
   buildLegacyFormDataVol,
-  validateRegime1Business,
+  validateRegime1BusinessFieldMap,
   updateAssietteCotisationVol,
-  updateSmigFromAffiliationDate,
+  updateMontantCotisationFromAssietteVol,
+  getAssietteCotisationBounds,
+  applyVolSmigForAffiliationDate,
+  updateSmigFromAffiliationDateFallback,
+  normalizeQDateForLegacyCompare,
 } from 'src/modules/immatriculations/utils/immatAssuVolLegacy.js'
-import { compareDates } from 'src/modules/immatriculations/utils/immatAssuTrvLegacy.js'
+import {
+  compareDates,
+  syncLegacyHiddenFields,
+} from 'src/modules/immatriculations/utils/immatAssuTrvLegacy.js'
 import { useI18n } from 'vue-i18n'
 import html2pdf from 'html2pdf.js'
 import { submitTeleImmatAssure } from 'src/modules/immatriculations/api/immatAssureApi.js'
+import { resolveImmatSubmitNotifyMessage } from 'src/modules/immatriculations/api/immatAssureResponse.js'
+import {
+  fetchAssureTele,
+  fetchImmatAssuVolReferentials,
+  fetchSessionAssureInit,
+  fetchSmigLinesByRegime,
+} from 'src/modules/immatriculations/api/teleImmatAssureApi.js'
+import {
+  applyAssureTeleToForm,
+  applyAssureTeleVolFields,
+} from 'src/modules/immatriculations/adapters/assureTeleAdapter.js'
+import ImmatAssuTrvControle from 'src/modules/immatriculations/components/ImmatAssuTrvControle.vue'
 import { useQuasar } from 'quasar'
+import { buildLegacyTelephoneRules } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
+import {
+  LEGACY_IMMAT_ASSURE_FILE_ACCEPT,
+  LEGACY_TELEIMMAS_DIGIT_LIMITS,
+} from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
+
+/** Taille max pièce jointe — alignée teleImmat / GererAssure (3 Mo). */
+const LEGACY_MAX_FILE_SIZE = 3072000
+const LEGACY_IMMAT_FILE_ACCEPT = LEGACY_IMMAT_ASSURE_FILE_ACCEPT
 
 const $q = useQuasar()
-defineProps({
+const props = defineProps({
   service: Object,
+  codeTele: { type: String, default: '' },
+  codeSecret: { type: String, default: '' },
 })
 
 const { t, locale } = useI18n()
+const phoneRules = buildLegacyTelephoneRules(t, { required: true })
+const phoneRulesOptional = buildLegacyTelephoneRules(t, { required: false })
 const emit = defineEmits(['close'])
 
-const { notifyError, notifySuccess } = useNotify()
+const { notifyError, notifySuccess, notifyControleGenerated } = useNotify()
 
 const open = ref(true)
 const step = ref(1)
@@ -2414,110 +2420,353 @@ const recapContent = ref(null)
 const pdfDialog = ref(false)
 const pdfBlobUrl = ref(null)
 const spinner = ref(false)
-const showConfirmationDialog = ref(false)
-const submissionType = ref(null)
+const dialValidation = ref(false)
 const stepErrors = ref({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false })
+const fieldErrors = ref({})
 
-const arrondissements = ref([...rawArrondissements])
-const pays = ref([...rawPays])
-const pieces = ref([...rawPieces])
-const centres = ref([...rawCentres])
-const matrimonialList = ref([...rawMatrimonial])
-const origineRevenuList = ref([...rawOrigineRevenu])
+const phase = ref('form')
+const controleCredentials = ref({ codeTele: '', codeSecret: '' })
+const controleValidated = ref(false)
+const controleReloadToken = ref(0)
+const validatingControle = ref(false)
+const fromControleEdit = ref(false)
+const volSmigLines = ref([])
 
-const form = ref({
-  regime: '1',
-  regimeAffi: '1',
-  regimeAffiC: 'Volontaire',
-  ORIGINE_REVENU: null,
-  CODE_ORIGINEREV: '',
-  CODE_REGIMEAV: '',
-  DATE_DEBUT_AFFI: '',
-  MIN_DATE_DEBUT_AFFI: '',
-  DETAILS_ORIGINEREV: '',
-  DATE_DEBUT_AFFI_SOLL: '',
-  MONTANT_REV_ANNUEL: '',
-  ASSIETTE_COTISATION: '',
-  TAUX: '',
-  SMIG_VALUE: '',
-  MONTANT_COTISATION: '',
-  DATE_DEMANDE: '',
-  code_tele: '',
-  code_secret: '',
-  date_effet: '',
-  taux: '',
-  min_date_effet: '01/02/2016',
-  smig_annuel: '',
-  max_cotisation_annuel: '',
-  Dest: '',
-  laction: 'Créer',
-  valider: 'OUI',
-  minDateAffi: '',
-  file504: null,
-  file507: null,
-  SEXE_PERS: '',
-  NOM_PERS: '',
-  PRENOM_PERS: '',
-  DATE_NAISS_PERS: '',
-  LOCALITE_NAISS: '',
-  LieuNaiss: null,
-  LIEU_NAISS_PERS: '',
-  CODE_PAYS_NAISS: '',
-  NATIONALITEC: null,
-  NATIONALITE: '',
-  typepiece: null,
-  NUM_TYPEPIECE: '',
-  NUM_PIECE: '',
-  DATE_PIECE: '',
-  LIEU_PIECEC: null,
-  LIEU_PIECE: '',
-  civilite: null,
-  CIVILITE_PERS: '',
-  pieceIdentite: null,
-  declarationHonneur: null,
-  NOM_PERE: '',
-  PRENOM_PERE: '',
-  DATE_NAISS_PERSP: '',
-  LOCALITE_NAISS_PERE: '',
-  LieuNaissPere: null,
-  LIEU_NAISS_PERE: '',
-  CODE_PAYS_NAISSP: '',
-  etatP: 'Vivant',
-  DATE_DECES_PERSP: '',
-  NOM_MERE: '',
-  PRENOM_MERE: '',
-  DATE_NAISS_PERSM: '',
-  LOCALITE_NAISS_MERE: '',
-  LieuNaissMere: null,
-  LIEU_NAISS_MERE: '',
-  CODE_PAYS_NAISSM: '',
-  etatM: 'Vivant',
-  DATE_DECES_PERSM: '',
-  CODE_VILLEC: null,
-  CODE_VILLE: '',
-  QUARTIER: '',
-  TEL_PERS: '',
-  FAX_PERS: '',
-  Adresse: '',
-  EMAIL_PERS: '',
-  BP: '',
-  CODE_CENTRECNPSC: null,
-  CODE_CENTRECNPS: '',
-  nombEnfa: 0,
-  actesNaissance: [],
-  nombCert: 0,
-  certificatsTravail: [],
-  nombConj: 0,
-  actesMariage: [],
-})
+const loadingInit = ref(false)
+const referentialsReady = ref(false)
+const referentialsError = ref(null)
+const referentialsLoadingLabel = ref('')
+
+const arrondissementSelectProps = {
+  virtualScroll: true,
+  virtualScrollItemSize: 40,
+  popupContentStyle: 'max-height: 280px',
+}
+
+const arrondissementsAll = ref([])
+const paysAll = ref([])
+const piecesAll = ref([])
+const centresAll = ref([])
+const matrimonialAll = ref([])
+const origineRevenuAll = ref([])
+
+const arrondissements = ref([])
+const pays = ref([])
+const pieces = ref([])
+const centres = ref([])
+const matrimonialList = ref([])
+const origineRevenuList = ref([])
+
+function applyReferentials(refs) {
+  arrondissementsAll.value = [...refs.arrondissements]
+  paysAll.value = [...refs.pays]
+  piecesAll.value = [...refs.pieces]
+  centresAll.value = [...refs.centres]
+  matrimonialAll.value = [...refs.matrimonial]
+  origineRevenuAll.value = [...refs.origineRevenu]
+
+  arrondissements.value = [...refs.arrondissements]
+  pays.value = [...refs.pays]
+  pieces.value = [...refs.pieces]
+  centres.value = [...refs.centres]
+  matrimonialList.value = [...refs.matrimonial]
+  origineRevenuList.value = [...refs.origineRevenu]
+  referentialsReady.value = true
+}
+
+function createImmatAssuVolFormDefaults() {
+  return {
+    regime: '1',
+    regimeAffi: '1',
+    regimeAffiC: 'Volontaire',
+    ORIGINE_REVENU: null,
+    CODE_ORIGINEREV: '',
+    CODE_REGIMEAV: '',
+    DATE_DEBUT_AFFI: '',
+    MIN_DATE_DEBUT_AFFI: '',
+    DETAILS_ORIGINEREV: '',
+    DATE_DEBUT_AFFI_SOLL: '',
+    MONTANT_REV_ANNUEL: '',
+    ASSIETTE_COTISATION: '',
+    TAUX: '',
+    SMIG_VALUE: '',
+    MONTANT_COTISATION: '',
+    DATE_DEMANDE: '',
+    code_tele: '',
+    code_secret: '',
+    date_effet: '',
+    taux: '',
+    min_date_effet: '',
+    smig_annuel: '',
+    max_cotisation_annuel: '',
+    Dest: 'dossiers/assure/immas/',
+    laction: 'Créer',
+    valider: 'NON',
+    minDateAffi: '',
+    file504: null,
+    file507: null,
+    SEXE_PERS: '',
+    NOM_PERS: '',
+    PRENOM_PERS: '',
+    DATE_NAISS_PERS: '',
+    LOCALITE_NAISS: '',
+    LieuNaiss: null,
+    LIEU_NAISS_PERS: '',
+    CODE_PAYS_NAISS: '',
+    NATIONALITEC: null,
+    NATIONALITE: '',
+    typepiece: null,
+    NUM_TYPEPIECE: '',
+    NUM_PIECE: '',
+    DATE_PIECE: '',
+    LIEU_PIECEC: null,
+    LIEU_PIECE: '',
+    civilite: null,
+    CIVILITE_PERS: '',
+    pieceIdentite: null,
+    declarationHonneur: null,
+    NOM_PERE: '',
+    PRENOM_PERE: '',
+    DATE_NAISS_PERSP: '',
+    LOCALITE_NAISS_PERE: '',
+    LieuNaissPere: null,
+    LIEU_NAISS_PERE: '',
+    CODE_PAYS_NAISSP: '',
+    etatP: 'Vivant',
+    DATE_DECES_PERSP: '',
+    NOM_MERE: '',
+    PRENOM_MERE: '',
+    DATE_NAISS_PERSM: '',
+    LOCALITE_NAISS_MERE: '',
+    LieuNaissMere: null,
+    LIEU_NAISS_MERE: '',
+    CODE_PAYS_NAISSM: '',
+    etatM: 'Vivant',
+    DATE_DECES_PERSM: '',
+    CODE_VILLEC: null,
+    CODE_VILLE: '',
+    QUARTIER: '',
+    TEL_PERS: '',
+    FAX_PERS: '',
+    Adresse: '',
+    EMAIL_PERS: '',
+    BP: '',
+    CODE_CENTRECNPSC: null,
+    CODE_CENTRECNPS: '',
+    nombEnfa: 0,
+    actesNaissance: [],
+    nombCert: 0,
+    certificatsTravail: [],
+    nombConj: 0,
+    actesMariage: [],
+    validation: false,
+  }
+}
+
+const validationOptions = computed(() => [
+  { label: t('input.yes'), value: true },
+  { label: t('input.no'), value: false },
+])
+
+const form = ref(createImmatAssuVolFormDefaults())
+
+function getReferentialsSnapshot() {
+  return {
+    arrondissements: arrondissementsAll.value,
+    pays: paysAll.value,
+    pieces: piecesAll.value,
+    centres: centresAll.value,
+    matrimonial: matrimonialAll.value,
+    origineRevenu: origineRevenuAll.value,
+  }
+}
+
+async function loadFormBootstrap() {
+  loadingInit.value = true
+  referentialsReady.value = false
+  referentialsError.value = null
+  try {
+    referentialsLoadingLabel.value = t('immat.referentials.loadingLists')
+    const refs = await fetchImmatAssuVolReferentials('1')
+    applyReferentials(refs)
+
+    referentialsLoadingLabel.value = t('immat.referentials.loadingSession')
+    const session = await fetchSessionAssureInit({ regime: '1' }).catch(() => null)
+    if (session) {
+      initImmatAssuVolRegime1(form.value, session)
+    } else {
+      initImmatAssuVolRegime1(form.value)
+    }
+  } catch (e) {
+    referentialsError.value = e?.message || t('immat.referentials.error')
+    notifyError(referentialsError.value)
+  } finally {
+    loadingInit.value = false
+    referentialsLoadingLabel.value = t('immat.referentials.loading')
+  }
+
+  const ct = props.codeTele || form.value.code_tele
+  const cs = props.codeSecret || form.value.code_secret
+  if (ct && cs && referentialsReady.value) {
+    await loadExistingDossier(ct, cs)
+  }
+}
+
+async function loadExistingDossier(codeTele, codeSecret, options = {}) {
+  try {
+    $q.loading.show({
+      message: options.loadingMessage || t('immat.controle.loadingDossier'),
+    })
+    const row = await fetchAssureTele(codeTele, codeSecret)
+    if (!row) return
+    applyAssureTeleToForm(form.value, row, getReferentialsSnapshot())
+    applyAssureTeleVolFields(form.value, row, getReferentialsSnapshot())
+    form.value.code_tele = codeTele
+    form.value.code_secret = codeSecret
+    if (form.value._dossierExploite) {
+      notifyError(t('immat.controle.dossierExploite'))
+    }
+    syncGererAssureTauxVolFields(form.value)
+    if (form.value.CODE_REGIMEAV) {
+      await loadVolSmigLines(form.value.CODE_REGIMEAV)
+    }
+    refreshVolSmigForAffiliationDate()
+    if (form.value.MONTANT_REV_ANNUEL) {
+      updateAssietteCotisationVol(form.value)
+    }
+  } catch (e) {
+    notifyError(e?.message || t('messages.error'))
+  } finally {
+    $q.loading.hide()
+  }
+}
+
+async function loadVolSmigLines(codeRegime) {
+  const debut = form.value.min_date_effet || '25/07/2014'
+  try {
+    const lines = await fetchSmigLinesByRegime(codeRegime, debut)
+    if (!lines.length) {
+      notifyError(t('immat.vol.smigNotConfigured', 'Régime non paramétré pour cette activité.'))
+      volSmigLines.value = []
+      return
+    }
+    volSmigLines.value = lines
+  } catch (e) {
+    volSmigLines.value = []
+    notifyError(e?.message || t('messages.error'))
+  }
+}
+
+/** Mise à jour SMIG selon la date sollicitée — sans recalculer l'assiette (legacy blur DATE_DEBUT_AFFI_SOLL). */
+function refreshVolSmigForAffiliationDate() {
+  const dateStr = form.value.DATE_DEBUT_AFFI_SOLL
+  if (!dateStr) return
+  if (volSmigLines.value.length) {
+    applyVolSmigForAffiliationDate(form.value, volSmigLines.value, dateStr)
+  } else if (form.value.CODE_REGIMEAV) {
+    updateSmigFromAffiliationDateFallback(form.value, dateStr)
+  }
+  if (form.value.ASSIETTE_COTISATION) {
+    updateMontantCotisationFromAssietteVol(form.value)
+  }
+}
+
+async function onOrigineRevenuChange(origine) {
+  if (origine && typeof origine === 'object') {
+    form.value.CODE_ORIGINEREV = origine.CODE_ORIGINEREV || ''
+    form.value.CODE_REGIMEAV = origine.CODE_REGIME || ''
+  } else {
+    form.value.CODE_ORIGINEREV = ''
+    form.value.CODE_REGIMEAV = ''
+    volSmigLines.value = []
+    form.value.SMIG_VALUE = ''
+    reevaluateField('ORIGINE_REVENU')
+    return
+  }
+  if (form.value.CODE_REGIMEAV) {
+    await loadVolSmigLines(form.value.CODE_REGIMEAV)
+    refreshVolSmigForAffiliationDate()
+  }
+  reevaluateField('ORIGINE_REVENU')
+}
+
+function onDetailsOrigineBlur() {
+  form.value.DETAILS_ORIGINEREV = String(form.value.DETAILS_ORIGINEREV || '')
+    .toUpperCase()
+    .trim()
+  reevaluateField('DETAILS_ORIGINEREV')
+}
+
+function onDateAffiSollFocus() {
+  if (!form.value.CODE_ORIGINEREV) {
+    notifyError(
+      t('immat.vol.selectOrigineFirst', "Veuillez d'abord choisir l'origine des revenus."),
+    )
+  }
+}
+
+function onDateDebutAffiSollChange() {
+  if (!form.value.CODE_ORIGINEREV) {
+    form.value.DATE_DEBUT_AFFI_SOLL = ''
+    notifyError(
+      t('immat.vol.selectOrigineFirst', "Veuillez d'abord choisir l'origine des revenus."),
+    )
+    return
+  }
+  refreshVolSmigForAffiliationDate()
+}
+
+function onDateDebutAffiSollBlur() {
+  if (!form.value.CODE_ORIGINEREV) {
+    form.value.DATE_DEBUT_AFFI_SOLL = ''
+    return
+  }
+  const d = form.value.DATE_DEBUT_AFFI_SOLL
+  if (!d) return
+  if (form.value.MIN_DATE_DEBUT_AFFI && compareDates(d, form.value.MIN_DATE_DEBUT_AFFI) < 0) {
+    notifyError(
+      t(
+        'immat.vol.dateAffiSollBeforeMin',
+        "La date d'affiliation sollicitée est antérieure à la date minimum autorisée.",
+      ),
+    )
+    return
+  }
+  if (form.value.DATE_DEBUT_AFFI && compareDates(d, form.value.DATE_DEBUT_AFFI) > 0) {
+    notifyError(
+      t(
+        'immat.vol.dateAffiSollAfterMax',
+        "La date d'affiliation sollicitée est postérieure à la date d'affiliation normale.",
+      ),
+    )
+    return
+  }
+  refreshVolSmigForAffiliationDate()
+  reevaluateField('DATE_DEBUT_AFFI_SOLL')
+}
+
+function onAssietteCotisationBlur() {
+  updateMontantCotisationFromAssietteVol(form.value)
+  reevaluateField('ASSIETTE_COTISATION')
+}
 
 onMounted(() => {
-  initImmatAssuVolRegime1(form.value, {
-    taux: '8.4',
-    smig_annuel: '435240',
-    max_cotisation_annuel: '9000000',
-  })
+  referentialsLoadingLabel.value = t('immat.referentials.loading')
+  loadFormBootstrap()
 })
+
+watch(
+  () => form.value,
+  () => syncLegacyHiddenFields(form.value),
+  { deep: true },
+)
+
+const fileMaxSizeHint = computed(() => t('form.maxFileSizeHint'))
+
+function fileHintWithSize(label = '') {
+  const max = fileMaxSizeHint.value
+  return label ? `${label} — ${max}` : max
+}
 
 watch(
   () => form.value.typepiece,
@@ -2529,18 +2778,13 @@ watch(
   },
 )
 
-watch(
-  () => form.value.ORIGINE_REVENU,
-  (origine) => {
-    if (origine && typeof origine === 'object') {
-      form.value.CODE_ORIGINEREV = origine.CODE_ORIGINEREV || ''
-      form.value.CODE_REGIMEAV = origine.CODE_REGIME || ''
-    }
-    if (form.value.DATE_DEBUT_AFFI_SOLL) {
-      updateSmigFromAffiliationDate(form.value, form.value.DATE_DEBUT_AFFI_SOLL)
-    }
-  },
-)
+const validateRevenuAnnuel = (val) => {
+  const rev = String(val ?? '').trim()
+  if (!/^\d{5,10}$/.test(rev)) {
+    return 'Le revenu doit comporter entre 5 et 10 chiffres.'
+  }
+  return true
+}
 
 const sexeOptions = computed(() => [
   { label: t('inputassu.male'), value: 'MASCULIN' },
@@ -2561,16 +2805,129 @@ const dynamicTextClass = computed(() => [
 
 const required = (val) => !!val || 'Ce champ est requis / This field is required'
 
+const hasFieldError = (field) => Boolean(fieldErrors.value[field])
+const fieldErrorMsg = (field) => fieldErrors.value[field] || undefined
+
+/** Champs liés — réévaluation croisée à la saisie. */
+const FIELD_RELATED = {
+  ORIGINE_REVENU: ['MONTANT_REV_ANNUEL', 'ASSIETTE_COTISATION'],
+  DATE_DEBUT_AFFI_SOLL: ['ASSIETTE_COTISATION', 'MONTANT_COTISATION'],
+  MONTANT_REV_ANNUEL: ['ASSIETTE_COTISATION', 'MONTANT_COTISATION'],
+  ASSIETTE_COTISATION: ['MONTANT_COTISATION'],
+  DATE_NAISS_PERS: ['DATE_NAISS_PERSM', 'DATE_NAISS_PERSP', 'DATE_DEBUT_AFFI_SOLL'],
+  DATE_NAISS_PERSM: ['DATE_NAISS_PERS'],
+  DATE_NAISS_PERSP: ['DATE_NAISS_PERS', 'NOM_PERE'],
+  NOM_PERE: ['DATE_NAISS_PERSP'],
+  typepiece: ['pieceIdentite', 'declarationHonneur', 'NUM_TYPEPIECE'],
+  pieceIdentite: ['declarationHonneur'],
+}
+
+function updateStepErrorState() {
+  const currentStep = step.value
+  const map = validateRegime1BusinessFieldMap(form.value, currentStep)
+  stepErrors.value[currentStep] = Object.keys(map).length > 0
+}
+
+/**
+ * Réévalue un champ à la saisie — affiche ou retire l'erreur sur le champ concerné.
+ * @param {string} field
+ */
+function reevaluateField(field) {
+  syncLegacyHiddenFields(form.value)
+  const keys = [field, ...(FIELD_RELATED[field] || [])]
+  const next = { ...fieldErrors.value }
+
+  for (const scope of [step.value, null]) {
+    const map = validateRegime1BusinessFieldMap(form.value, scope)
+    for (const key of keys) {
+      if (map[key]) next[key] = map[key]
+      else delete next[key]
+    }
+  }
+
+  fieldErrors.value = next
+  updateStepErrorState()
+}
+
+function scrollToFirstInvalid() {
+  nextTick(() => {
+    const el = formRef.value?.$el?.querySelector('.q-field--error')
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
+}
+
+async function validateCurrentForm(stepScope = null) {
+  syncLegacyHiddenFields(form.value)
+  fieldErrors.value = validateRegime1BusinessFieldMap(form.value, stepScope)
+  const valid = await formRef.value?.validate()
+  const businessOk = Object.keys(fieldErrors.value).length === 0
+  await nextTick()
+  if (!valid || !businessOk) {
+    const firstBusiness = Object.values(fieldErrors.value)[0]
+    if (firstBusiness) {
+      notifyError(firstBusiness)
+    } else if (!valid) {
+      notifyError(t('immat.validation.requiredFields', 'Veuillez corriger les champs signalés.'))
+    }
+    scrollToFirstInvalid()
+    return false
+  }
+  return true
+}
+
 const validateEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || t('errors.invalidEmail')
+
+const dateAffiSollHint = computed(() => {
+  const min = form.value.MIN_DATE_DEBUT_AFFI
+  const max = form.value.DATE_DEBUT_AFFI
+  if (min && max) {
+    return locale.value === 'fr'
+      ? `Entre ${min} et ${max} (JJ/MM/AAAA)`
+      : `Between ${min} and ${max}`
+  }
+  return locale.value === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'
+})
+
+const assietteCotisationHint = computed(() => {
+  const { min, max } = getAssietteCotisationBounds(form.value)
+  if (min != null && max != null) {
+    return t('immat.vol.assietteBounds', { min, max }, `Entre ${min} et ${max} F CFA`)
+  }
+  if (min != null) {
+    return t('immat.vol.assietteMin', { min }, `Minimum ${min} F CFA (SMIG)`)
+  }
+  if (max != null) {
+    return t('immat.vol.assietteMax', { max }, `Maximum ${max} F CFA`)
+  }
+  return ''
+})
 
 const optionsDateAffiliation = (dateStr) => {
   if (!form.value.MIN_DATE_DEBUT_AFFI || !form.value.DATE_DEBUT_AFFI) return true
-  const parts = dateStr.split('/')
-  const normalized = parts[0]?.length === 4 ? `${parts[2]}/${parts[1]}/${parts[0]}` : dateStr
+  const normalized = normalizeQDateForLegacyCompare(dateStr)
   return (
     compareDates(normalized, form.value.MIN_DATE_DEBUT_AFFI) >= 0 &&
     compareDates(normalized, form.value.DATE_DEBUT_AFFI) <= 0
   )
+}
+
+const validateDateAffiSoll = (val) => {
+  if (!val) return true
+  if (form.value.MIN_DATE_DEBUT_AFFI && compareDates(val, form.value.MIN_DATE_DEBUT_AFFI) < 0) {
+    return t('immat.vol.dateAffiSollBeforeMin', 'Date antérieure au minimum autorisé.')
+  }
+  if (form.value.DATE_DEBUT_AFFI && compareDates(val, form.value.DATE_DEBUT_AFFI) > 0) {
+    return t('immat.vol.dateAffiSollAfterMax', "Date postérieure à l'affiliation normale.")
+  }
+  return true
+}
+
+const validateAssietteDigits = (val) => {
+  const s = String(val ?? '').trim()
+  if (!/^\d{5,10}$/.test(s)) {
+    return t('immat.vol.assietteDigits', "L'assiette doit comporter entre 5 et 10 chiffres.")
+  }
+  return true
 }
 
 const optionsDn = (date) => {
@@ -2584,41 +2941,85 @@ const optionsDn = (date) => {
 
 const filterArrondissement = (val, update) => {
   update(() => {
-    arrondissements.value = rawArrondissements.filter((arr) =>
-      arr.NOM_ARROND.toLowerCase().includes(val.toLowerCase()),
-    )
+    const needle = (val || '').toLowerCase()
+    arrondissements.value = needle
+      ? arrondissementsAll.value.filter((arr) =>
+          String(arr.NOM_ARROND || '')
+            .toLowerCase()
+            .includes(needle),
+        )
+      : [...arrondissementsAll.value]
   })
 }
 
 const filterPays = (val, update) => {
   update(() => {
-    pays.value = rawPays.filter((p) => p.nationalite.toLowerCase().includes(val.toLowerCase()))
+    const needle = (val || '').toLowerCase()
+    pays.value = needle
+      ? paysAll.value.filter((item) =>
+          String(item.nationalite || '')
+            .toLowerCase()
+            .includes(needle),
+        )
+      : [...paysAll.value]
   })
 }
 
 const filterPieces = (val, update) => {
   update(() => {
-    pieces.value = rawPieces.filter((piece) =>
-      piece.LIBELLE.toLowerCase().includes(val.toLowerCase()),
-    )
+    const needle = (val || '').toLowerCase()
+    pieces.value = needle
+      ? piecesAll.value.filter((piece) =>
+          String(piece.LIBELLE || '')
+            .toLowerCase()
+            .includes(needle),
+        )
+      : [...piecesAll.value]
   })
 }
 
 const filterCentreCNPS = (val, update) => {
   update(() => {
-    centres.value = rawCentres.filter((centre) =>
-      centre.LIB_CENTRE.toLowerCase().includes(val.toLowerCase()),
-    )
+    const needle = (val || '').toLowerCase()
+    centres.value = needle
+      ? centresAll.value.filter((centre) =>
+          String(centre.LIB_CENTRE || '')
+            .toLowerCase()
+            .includes(needle),
+        )
+      : [...centresAll.value]
   })
 }
 
-const onDateDebutAffiSollChange = (val) => {
-  if (val) updateSmigFromAffiliationDate(form.value, val)
-  onMontantRevAnnuelChange()
+const filterMatrimonial = (val, update) => {
+  update(() => {
+    const needle = (val || '').toLowerCase()
+    matrimonialList.value = needle
+      ? matrimonialAll.value.filter((item) =>
+          String(item.LIBELLE_MATRI || '')
+            .toLowerCase()
+            .includes(needle),
+        )
+      : [...matrimonialAll.value]
+  })
+}
+
+const filterOrigineRevenu = (val, update) => {
+  update(() => {
+    const needle = (val || '').toLowerCase()
+    origineRevenuList.value = needle
+      ? origineRevenuAll.value.filter((item) =>
+          String(item.LIB_ORIGINEREV || '')
+            .toLowerCase()
+            .includes(needle),
+        )
+      : [...origineRevenuAll.value]
+  })
 }
 
 const onMontantRevAnnuelChange = () => {
   updateAssietteCotisationVol(form.value)
+  reevaluateField('MONTANT_REV_ANNUEL')
 }
 
 /* const onFileSelected = (field, index) => {
@@ -2651,33 +3052,30 @@ const isStepAllowed = (stepNumber) => {
   return stepNumber <= maxStep.value
 }
 
+const goToPreviousStep = () => {
+  if (step.value > 1) {
+    step.value -= 1
+  }
+}
+
 const validateAssieteCotisation = (val) => {
   if (!val) return 'Champ requis'
-  const smig = Number(form.value.SMIG_VALUE)
-  const maxM =
-    form.value._maxCotisationMensuelle ??
-    (form.value.max_cotisation_annuel
-      ? Math.floor(Number(form.value.max_cotisation_annuel) / 12)
-      : null)
-  if (!Number.isNaN(smig) && Number(val) < smig) {
-    return `Assiette inférieure au SMIG (${smig} F CFA)`
+  const n = Number(val)
+  const { min, max } = getAssietteCotisationBounds(form.value)
+  if (min != null && !Number.isNaN(n) && n < min) {
+    return t('immat.vol.assietteBelowSmig', { min }, `Assiette inférieure au SMIG (${min} F CFA)`)
   }
-  if (maxM != null && !Number.isNaN(maxM) && Number(val) > maxM) {
-    return 'Assiette supérieure au maximum autorisé'
+  if (max != null && !Number.isNaN(n) && n > max) {
+    return t('immat.vol.assietteAboveMax', 'Assiette supérieure au maximum autorisé')
   }
   return true
 }
 
 const goToNextStep = async (nextStep) => {
   const currentStep = step.value
-  const valid = await formRef.value.validate()
-  const businessErr = validateRegime1Business(form.value, currentStep)
-  if (!valid || businessErr) {
+  const ok = await validateCurrentForm(currentStep)
+  if (!ok) {
     stepErrors.value[currentStep] = true
-    notifyError(
-      businessErr ||
-        'Veuillez remplir tous les champs requis / Please fill in all required fields.',
-    )
     return
   }
   stepErrors.value[currentStep] = false
@@ -2688,73 +3086,106 @@ const goToNextStep = async (nextStep) => {
 }
 
 const submitForm = async () => {
-  const valid = await formRef.value.validate()
-  const businessErr = validateRegime1Business(form.value, null)
-  if (!valid || businessErr) {
-    notifyError(
-      businessErr ||
-        'Veuillez remplir tous les champs requis / Please fill in all required fields.',
-    )
+  dialValidation.value = false
+  const ok = await validateCurrentForm(null)
+  if (!ok) {
+    stepErrors.value[7] = true
     return
   }
-  showConfirmationDialog.value = true
+  stepErrors.value[7] = false
+  await confirmSubmission()
 }
 
-watch(
-  () => form.value.MONTANT_REV_ANNUEL,
-  () => {
-    onMontantRevAnnuelChange()
-  },
-)
-
 const confirmSubmission = async () => {
-  if (!submissionType.value) {
-    notifyError(t('form.selectSubmissionType'))
-    return
-  }
   spinner.value = true
+  const revalidateFromControle = fromControleEdit.value
   try {
     const formData = buildLegacyFormDataVol(form.value, {
-      submissionType: submissionType.value,
+      submissionType: revalidateFromControle ? 'definitive' : 'temporary',
     })
     if (import.meta.env.DEV) {
       console.info('GererAssure FormData (régime 1):', [...formData.entries()])
     }
     const result = await submitTeleImmatAssure(formData)
-    notifySuccess(result.message || t('form.submitted'))
-    closeDialog()
+    const codeTele = result.codeTele
+    const codeSecret = result.codeSecret
+
+    form.value.code_tele = codeTele
+    form.value.code_secret = codeSecret
+    form.value.laction = 'Modifier'
+    form.value.valider = revalidateFromControle ? 'OUI' : 'NON'
+    controleCredentials.value = { codeTele, codeSecret }
+    controleValidated.value = revalidateFromControle
+    fromControleEdit.value = false
+    controleReloadToken.value += 1
+    phase.value = 'controle'
+
+    if (revalidateFromControle) {
+      notifySuccess(resolveImmatSubmitNotifyMessage(result, t('form.submitted')))
+    } else {
+      notifyControleGenerated(resolveImmatSubmitNotifyMessage(result, t('form.submitted')))
+    }
   } catch (error) {
     const msg = error?.message || String(error)
-    notifyError(t('form.submit_error', { error: msg }))
+    notifyError(msg || t('form.submit_error', { error: '' }))
   } finally {
     spinner.value = false
-    showConfirmationDialog.value = false
-    submissionType.value = null
   }
+}
+
+async function onEditFromControle({ codeTele, codeSecret }) {
+  fromControleEdit.value = true
+  controleValidated.value = false
+  phase.value = 'form'
+  await loadExistingDossier(codeTele, codeSecret, {
+    loadingMessage: t('immat.controle.loadingDossier'),
+  })
+  form.value.laction = 'Modifier'
+  form.value.valider = 'NON'
+  step.value = 7
+  maxStep.value = 7
+  await nextTick()
+}
+
+function onModifierFromControle() {
+  fromControleEdit.value = true
+  controleValidated.value = false
+  phase.value = 'form'
+  form.value.laction = 'Modifier'
+  form.value.valider = 'NON'
+  step.value = 7
+  maxStep.value = 7
+}
+
+async function onValidateFromControle() {
+  validatingControle.value = true
+  try {
+    const formData = buildLegacyFormDataVol(form.value, { submissionType: 'definitive' })
+    const result = await submitTeleImmatAssure(formData)
+    form.value.code_tele = result.codeTele || form.value.code_tele
+    form.value.code_secret = result.codeSecret || form.value.code_secret
+    form.value.laction = 'Modifier'
+    form.value.valider = 'OUI'
+    controleCredentials.value = {
+      codeTele: result.codeTele || form.value.code_tele,
+      codeSecret: result.codeSecret || form.value.code_secret,
+    }
+    controleValidated.value = true
+    controleReloadToken.value += 1
+    notifySuccess(resolveImmatSubmitNotifyMessage(result, t('form.submitted')))
+  } catch (error) {
+    const msg = error?.message || String(error)
+    notifyError(msg || t('form.submit_error', { error: '' }))
+  } finally {
+    validatingControle.value = false
+  }
+}
+
+function onControleValidated() {
+  controleValidated.value = true
 }
 
 const downloadPDF = async () => {
-  spinner.value = true
-  try {
-    const element = recapContent.value
-    const opt = {
-      margin: 1,
-      filename: 'immatriculation_form.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-    }
-    const pdf = await html2pdf().from(element).set(opt).toPdf().output('blob')
-    pdfBlobUrl.value = URL.createObjectURL(pdf)
-    pdfDialog.value = true
-  } catch (error) {
-    notifyError(t('pdf.generation_error', error))
-  } finally {
-    spinner.value = false
-  }
-}
-
-const previewDocument = async () => {
   spinner.value = true
   try {
     const element = recapContent.value
@@ -2786,33 +3217,81 @@ const closeDialog = () => {
 .immat-main-card {
   border-radius: 12px;
   overflow: hidden;
+  height: min(88vh, 820px);
+  max-height: 92vh;
+}
+
+.immat-form {
+  min-height: 0;
+}
+
+.immat-scroll-area {
+  height: 0;
+  flex: 1 1 auto;
+  min-height: 280px;
+}
+
+.immat-step-footer {
+  flex-shrink: 0;
+  background: #f5f7fa;
+  border-top: 1px solid #e0e0e0;
 }
 
 .immat-header {
   background: linear-gradient(135deg, #1565c0 0%, #1976d2 60%, #42a5f5 100%);
+  min-height: unset;
 }
 
 /* ── Stepper ── */
-.immat-stepper .q-stepper__header {
+.immat-stepper :deep(.q-stepper__header) {
   background: #f5f7fa;
   border-bottom: 1px solid #e0e0e0;
+  min-height: unset;
+  padding: 2px 4px;
+}
+
+.immat-stepper :deep(.q-stepper__tab) {
+  min-height: 40px;
+  padding: 4px 6px;
+}
+
+.immat-stepper :deep(.q-stepper__title) {
+  font-size: 0.7rem;
+  line-height: 1.15;
+  margin-top: 0;
+  padding: 0 2px;
+}
+
+.immat-stepper :deep(.q-stepper__label) {
+  margin-top: 0;
+}
+
+.immat-stepper :deep(.q-stepper__dot) {
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+  font-size: 14px;
+}
+
+.immat-stepper :deep(.q-stepper__line) {
+  margin-top: 11px;
 }
 
 /* ── En-têtes de sous-sections ── */
 .step-section-header {
   display: flex;
   align-items: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: #1565c0;
   background: #e3f2fd;
   border-left: 3px solid #1976d2;
-  padding: 5px 10px;
+  padding: 3px 8px;
   border-radius: 0 4px 4px 0;
-  margin-bottom: 10px;
-  margin-top: 4px;
+  margin-bottom: 6px;
+  margin-top: 2px;
 }
 
 .step-section-header--blue {
@@ -2901,7 +3380,21 @@ const closeDialog = () => {
   }
 }
 
-/* ── Confirmation dialog ── */
+/* ── Mobile ── */
+.custom-mobile-text {
+  font-size: 14px;
+  line-height: 1.5rem;
+}
+
+.immat-readonly-field :deep(.q-field__control) {
+  background: #f5f5f5;
+}
+
+.vol-session-band {
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 8px;
+}
+
 .confirmation-card {
   border-radius: 12px;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
@@ -2912,35 +3405,5 @@ const closeDialog = () => {
   padding: 16px;
   border-radius: 8px;
   border-left: 4px solid #2196f3;
-}
-
-.submission-option {
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.submission-option:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
-}
-
-.selected-option {
-  border-color: var(--q-primary);
-  background: rgba(25, 118, 210, 0.04);
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.15);
-}
-
-.submission-types {
-  background: #fafafa;
-  padding: 20px;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-}
-
-/* ── Mobile ── */
-.custom-mobile-text {
-  font-size: 14px;
-  line-height: 1.5rem;
 }
 </style>

@@ -1,5 +1,6 @@
 <template>
-  <div class="nouveau-dossier-pieces-recep">
+  <div class="nouveau-dossier-pieces-recep relative-position">
+    <q-inner-loading :showing="store.isPiecesBusy" color="primary" />
     <p class="text-subtitle1 nouveau-dossier-pieces-list-title">
       {{ t('reception.nouveauDossier.existingPiecesTitle', { num: ctx.numdossier }) }}
     </p>
@@ -14,6 +15,7 @@
       :pagination="{ rowsPerPage: 0 }"
       class="nouveau-dossier-pieces-table q-mb-lg"
       wrap-cells
+      :no-data-label="t('reception.nouveauDossier.noExistingPieces')"
     >
       <template #header="hdr">
         <q-tr :props="hdr" class="nouveau-dossier-table__head-row">

@@ -6,7 +6,9 @@
         <div class="depot-pf-shell__title-row">
           <q-icon name="family_restroom" size="28px" class="depot-pf-shell__title-icon" />
           <div>
-            <div class="depot-pf-shell__title">{{ t('layout.sidebar.assurePrestationsFamiliales') }}</div>
+            <div class="depot-pf-shell__title">
+              {{ t('layout.sidebar.assurePrestationsFamiliales') }}
+            </div>
             <div class="depot-pf-shell__subtitle">{{ t('modules.assure.depotPf.pageLead') }}</div>
           </div>
         </div>
@@ -69,24 +71,18 @@
       persistent
       maximized-on-small
       class="depot-pf-form-dialog"
+      :class="{ 'depot-pf-form-dialog--wide': wizardStep === 'form' }"
     >
       <q-card class="depot-pf-form-dialog__card">
         <q-toolbar class="bg-primary text-white">
           <q-icon name="description" size="sm" class="q-mr-sm" />
           <q-toolbar-title
-            class="text-subtitle1 text-weight-bold depot-pf-dialog-toolbar-title"
-            :class="{ 'depot-pf-dialog-toolbar-title--center': wizardStep === 'examens_choice' }"
+            class="text-subtitle1 text-weight-bold depot-pf-dialog-toolbar-title depot-pf-dialog-toolbar-title--center"
           >
             {{ dialogTitle }}
           </q-toolbar-title>
           <q-space />
-          <q-btn
-            flat
-            round
-            dense
-            icon="close"
-            @click="onDialogCloseAttempt"
-          />
+          <q-btn flat round dense icon="close" @click="onDialogCloseAttempt" />
         </q-toolbar>
 
         <q-card-section class="depot-pf-form-dialog__body scroll">
@@ -96,17 +92,20 @@
                 <q-select
                   v-model="selectedTypeCode"
                   :options="typeOptions"
-                  :label="t('modules.assure.depotPf.selectType')"
+                  :label="fieldLabel(t('modules.assure.depotPf.selectType'))"
+                  :class="['depot-pf-select-type', requiredFieldClass(true)]"
                   outlined
                   dense
                   emit-value
                   map-options
                   option-value="code"
                   option-label="label"
-                  class="depot-pf-select-type"
                   :rules="[required]"
                   @update:model-value="onTypeSelected"
                 >
+                  <template #prepend>
+                    <q-icon name="category" color="primary" />
+                  </template>
                   <template #option="scope">
                     <q-item v-bind="scope.itemProps">
                       <q-item-section avatar>
@@ -143,7 +142,14 @@
                   :options="examensChoiceOptions"
                   color="primary"
                   type="checkbox"
-                />
+                >
+                  <template #label="opt">
+                    <span class="row items-center no-wrap q-gutter-x-sm">
+                      <q-icon :name="opt.icon" color="primary" size="20px" />
+                      <span>{{ opt.label }}</span>
+                    </span>
+                  </template>
+                </q-option-group>
               </div>
               <div class="depot-pf-wizard-actions row q-gutter-sm">
                 <q-btn
@@ -188,7 +194,9 @@
                   v-if="selectedTypeCode === DEPOT_PF_TYPE_CODES.EXAMENS_PRENATAUX"
                   class="depot-pf-form-section depot-pf-examens-form"
                 >
-                  <div class="depot-pf-form-main-title depot-pf-form-main-title--center text-primary">
+                  <div
+                    class="depot-pf-form-main-title depot-pf-form-main-title--center text-primary"
+                  >
                     {{ t('inputassu.remboursement_examens_prenataux') }}
                   </div>
                   <DepotPrestationPF_ExamensPremier v-if="showExamensPremier" />
@@ -255,7 +263,10 @@
 import { computed, defineAsyncComponent, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDepotPrestationPfStore } from 'src/modules/assure/stores/depotPrestationPfStore.js'
-import { DEPOT_PF_TYPE_CODES, listDepotPfTypesForAssure } from 'src/modules/assure/data/depotPrestationPfTypes.js'
+import {
+  DEPOT_PF_TYPE_CODES,
+  listDepotPfTypesForAssure,
+} from 'src/modules/assure/data/depotPrestationPfTypes.js'
 import { useDepotPrestationPfRules } from 'src/modules/assure/composables/useDepotPrestationPfRules.js'
 import { useNotify } from 'src/modules/shared/components/useNotify.js'
 import { assureSessionConfig } from 'src/modules/assure/config/assureMenu.js'
@@ -271,22 +282,32 @@ const DepotPrestationPF_CentreCnps = defineAsyncComponent(
   () => import('src/modules/assure/components/depotPrestationPF/DepotPrestationPF_CentreCnps.vue'),
 )
 const DepotPrestationPF_CentreCnpsSelect = defineAsyncComponent(
-  () => import('src/modules/assure/components/depotPrestationPF/DepotPrestationPF_CentreCnpsSelect.vue'),
+  () =>
+    import(
+      'src/modules/assure/components/depotPrestationPF/DepotPrestationPF_CentreCnpsSelect.vue'
+    ),
 )
 const DepotPrestationPF_ExamensPremier = defineAsyncComponent(
-  () => import('src/modules/assure/components/depotPrestationPF/DepotPrestationPF_ExamensPremier.vue'),
+  () =>
+    import('src/modules/assure/components/depotPrestationPF/DepotPrestationPF_ExamensPremier.vue'),
 )
 const DepotPrestationPF_ExamensDeuxieme = defineAsyncComponent(
-  () => import('src/modules/assure/components/depotPrestationPF/DepotPrestationPF_ExamensDeuxieme.vue'),
+  () =>
+    import('src/modules/assure/components/depotPrestationPF/DepotPrestationPF_ExamensDeuxieme.vue'),
 )
 const DepotPrestationPF_Accouchement = defineAsyncComponent(
-  () => import('src/modules/assure/components/depotPrestationPF/DepotPrestationPF_Accouchement.vue'),
+  () =>
+    import('src/modules/assure/components/depotPrestationPF/DepotPrestationPF_Accouchement.vue'),
 )
 const DepotPrestationPF_CongesMaternite = defineAsyncComponent(
-  () => import('src/modules/assure/components/depotPrestationPF/DepotPrestationPF_CongesMaternite.vue'),
+  () =>
+    import('src/modules/assure/components/depotPrestationPF/DepotPrestationPF_CongesMaternite.vue'),
 )
 const DepotPrestationPF_AllocationsFamiliales = defineAsyncComponent(
-  () => import('src/modules/assure/components/depotPrestationPF/DepotPrestationPF_AllocationsFamiliales.vue'),
+  () =>
+    import(
+      'src/modules/assure/components/depotPrestationPF/DepotPrestationPF_AllocationsFamiliales.vue'
+    ),
 )
 const DepotPrestationPF_SubmitBlock = defineAsyncComponent(
   () => import('src/modules/assure/components/depotPrestationPF/DepotPrestationPF_SubmitBlock.vue'),
@@ -296,7 +317,7 @@ useAuthenticatedSession(assureSessionConfig)
 
 const { t } = useI18n()
 const store = useDepotPrestationPfStore()
-const { required } = useDepotPrestationPfRules()
+const { required, fieldLabel, requiredFieldClass } = useDepotPrestationPfRules()
 const { notifySuccess, notifyError } = useNotify()
 
 const wizardStep = ref('welcome')
@@ -346,8 +367,8 @@ const activeFormComponent = computed(() =>
 )
 
 const examensChoiceOptions = computed(() => [
-  { label: t('inputassu.premier_examen_prenatal'), value: 'premier' },
-  { label: t('inputassu.deuxieme_examen_prenatal'), value: 'deuxieme' },
+  { label: t('inputassu.premier_examen_prenatal'), value: 'premier', icon: 'looks_one' },
+  { label: t('inputassu.deuxieme_examen_prenatal'), value: 'deuxieme', icon: 'looks_two' },
 ])
 
 const resolvedExamensChoice = computed(() => {
@@ -481,10 +502,7 @@ async function onSubmit() {
     notifyError(t('modules.assure.depotPf.selectType'))
     return
   }
-  if (
-    selectedTypeCode.value === DEPOT_PF_TYPE_CODES.CONGES_MATERNITE &&
-    !store.isFemale
-  ) {
+  if (selectedTypeCode.value === DEPOT_PF_TYPE_CODES.CONGES_MATERNITE && !store.isFemale) {
     notifyError(t('modules.assure.depotPf.materniteFemmeUniquement'))
     return
   }
@@ -498,6 +516,10 @@ async function onSubmit() {
   const result = await store.submitDossier(selectedTypeCode.value)
   if (result.errors?.length) {
     result.errors.forEach((code) => notifyError(mapValidationError(code)))
+    return
+  }
+  if (result.error) {
+    notifyError(result.error)
     return
   }
   if (result.success) {
@@ -545,7 +567,7 @@ onMounted(() => {
 @import 'src/css/depot-prestation-pf-form.scss';
 
 .depot-pf-form-dialog .q-toolbar {
-  min-height: 48px;
+  min-height: 40px;
   height: auto;
   flex-shrink: 0;
 }
@@ -554,32 +576,56 @@ onMounted(() => {
   white-space: normal !important;
   overflow: visible !important;
   text-overflow: unset !important;
-  line-height: 1.35;
-  padding: 0.2rem 0;
+  line-height: 1.25;
+  padding: 0.1rem 0;
 }
 
 .depot-pf-form-dialog__card {
   width: min(920px, 96vw);
-  max-height: 92vh;
+  max-height: 88vh;
   display: flex;
   flex-direction: column;
+}
+
+/* Quasar impose max-width: 560px sur .q-dialog__inner--minimized > div */
+.q-dialog.depot-pf-form-dialog--wide .q-dialog__inner--minimized > div {
+  width: min(2480px, 99vw) !important;
+  max-width: min(2480px, 99vw) !important;
+  max-height: 88vh !important;
+}
+
+.q-dialog.depot-pf-form-dialog--wide .depot-pf-form-dialog__card {
+  width: 100% !important;
+  max-width: 100% !important;
+  max-height: 88vh !important;
+}
+
+.depot-pf-form-dialog .q-dialog__inner {
+  padding: 6px;
+}
+
+.depot-pf-form-dialog__body > .depot-pf-form-stack,
+.depot-pf-form-dialog__body .depot-pf-form-stack--active {
+  width: 100%;
+  max-width: 100%;
 }
 
 .depot-pf-form-dialog__body {
   flex: 1 1 auto;
   min-height: 0;
-  max-height: calc(92vh - 56px);
-  padding: 1rem 1.25rem 1.25rem;
+  max-height: calc(88vh - 44px);
+  padding: 0.45rem 0.65rem 0.55rem;
 }
 
 .depot-pf-wizard-actions {
   display: flex;
   flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  padding-top: 0.75rem;
+  justify-content: center;
+  gap: 0.35rem;
+  margin-top: 0.45rem;
+  padding-top: 0.45rem;
   border-top: 1px solid rgba(148, 163, 184, 0.25);
+  width: 100%;
 }
 
 @media (max-width: 600px) {

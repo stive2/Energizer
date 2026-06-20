@@ -27,8 +27,15 @@
   background: rgba(255, 255, 255, 0.14) !important;
 }
 
-.aura-drawer .aura-active {
+.aura-drawer .aura-active,
+.aura-drawer .aura-item.q-item--active {
   background: rgba(255, 255, 255, 0.22) !important;
+}
+
+/* Vue Router / Quasar : ne pas surligner les frères sur la même route (path sans query) */
+.aura-drawer .aura-item.router-link-active:not(.aura-active):not(.q-item--active),
+.aura-drawer .aura-item.q-router-link--active:not(.aura-active):not(.q-item--active) {
+  background: transparent !important;
 }
 
 .aura-drawer .aura-icon {

@@ -1,24 +1,41 @@
+import {
+  ROUTE_META_PUBLIC,
+  ROUTE_META_AGENT,
+  ROUTE_META_INSURED,
+  ROUTE_META_GUEST_AGENT,
+  ROUTE_META_GUEST_INSURED,
+} from './guards/meta.js'
+
 const routes = [
   /* Portail multi-modules (sans authentification) */
   {
     path: '/',
     component: () => import('src/modules/shared/layouts/PortalLayout.vue'),
+    meta: ROUTE_META_PUBLIC,
     children: [
       {
         path: '',
         name: 'module-portal',
+        meta: ROUTE_META_PUBLIC,
         component: () => import('src/modules/shared/pages/portal/ModulePortalPage.vue'),
       },
-      /* Logins modules : QPage doit être sous QLayout (PortalLayout) */
       {
         path: 'energizer/login',
         name: 'energizer-login',
+        meta: ROUTE_META_GUEST_AGENT,
         component: () => import('src/modules/energizer/pages/EnergizerLoginPage.vue'),
       },
       {
         path: 'assure/login',
         name: 'assure-login',
+        meta: ROUTE_META_GUEST_INSURED,
         component: () => import('src/modules/assure/pages/AssureLoginPage.vue'),
+      },
+      {
+        path: 'assure/register',
+        name: 'assure-register',
+        meta: ROUTE_META_GUEST_INSURED,
+        component: () => import('src/modules/assure/pages/AssureRegisterPage.vue'),
       },
     ],
   },
@@ -27,7 +44,7 @@ const routes = [
   {
     path: '/energizer',
     component: () => import('src/modules/shared/layouts/MainLayout.vue'),
-    meta: { authProfile: 'internal' },
+    meta: ROUTE_META_AGENT,
     children: [
       {
         path: '',
@@ -46,7 +63,7 @@ const routes = [
   {
     path: '/assure',
     component: () => import('src/modules/shared/layouts/AssureLayout.vue'),
-    meta: { authProfile: 'external' },
+    meta: ROUTE_META_INSURED,
     children: [
       {
         path: '',
@@ -62,6 +79,11 @@ const routes = [
         path: 'depot-dossier',
         name: 'depot-dossier',
         component: () => import('src/modules/assure/pages/prestations/dossiers.vue'),
+      },
+      {
+        path: 'mon-compte',
+        name: 'assure-account',
+        component: () => import('src/modules/assure/pages/AssureAccountPage.vue'),
       },
       {
         path: 'prestations-familiales',
@@ -91,10 +113,12 @@ const routes = [
   {
     path: '/declarations',
     component: () => import('src/modules/shared/layouts/DeclarationsLayout.vue'),
+    meta: ROUTE_META_PUBLIC,
     children: [
       {
         path: '',
         name: 'declarations-home',
+        meta: ROUTE_META_PUBLIC,
         component: () => import('src/modules/immatriculations/pages/DeclarationsHomePage.vue'),
       },
     ],
@@ -103,6 +127,7 @@ const routes = [
   {
     path: '/liquidations',
     component: () => import('src/modules/shared/layouts/MainLayout.vue'),
+    meta: ROUTE_META_AGENT,
     children: [
       {
         path: 'liquidationRP/gestionLiquidationRP',
@@ -113,6 +138,10 @@ const routes = [
         path: 'liquidationRP/saisie-dossier-rp',
         name: 'prestation-rp-saisie-dossier',
         component: () => import('src/modules/energizer/pages/liquidations/liquidationRP/saisieDossierRP.vue'),
+      },
+      {
+        path: 'liquidationRP/nlledeclaration',
+        redirect: { name: 'prestation-rp-saisie-dossier', query: { panel: 'nouveauDossier' } },
       },
       {
         path: 'liquidationRP/saisie-elements-rp',

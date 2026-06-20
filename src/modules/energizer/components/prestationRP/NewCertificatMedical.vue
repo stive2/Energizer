@@ -12,6 +12,10 @@
       </div>
     </div>
 
+    <q-banner v-if="loadError" class="bg-negative text-white q-mb-sm" rounded dense>
+      {{ loadError }}
+    </q-banner>
+
     <!-- Règle métier -->
     <q-banner class="bg-blue-1 text-primary q-mb-sm" rounded dense>
       <template v-slot:avatar><q-icon name="info" color="primary" size="sm" /></template>
@@ -51,6 +55,7 @@
                 option-label="numdossier"
                 option-value="numdossier"
                 use-input input-debounce="0"
+                :loading="loadingCatalog"
                 @filter="filterDossiers"
                 @update:model-value="onDossierSelect"
                 color="primary"
@@ -86,8 +91,13 @@
                 bg-color="yellow-1"
                 :rules="[
                   v => !!v || 'Date certificat obligatoire',
-                  v => !form.dateaccident || compareDates(v, form.dateaccident) >= 0
-                       || 'La date du certificat doit être ≥ à la date de l\'accident'
+                  v => !v || isLegacyDateNotFuture(v) || 'Date invalide ou future',
+                  v => {
+                    if (!v || !form.dateaccident) return true
+                    const cmp = compareLegacyFrDates(v, form.dateaccident)
+                    return cmp == null || cmp >= 0
+                      || 'La date du certificat doit être ≥ à la date de l\'accident'
+                  }
                 ]"
               >
                 <template v-slot:append>
@@ -159,7 +169,9 @@
                 label="Nom du Médecin *"
                 outlined dense
                 bg-color="yellow-1"
+                class="input-uppercase"
                 :rules="[v => !!v || 'Nom du médecin obligatoire']"
+                @update:model-value="val => { form.nommedecin = toLegacyUppercase(val) }"
               >
                 <template v-slot:prepend><q-icon name="local_hospital" color="amber-8" size="xs" /></template>
               </q-input>
@@ -170,33 +182,41 @@
                 label="Hôpital / Structure *"
                 outlined dense
                 bg-color="yellow-1"
+                class="input-uppercase"
                 :rules="[v => !!v || 'Hôpital obligatoire']"
+                @update:model-value="val => { form.structure = toLegacyUppercase(val) }"
               >
                 <template v-slot:prepend><q-icon name="domain" color="amber-8" size="xs" /></template>
               </q-input>
             </div>
           </div>
 
-          <!-- Lésions (readonly, depuis le dossier) -->
+          <!-- Lésions (saisissables comme ExtJS) -->
           <div class="row q-col-gutter-xs">
             <div class="col-12 col-md-6">
               <q-input
                 v-model="form.naturelesion"
+                name="naturelesion"
                 label="Nature de la Lésion"
                 type="textarea"
                 rows="2"
-                outlined dense readonly
-                bg-color="blue-grey-1" label-color="primary"
+                outlined dense
+                bg-color="yellow-1"
+                class="input-uppercase"
+                @update:model-value="val => { form.naturelesion = toLegacyUppercase(val) }"
               />
             </div>
             <div class="col-12 col-md-6">
               <q-input
                 v-model="form.siegelesion"
+                name="siegelesion"
                 label="Siège de la Lésion"
                 type="textarea"
                 rows="2"
-                outlined dense readonly
-                bg-color="blue-grey-1" label-color="primary"
+                outlined dense
+                bg-color="yellow-1"
+                class="input-uppercase"
+                @update:model-value="val => { form.siegelesion = toLegacyUppercase(val) }"
               />
             </div>
           </div>
@@ -293,8 +313,14 @@
                   outlined dense
                   bg-color="yellow-1"
                   :rules="showMembre2
-                    ? [v => !v || compareDates(v, form.dateaccident) >= 0
-                         || 'Date doit être ≥ date d\'accident']
+                    ? [
+                        v => !v || isLegacyDateNotFuture(v) || 'Date invalide ou future',
+                        v => {
+                          if (!v || !form.dateaccident) return true
+                          const cmp = compareLegacyFrDates(v, form.dateaccident)
+                          return cmp == null || cmp >= 0 || 'Date doit être ≥ date d\'accident'
+                        }
+                      ]
                     : []"
                 >
                   <template v-slot:append>
@@ -378,109 +404,85 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useLiquidationRpStore } from 'src/modules/energizer/stores/liquidationRpStore.js'
+import {
+  RP_CERTIFICAT_TYPE_OPTIONS,
+  extractCertificatTypeCode,
+  mapCertificatDossierRowToForm,
+  validateCertificatInitForm,
+} from 'src/modules/energizer/utils/liquidationRpCertificatInitLegacy.js'
+import {
+  compareLegacyFrDates,
+  isLegacyDateNotFuture,
+} from 'src/modules/energizer/utils/liquidationRpDeclarationLegacy.js'
+import { toLegacyUppercase } from 'src/modules/energizer/utils/liquidationLegacyUtils.js'
 
 defineOptions({ name: 'NewCertificatMedical' })
 
 const $q = useQuasar()
 const rpStore = useLiquidationRpStore()
 
-// ─── État ────────────────────────────────────────────────────────
-const formRef         = ref(null)
-const submitting      = ref(false)
+const formRef = ref(null)
+const submitting = ref(false)
+const loadingCatalog = ref(false)
+const loadError = ref('')
 const selectedDossier = ref(null)
 
-// ─── Sections ────────────────────────────────────────────────────
 const sections = reactive({
   membre1: false,
   membre2: false,
 })
 
-// ─── Options ─────────────────────────────────────────────────────
-const typeOptions = [
-  { label: 'CI — Certificat Médical Initial',        value: 'CI', icon: 'add_circle',   color: 'teal'        },
-  { label: 'CP — Certificat Médical de Prolongation',value: 'CP', icon: 'update',        color: 'primary'     },
-  { label: 'CF — Certificat Médical Final',          value: 'CF', icon: 'task_alt',      color: 'deep-orange' },
-]
+const typeOptions = RP_CERTIFICAT_TYPE_OPTIONS
 
-// ─── Affichage conditionnel des sections ─────────────────────────
-const showMembre1 = computed(() => form.type === 'CI' || form.type === 'CP')
-const showMembre2 = computed(() => form.type === 'CF')
+const certificatTypeCode = computed(() => extractCertificatTypeCode(form.type))
+const showMembre1 = computed(() => certificatTypeCode.value === 'CI' || certificatTypeCode.value === 'CP')
+const showMembre2 = computed(() => certificatTypeCode.value === 'CF')
 
-// ─── Données de test ─────────────────────────────────────────────
-const MOCK_DOSSIERS = [
-  {
-    numdossier:    'R2026-001',
-    numassu:       '5-20-97-123456-78',
-    nom:           'KAMGA Jean-Pierre',
-    slesion:       'Membre supérieur droit',
-    nlesion:       'Fracture du radius',
-    numcertificat: 'CERT-2026-001',
-    dateaccident:  '10/03/2026',
-    dateeffet:     '10/03/2026',
-    numordre:      '1',
-    flag:          'NON',   // CMI pas encore créé
-    flagcmi:       'NON',
-    flagcmf:       'NON',
-  },
-  {
-    numdossier:    'R2026-002',
-    numassu:       '5-20-97-654321-12',
-    nom:           'NKOA Sylvie',
-    slesion:       'Tronc — Poumons',
-    nlesion:       'Intoxication pulmonaire',
-    numcertificat: 'CERT-2026-002',
-    dateaccident:  '15/04/2026',
-    dateeffet:     '15/04/2026',
-    numordre:      '2',
-    flag:          'OUI',   // CI déjà créé
-    flagcmi:       'OUI',
-    flagcmf:       'NON',
-  },
-]
-
-const allDossiers    = ref([...MOCK_DOSSIERS])
-const dossierOptions = ref([...MOCK_DOSSIERS])
+const allDossiers = ref([])
+const dossierOptions = ref([])
 
 onMounted(async () => {
+  loadingCatalog.value = true
+  loadError.value = ''
   try {
-    const list = await rpStore.loadRpDossiers()
-    if (list?.length) {
-      allDossiers.value = list
-      dossierOptions.value = list
+    const list = await rpStore.loadRpCertificatDossiers()
+    allDossiers.value = Array.isArray(list) ? list : []
+    dossierOptions.value = [...allDossiers.value]
+    if (!allDossiers.value.length) {
+      loadError.value = 'Aucun dossier disponible sur le serveur.'
     }
-  } catch { /* garde MOCK si API indisponible */ }
+  } catch (e) {
+    loadError.value = e?.message || 'Impossible de charger les dossiers depuis le serveur.'
+  } finally {
+    loadingCatalog.value = false
+  }
 })
 
-// ─── Formulaire ──────────────────────────────────────────────────
 const FORM_INITIAL = {
-  numdossier:    '',
-  numassure:     '',
-  nomassure:     '',
-  dateaccident:  '',
-  datecertificat:'',
+  numdossier: '',
+  numassure: '',
+  nomassure: '',
+  dateaccident: '',
+  datecertificat: '',
   numcertificat: '',
-  numordre:      '',
-  flag:          '',
-  flagcmi:       '',
-  flagcmf:       '',
-  dateeffet:     '',
-  // Saisie
-  type:          '',
-  nommedecin:    '',
-  structure:     '',
-  naturelesion:  '',
-  siegelesion:   '',
-  // CI/CP
-  nbrejours:     0,
-  // CF
-  txipp:         0,
+  numordre: '',
+  flag: '',
+  flagcmi: '',
+  flagcmf: '',
+  dateeffet: '',
+  type: '',
+  nommedecin: '',
+  structure: '',
+  naturelesion: '',
+  siegelesion: '',
+  nbrejours: 0,
+  txipp: 0,
   datefinrappel: '',
   dateconsolidation: '',
 }
 
 const form = reactive({ ...FORM_INITIAL })
 
-// ─── Filtre autocomplete ─────────────────────────────────────────
 function filterDossiers(val, update) {
   update(() => {
     if (!val) {
@@ -488,54 +490,32 @@ function filterDossiers(val, update) {
     } else {
       const needle = val.toLowerCase()
       dossierOptions.value = allDossiers.value.filter(
-        d => d.numdossier.toLowerCase().includes(needle)
-          || d.nom.toLowerCase().includes(needle)
+        d => d.numdossier?.toLowerCase().includes(needle)
+          || d.nom?.toLowerCase().includes(needle),
       )
     }
   })
 }
 
-// ─── Chargement dossier (équivalent select listener ExtJS) ───────
 function onDossierSelect(numdossier) {
-  const d = allDossiers.value.find(x => x.numdossier === numdossier)
-  if (!d) return
-
-  form.numdossier    = d.numdossier
-  form.numassure     = d.numassu
-  form.nomassure     = d.nom
-  form.siegelesion   = d.slesion
-  form.naturelesion  = d.nlesion
-  form.numcertificat = d.numcertificat
-  form.numordre      = d.numordre
-  form.flag          = d.flag
-  form.flagcmi       = d.flagcmi
-  form.flagcmf       = d.flagcmf
-  form.dateaccident  = d.dateaccident
-  form.dateeffet     = d.dateeffet
-
-  // Si le CF est déjà clôturé, avertir
-  if (d.flagcmf === 'OUI') {
-    $q.notify({
-      type: 'negative',
-      message: 'Échec — Ajout des certificats médicaux clôturé pour ce dossier',
-      position: 'top',
-    })
-    return
-  }
-
+  const row = allDossiers.value.find(x => x.numdossier === numdossier)
+  if (!row) return
+  mapCertificatDossierRowToForm(form, row)
+  form.naturelesion = toLegacyUppercase(form.naturelesion)
+  form.siegelesion = toLegacyUppercase(form.siegelesion)
   $q.notify({
     type: 'positive',
     message: `Dossier ${numdossier} chargé`,
-    position: 'top', timeout: 1500,
+    position: 'top',
+    timeout: 1500,
   })
 }
 
-// ─── Changement de type (logique membre1/membre2 ExtJS) ──────────
 function onTypeChange(type) {
-  if (type === 'CF') {
+  const code = extractCertificatTypeCode(type)
+  if (code === 'CF') {
     sections.membre1 = false
     sections.membre2 = true
-    // CI doit exister avant de créer le CF
     if (form.flagcmi !== 'OUI') {
       $q.notify({
         type: 'warning',
@@ -546,8 +526,7 @@ function onTypeChange(type) {
   } else {
     sections.membre2 = false
     sections.membre1 = true
-    // CI unique
-    if (type === 'CI' && form.flagcmi === 'OUI') {
+    if (code === 'CI' && form.flagcmi === 'OUI') {
       $q.notify({
         type: 'negative',
         message: 'Échec — Le certificat médical initial est unique !',
@@ -557,53 +536,15 @@ function onTypeChange(type) {
   }
 }
 
-// ─── Comparaison de dates DD/MM/YYYY ─────────────────────────────
-// Retourne : 1 si d1 > d2 | 0 si égales | -1 si d1 < d2
-function compareDates(d1Str, d2Str) {
-  if (!d1Str || !d2Str || d1Str.length < 10 || d2Str.length < 10) return 0
-  const parse = s => new Date(
-    `${s.substring(6,10)}-${s.substring(3,5)}-${s.substring(0,2)}`
-  )
-  const diff = parse(d1Str).getTime() - parse(d2Str).getTime()
-  return diff === 0 ? 0 : diff / Math.abs(diff)
-}
-
-// ─── Validation métier ───────────────────────────────────────────
 function validateMetier() {
-  // Dossier obligatoire
-  if (!form.numassure) {
-    $q.notify({ type: 'negative', message: 'Choisissez un dossier MP/AT SVP', position: 'top' })
-    return false
-  }
-  // Dossier clôturé
-  if (form.flagcmf === 'OUI') {
-    $q.notify({ type: 'negative', message: 'Échec — Ajout des certificats médicaux clôturé', position: 'top' })
-    return false
-  }
-  // CI unique
-  if (form.type === 'CI' && form.flagcmi === 'OUI') {
-    $q.notify({ type: 'negative', message: 'Échec — Le certificat médical initial est unique !', position: 'top' })
-    return false
-  }
-  // CF : CI doit exister
-  if (form.type === 'CF' && form.flagcmi !== 'OUI') {
-    $q.notify({ type: 'negative', message: 'Le CI doit exister avant de créer le certificat final', position: 'top' })
-    return false
-  }
-  // Jours négatifs
-  if (showMembre1.value && form.nbrejours < 0) {
-    $q.notify({ type: 'negative', message: 'Vous ne pouvez saisir un nombre de jours négatif', position: 'top' })
-    return false
-  }
-  // IPP hors plage
-  if (showMembre2.value && (form.txipp < 0 || form.txipp > 100)) {
-    $q.notify({ type: 'negative', message: 'Échec — Le taux d\'IPP saisi doit être compris entre 0 et 100', position: 'top' })
+  const errors = validateCertificatInitForm(form)
+  if (errors.length) {
+    $q.notify({ type: 'negative', message: errors[0], position: 'top' })
     return false
   }
   return true
 }
 
-// ─── Soumission (action = certificatinit) ────────────────────────
 async function submitForm() {
   const ok = await formRef.value?.validate()
   if (!ok) return
@@ -611,17 +552,21 @@ async function submitForm() {
 
   submitting.value = true
   try {
-    await rpStore.submitCertificatInit(form)
+    const result = await rpStore.submitCertificatInit(form)
     $q.notify({
       type: 'positive',
-      message: 'Ajout du certificat accompli avec succès !',
-      position: 'top', icon: 'check_circle',
+      message: result?.message || 'Ajout du certificat accompli avec succès !',
+      position: 'top',
+      icon: 'check_circle',
     })
     resetForm()
-  } catch {
+    const list = await rpStore.loadRpCertificatDossiers()
+    allDossiers.value = Array.isArray(list) ? list : []
+    dossierOptions.value = [...allDossiers.value]
+  } catch (e) {
     $q.notify({
       type: 'negative',
-      message: 'Ajout du certificat non accompli',
+      message: e?.message || 'Ajout du certificat non accompli',
       position: 'top',
     })
   } finally {
@@ -629,7 +574,6 @@ async function submitForm() {
   }
 }
 
-// ─── Réinitialisation ────────────────────────────────────────────
 function resetForm() {
   Object.assign(form, { ...FORM_INITIAL })
   selectedDossier.value = null
@@ -659,5 +603,10 @@ function resetForm() {
   font-size: 0.88rem;
   font-weight: 700;
   border-radius: 12px;
+}
+
+.input-uppercase :deep(.q-field__native),
+.input-uppercase :deep(textarea) {
+  text-transform: uppercase;
 }
 </style>

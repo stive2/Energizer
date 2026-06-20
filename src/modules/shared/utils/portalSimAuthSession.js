@@ -1,5 +1,3 @@
-import { getSimAccountByProfile } from 'src/modules/shared/api/auth/simPortalAuth.js'
-
 const TOKEN_KEY = 'auth_token'
 const USER_KEY = 'user_info'
 
@@ -37,17 +35,52 @@ export function isInsuredSessionActive() {
     if (sessionStorage.getItem(ASSURE_PROFILE_KEY) === 'external') return true
   }
   const user = readUserInfo()
-  return user?.profile === 'external'
+  if (user?.profile === 'external') {
+    repairInsuredSessionMarkers()
+    return true
+  }
+  const numAssu = String(user?.num_assu || user?.login || user?.numeroAssure || '').trim()
+  if (numAssu && user?.profile !== 'internal') {
+    repairInsuredSessionMarkers()
+    return true
+  }
+  return false
+}
+
+/** Aligne sessionStorage sur localStorage après connexion assuré. */
+export function repairInsuredSessionMarkers() {
+  if (typeof sessionStorage === 'undefined' || typeof localStorage === 'undefined') return
+  if (!hasAuthToken()) return
+  const user = readUserInfo()
+  if (!user) return
+  const numAssu = String(user.num_assu || user.login || user.numeroAssure || '').trim()
+  const isExternal =
+    user.profile === 'external' || (numAssu && user.profile !== 'internal')
+  if (!isExternal) return
+  sessionStorage.setItem(ASSURE_PROFILE_KEY, 'external')
+  const displayName =
+    user.displayName ||
+    [user.prenom, user.nom].filter(Boolean).join(' ').trim() ||
+    numAssu
+  if (displayName) {
+    sessionStorage.setItem(ASSURE_NAME_KEY, displayName)
+  }
 }
 
 /**
  * @param {{ login: string, displayName: string, profile: string, token: string }} payload
  */
-export function persistAgentSession(payload) {
-  const spec = getSimAccountByProfile('internal')
-  const displayName = payload.displayName || spec.displayName
-  const prenom = payload.prenom || spec.prenom
-  const nom = payload.nom || spec.nom
+export function persistAgentSession(payload = {}) {
+  const existing = readUserInfo() || {}
+  const login = payload.login || existing.login || ''
+  const prenom = payload.prenom || existing.prenom || ''
+  const nom = payload.nom || existing.nom || ''
+  const displayName =
+    payload.displayName ||
+    existing.displayName ||
+    [prenom, nom].filter(Boolean).join(' ') ||
+    login
+
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.setItem(AGENT_PROFILE_KEY, 'internal')
     sessionStorage.setItem(
@@ -56,51 +89,77 @@ export function persistAgentSession(payload) {
     )
   }
   if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(TOKEN_KEY, payload.token || `sim-token-internal`)
+    if (payload.token) {
+      localStorage.setItem(TOKEN_KEY, payload.token)
+    }
     localStorage.setItem(
       USER_KEY,
       JSON.stringify({
         profile: 'internal',
-        login: payload.login || spec.login,
+        login,
         prenom,
         nom,
         displayName,
-        email: payload.login || spec.login,
-        matricule: 'AGT-DEMO-001',
-        agence: 'Direction générale (démo)',
+        email: existing.email || login,
+        matricule: existing.matricule || login,
+        agence: payload.lib_centre || existing.agence || existing.lib_centre || '',
+        lib_centre: payload.lib_centre || existing.lib_centre || '',
+        code_centre: payload.code_centre || existing.code_centre || '',
+        code_role: existing.code_role || '',
       }),
     )
   }
 }
 
 /**
- * @param {{ login: string, displayName: string, profile: string, token: string }} payload
+ * @param {{ login: string, displayName?: string, num_assu?: string, token: string, user?: object }} payload
  */
-export function persistInsuredSession(payload) {
-  const spec = getSimAccountByProfile('external')
-  const numAssu = payload.num_assu || payload.login || spec.num_assu || spec.login
+export function persistInsuredSession(payload = {}) {
+  const existing = readUserInfo() || {}
+  const apiUser = payload.user && typeof payload.user === 'object' ? payload.user : {}
+  const numAssu =
+    payload.num_assu ||
+    apiUser.num_assu ||
+    payload.login ||
+    existing.num_assu ||
+    existing.login ||
+    ''
+  const prenom = apiUser.prenom || existing.prenom || ''
+  const nom = apiUser.nom || existing.nom || ''
+  const displayName =
+    payload.displayName ||
+    apiUser.displayName ||
+    [prenom, nom].filter(Boolean).join(' ') ||
+    existing.displayName ||
+    numAssu
+
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.setItem(ASSURE_PROFILE_KEY, 'external')
-    sessionStorage.setItem(ASSURE_NAME_KEY, payload.displayName || spec.displayName)
+    sessionStorage.setItem(ASSURE_NAME_KEY, displayName)
   }
   if (typeof localStorage !== 'undefined') {
-    localStorage.setItem(TOKEN_KEY, payload.token || `sim-token-external`)
+    if (payload.token) {
+      localStorage.setItem(TOKEN_KEY, payload.token)
+    }
     localStorage.setItem(
       USER_KEY,
       JSON.stringify({
+        ...existing,
+        ...apiUser,
         profile: 'external',
-        login: payload.login || spec.login,
+        login: payload.login || apiUser.login || numAssu || existing.login,
         num_assu: numAssu,
-        nom: payload.displayName || spec.displayName,
-        email: payload.login || spec.login,
-        telephone: '+237677123456',
-        adresse: 'YAOUNDE, CAMEROUN',
+        displayName,
+        prenom,
+        nom,
+        email: apiUser.email || payload.email || existing.email || '',
         numeroAssure: numAssu,
-        sexe: 'F',
-        mat_interne: 'EMP-2024-001',
+        forlink: apiUser.forlink || existing.forlink || '',
+        code_centre: apiUser.code_centre || existing.code_centre || '',
       }),
     )
   }
+  repairInsuredSessionMarkers()
 }
 
 export function clearPortalSimSession() {

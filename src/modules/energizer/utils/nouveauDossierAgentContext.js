@@ -1,32 +1,32 @@
-/** Contexte agent CNPS connecté (démo / session simulée). */
+/** Contexte agent CNPS connecté (session userloginmid.jsp / authStore). */
 export function getConnectedAgentContext() {
-  const fallback = {
-    matricule: 'AGT-DEMO-001',
-    login: 'agent.interne@cnps.demo',
-    name: 'Jean Ndzana',
-  }
-
   if (typeof localStorage === 'undefined') {
-    return fallback
+    return { matricule: '', login: '', name: '' }
   }
 
   try {
     const raw = localStorage.getItem('user_info')
-    if (!raw) return fallback
+    if (!raw) {
+      return { matricule: '', login: '', name: '' }
+    }
     const user = JSON.parse(raw)
+    if (user.profile !== 'internal') {
+      return { matricule: '', login: '', name: '' }
+    }
     const prenom = user.prenom || ''
     const nom = user.nom || ''
     const name =
       user.displayName ||
       [prenom, nom].filter(Boolean).join(' ') ||
-      fallback.name
+      user.login ||
+      ''
 
     return {
-      matricule: user.matricule || fallback.matricule,
-      login: user.login || user.email || fallback.login,
+      matricule: user.matricule || user.login || '',
+      login: user.login || user.email || '',
       name,
     }
   } catch {
-    return fallback
+    return { matricule: '', login: '', name: '' }
   }
 }

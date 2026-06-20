@@ -1,9 +1,5 @@
 <template>
   <q-list padding class="aura-nav-list">
-    <q-item-label v-if="!miniMode" header class="aura-nav-section">
-      {{ t('layout.sidebar.navSectionPrincipal') }}
-    </q-item-label>
-
     <q-item
       clickable
       v-ripple
@@ -46,17 +42,21 @@
         :key="entry.routeName"
         clickable
         v-ripple
-        :to="entry.to"
+        :to="entry.disabled ? undefined : entry.to"
+        :disable="entry.disabled"
         :inset-level="childInsetLevel"
         active-class="aura-active"
         class="aura-item"
-        @click="closeSidebarOnMobile"
+        @click="!entry.disabled && closeSidebarOnMobile()"
       >
         <q-item-section avatar class="aura-dot-slot">
           <span class="aura-dot" :style="{ background: dotColor(idx) }" />
         </q-item-section>
         <q-item-section>
           <q-item-label class="aura-item-label">{{ t(entry.labelKey) }}</q-item-label>
+          <q-item-label v-if="entry.disabled" caption class="text-grey-5">
+            {{ t('layout.sidebar.comingSoon') }}
+          </q-item-label>
         </q-item-section>
       </q-item>
     </q-expansion-item>
@@ -76,7 +76,8 @@
             clickable
             v-close-popup
             v-ripple
-            :to="entry.to"
+            :disable="entry.disabled"
+            :to="entry.disabled ? undefined : entry.to"
             @click="closeSidebarOnMobile"
           >
             <q-item-section>{{ t(entry.labelKey) }}</q-item-section>
@@ -87,12 +88,39 @@
         {{ t('layout.sidebar.assureDepotDossiers') }}
       </q-tooltip>
     </q-item>
+
+    <q-item-label v-if="!miniMode" header class="aura-nav-section q-mt-sm">
+      {{ t('layout.sidebar.navSectionAccount') }}
+    </q-item-label>
+
+    <q-item
+      clickable
+      v-ripple
+      :to="accountEntry.to"
+      active-class="aura-active"
+      class="aura-item"
+      @click="closeSidebarOnMobile"
+    >
+      <q-item-section avatar>
+        <q-icon :name="accountEntry.icon" class="aura-icon" />
+      </q-item-section>
+      <q-item-section v-if="!miniMode">
+        <q-item-label class="aura-item-label">{{ t(accountEntry.labelKey) }}</q-item-label>
+      </q-item-section>
+      <q-tooltip v-if="miniMode" anchor="center right" self="center left" :offset="[8, 0]">
+        {{ t(accountEntry.labelKey) }}
+      </q-tooltip>
+    </q-item>
   </q-list>
 </template>
 
 <script setup>
 import { computed, inject } from 'vue'
 import { useI18n } from 'vue-i18n'
+import {
+  assureSidebarAccountEntry,
+  assureSidebarPrestationEntries,
+} from 'src/modules/assure/config/assureMenu.js'
 import { sidebarNavInsetLevel } from 'src/modules/shared/utils/sidebarNavInset.js'
 
 const { t } = useI18n()
@@ -101,29 +129,10 @@ const auraSidebarMiniMode = inject('auraSidebarMiniMode', null)
 
 const miniMode = computed(() => auraSidebarMiniMode?.value ?? false)
 const childInsetLevel = sidebarNavInsetLevel(1)
+const prestationEntries = assureSidebarPrestationEntries
+const accountEntry = assureSidebarAccountEntry
 
-const DOT_COLORS = ['#a8d8ff', '#ffc897', '#9defc8']
-
-const prestationEntries = [
-  {
-    routeName: 'assure-prestations-familiales',
-    labelKey: 'layout.sidebar.assurePrestationsFamiliales',
-    icon: 'family_restroom',
-    to: { name: 'assure-prestations-familiales' },
-  },
-  {
-    routeName: 'assure-prestation-pension',
-    labelKey: 'layout.sidebar.assurePrestationPension',
-    icon: 'savings',
-    to: { name: 'assure-prestation-pension' },
-  },
-  {
-    routeName: 'assure-prestation-prise-at-mp',
-    labelKey: 'layout.sidebar.assurePrestationPriseAtMp',
-    icon: 'medical_services',
-    to: { name: 'assure-prestation-prise-at-mp' },
-  },
-]
+const DOT_COLORS = ['#a8d8ff', '#ffc897', '#9defc8', '#d4b5ff']
 
 function dotColor(index) {
   return DOT_COLORS[index % DOT_COLORS.length]

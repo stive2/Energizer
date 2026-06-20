@@ -3,6 +3,10 @@ import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import {
+  isAgentSessionActive,
+  isInsuredSessionActive,
+} from 'src/modules/shared/utils/portalSimAuthSession.js'
+import {
   computeUserInitials,
   formatUserDisplayName,
   splitFullName,
@@ -46,7 +50,7 @@ export function useAuthenticatedSession(options) {
         const raw = localStorage.getItem(options.localUserInfoKey)
         if (raw) {
           const u = JSON.parse(raw)
-          return u.nom || u.name || u.email || ''
+          return u.displayName || u.nom || u.name || u.email || ''
         }
       } catch {
         /* ignore */
@@ -56,6 +60,12 @@ export function useAuthenticatedSession(options) {
   }
 
   function isAuthenticated() {
+    if (options.profileExpected === 'external') {
+      return isInsuredSessionActive()
+    }
+    if (options.profileExpected === 'internal') {
+      return isAgentSessionActive()
+    }
     if (options.sessionAuthKey && typeof sessionStorage !== 'undefined') {
       return sessionStorage.getItem(options.sessionAuthKey) === '1'
     }
@@ -144,8 +154,17 @@ export function useAuthenticatedSession(options) {
     }
   }
 
-  function performLogout() {
-    clearStorage()
+  async function performLogout() {
+    if (options.logoutVariant) {
+      try {
+        const { useAuthStore } = await import('src/modules/shared/stores/authStore.js')
+        await useAuthStore().logout({ variant: options.logoutVariant })
+      } catch {
+        clearStorage()
+      }
+    } else {
+      clearStorage()
+    }
     displayName.value = ''
     $q.notify({
       type: 'positive',

@@ -50,13 +50,7 @@ export default defineConfig((ctx) => {
 
       // publicPath: '/',
       // analyze: true,
-      env: {
-        VITE_CNPS_API_BASE_URL: process.env.VITE_CNPS_API_BASE_URL || 'http://172.17.15.121:8020',
-        VITE_CNPS_API_TIMEOUT: process.env.VITE_CNPS_API_TIMEOUT || '30000',
-        VITE_CNPS_API_USE_PROXY: process.env.VITE_CNPS_API_USE_PROXY || '',
-        VITE_CNPS_API_FALLBACK_MOCK: process.env.VITE_CNPS_API_FALLBACK_MOCK || 'true',
-        VITE_CNPS_USE_REAL_AUTH: process.env.VITE_CNPS_USE_REAL_AUTH || '',
-      },
+      // Variables VITE_* : .env.development (dev) / .env.production (build) — voir .env.example
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,
@@ -122,6 +116,34 @@ export default defineConfig((ctx) => {
           secure: false,
           rewrite: (path) => path.replace(/^\/api-cnps/, ''),
         },
+        '/tele-immat': {
+          target:
+            process.env.VITE_TELE_IMMAT_DIRECT_URL?.replace(/\/teleImmat_0\.1\/?$/, '') ||
+            'http://172.17.15.121:8080',
+          changeOrigin: true,
+          secure: false,
+          timeout: 600_000,
+          proxyTimeout: 600_000,
+          rewrite: (path) => path.replace(/^\/tele-immat/, '/teleImmat_0.1'),
+        },
+        '/EnergizerDev': {
+          target:
+            (
+              process.env.VITE_ENERGIZER_BASE_URL || process.env.VITE_ENERGIZER_DEV_BASE_URL
+            )?.replace(/\/EnergizerDev\/?$/i, '') || 'http://172.17.15.121:8080',
+          changeOrigin: true,
+          secure: false,
+        },
+        '/api-assure': {
+          target:
+            process.env.VITE_ASSURE_API_BASE_URL?.replace(/\/api-assure\/?$/, '') ||
+            'http://172.17.15.121:83',
+          changeOrigin: true,
+          secure: false,
+          timeout: 600_000,
+          proxyTimeout: 600_000,
+          rewrite: (path) => path.replace(/^\/api-assure/, ''),
+        },
       },
     },
 
@@ -130,7 +152,7 @@ export default defineConfig((ctx) => {
       config: {
         notify: {
           position: 'top',
-          timeout: 4000,
+          timeout: 7500,
           progress: true,
         },
       },

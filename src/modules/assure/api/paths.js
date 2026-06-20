@@ -1,11 +1,19 @@
 /** Endpoints API — module Assuré */
 export const ASSURE_API = {
-  depotPf: {
-    contexte: '/assure/depot-pf/contexte',
-    employeur: '/assure/depot-pf/employeur',
-    dossiers: '/assure/depot-pf/dossiers',
+  auth: {
+    login: '/auth/login',
+    logout: '/auth/logout',
+    me: '/auth/me',
+    reactivate: '/auth/reactivate',
   },
-  /** POST multipart — équivalent servlet teleImmat GererAssure */
+  account: {
+    profile: (numAssu) => `/account/${encodeURIComponent(numAssu)}/profile`,
+    typesPiece: '/account/types-piece',
+    register: '/account/register',
+    password: '/account/password',
+  },
+  home: '/assure/home',
+  /** Repli si VITE_TELE_IMMAT_USE_LEGACY=false (immaticulation assuré) */
   teleImmat: {
     gererAssure: '/assure/tele-immat/gerer-assure',
   },

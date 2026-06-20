@@ -42,3 +42,17 @@
   opacity: 0.85;
   height: 3px;
 }
+
+/* État de contrôle télé-immat : message long (codes + lien) */
+.q-notification.app-notify-controle {
+  max-width: min(720px, 96vw);
+}
+
+.q-notification.app-notify-controle .q-notification__message {
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: min(70vh, 480px);
+  overflow-y: auto;
+  font-weight: 500;
+  line-height: 1.5;
+}

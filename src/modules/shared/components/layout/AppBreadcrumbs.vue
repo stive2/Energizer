@@ -7,8 +7,8 @@
   >
     <q-breadcrumbs-el
       v-for="(crumb, idx) in resolvedItems"
-      :key="`${crumb.labelKey}-${idx}`"
-      :label="t(crumb.labelKey)"
+      :key="`${crumb.label || crumb.labelKey || idx}-${idx}`"
+      :label="crumbLabel(crumb)"
       :to="crumb.to"
     />
   </q-breadcrumbs>
@@ -16,7 +16,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { buildMenuBreadcrumbs } from 'src/modules/shared/utils/menuBreadcrumbs.js'
 
@@ -41,9 +41,14 @@ const props = defineProps({
     type: Object,
     default: () => ({ name: 'energizer-home' }),
   },
+  prependHome: {
+    type: Boolean,
+    default: true,
+  },
 })
 
 const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
 
 const resolvedItems = computed(() => {
@@ -53,10 +58,25 @@ const resolvedItems = computed(() => {
   if (!props.menuItems?.length) {
     return []
   }
-  const name = props.routeName || route.name
-  return buildMenuBreadcrumbs(props.menuItems, name, {
+  if (props.routeName) {
+    return buildMenuBreadcrumbs(props.menuItems, props.routeName, {
+      homeLabelKey: props.homeLabelKey,
+      homeRoute: props.homeRoute,
+      prependHome: props.prependHome,
+      router,
+    })
+  }
+  return buildMenuBreadcrumbs(props.menuItems, route, {
     homeLabelKey: props.homeLabelKey,
     homeRoute: props.homeRoute,
+    prependHome: props.prependHome,
+    router,
   })
 })
+
+function crumbLabel(crumb) {
+  if (crumb.label) return crumb.label
+  if (crumb.labelKey) return t(crumb.labelKey)
+  return ''
+}
 </script>

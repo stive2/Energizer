@@ -3,7 +3,13 @@
     <q-header elevated class="bg-primary text-white">
       <q-toolbar>
         <div v-if="$q.screen.gt.xs">
-          <q-img src="icons/logo.jpg" style="width: 140px" class="q-ml-sm logo" />
+          <router-link to="/">
+            <q-img
+              src="icons/logo.jpg"
+              style="width: 140px; cursor: pointer"
+              class="q-ml-sm logo"
+            />
+          </router-link>
         </div>
         <q-toolbar-title class="text-bold text-center text-white">
           {{ t('modules.portal.toolbarTitle') }}

@@ -1,14 +1,20 @@
 import { api } from 'boot/axios'
-import { callApi } from 'src/modules/energizer/api/callApi.js'
 import { getCnpsApiTimeout } from 'src/modules/shared/config/api.js'
 import { getApiErrorMessage } from 'src/modules/shared/services/http/apiError.js'
 import { ASSURE_API } from 'src/modules/assure/api/paths.js'
-import { parseImmatAssureSubmitResponse } from './immatAssureResponse.js'
-import { mockSubmitTeleImmatAssure } from './mocks/immatAssureMocks.js'
+import { isTeleImmatLegacyEnabled } from 'src/modules/shared/config/teleImmat.js'
+import {
+  enrichSubmitCredentials,
+  parseImmatAssureSubmitResponse,
+} from './immatAssureResponse.js'
+import { teleImmatAxios } from './teleImmatClient.js'
 
 const IMMAT_SUBMIT_TIMEOUT_MS = Math.max(getCnpsApiTimeout(), 120_000)
 
 function resolveSubmitUrl() {
+  if (isTeleImmatLegacyEnabled()) {
+    return '/GererAssure'
+  }
   const custom = import.meta.env.VITE_CNPS_API_IMMAT_ASSURE_PATH
   if (custom && String(custom).trim()) {
     return String(custom).trim()
@@ -16,32 +22,42 @@ function resolveSubmitUrl() {
   return ASSURE_API.teleImmat.gererAssure
 }
 
+async function postGererAssure(formData) {
+  const client = isTeleImmatLegacyEnabled() ? teleImmatAxios : api
+  const url = resolveSubmitUrl()
+  const { data } = await client.post(url, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: IMMAT_SUBMIT_TIMEOUT_MS,
+    skipErrorNotify: true,
+  })
+  const parsed = enrichSubmitCredentials(parseImmatAssureSubmitResponse(data))
+  if (!parsed.success) {
+    throw new Error(parsed.message)
+  }
+  if (!parsed.codeTele) {
+    throw new Error(
+      parsed.message || 'Réponse GererAssure sans code de pré-immatriculation.',
+    )
+  }
+  return parsed
+}
+
 /**
- * Soumission multipart (FormData) — équivalent POST ../GererAssure.
- * Les noms de champs sont ceux produits par buildLegacyFormData / buildLegacyFormDataVol.
+ * Soumission multipart (FormData) — équivalent POST ../GererAssure sur teleImmat_0.1.
  * @param {FormData} formData
- * @returns {Promise<{ success: boolean, message: string, nextPage?: string|null }>}
  */
 export async function submitTeleImmatAssure(formData) {
-  return callApi(
-    async () => {
-      const { data } = await api.post(resolveSubmitUrl(), formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: IMMAT_SUBMIT_TIMEOUT_MS,
-        skipErrorNotify: true,
-      })
-
-      const parsed = parseImmatAssureSubmitResponse(data)
-      if (!parsed.success) {
-        throw new Error(parsed.message)
-      }
-      return parsed
-    },
-    mockSubmitTeleImmatAssure,
-  ).catch((error) => {
-    if (import.meta.env.VITE_CNPS_API_FALLBACK_MOCK === 'true') {
-      return mockSubmitTeleImmatAssure()
+  if (!isTeleImmatLegacyEnabled()) {
+    throw new Error(
+      'Soumission télé-immatriculation indisponible : définissez VITE_TELE_IMMAT_USE_LEGACY=true.',
+    )
+  }
+  try {
+    return await postGererAssure(formData)
+  } catch (error) {
+    if (error?.isAxiosError) {
+      throw new Error(getApiErrorMessage(error))
     }
-    throw new Error(getApiErrorMessage(error))
-  })
+    throw error
+  }
 }

@@ -104,10 +104,13 @@
               outlined
               stack-label
               autocomplete="current-password"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
               title="Entrez le Mot de Passe"
               :disable="loading"
               hide-bottom-space
-              class="portal-sim-login__input"
+              class="portal-sim-login__input portal-sim-login__input--password"
               @keypress="onKeyPress"
             >
               <template #prepend>
@@ -132,8 +135,11 @@
               name="num_assu"
               label="Matricule assuré *"
               outlined
-              stack-label
+              dense
               autocomplete="username"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
               title="Saisissez votre matricule assuré"
               :disable="loading"
               hide-bottom-space
@@ -141,7 +147,7 @@
               @keypress="onKeyPress"
             >
               <template #prepend>
-                <q-icon name="badge" color="primary" />
+                <q-icon name="badge" color="primary" size="xs" />
               </template>
             </q-input>
 
@@ -152,16 +158,19 @@
               :type="showPassword ? 'text' : 'password'"
               label="Mot de passe *"
               outlined
-              stack-label
+              dense
               autocomplete="current-password"
+              autocapitalize="off"
+              autocorrect="off"
+              spellcheck="false"
               title="Saisissez votre mot de passe"
               :disable="loading"
               hide-bottom-space
-              class="portal-sim-login__input"
+              class="portal-sim-login__input portal-sim-login__input--password"
               @keypress="onKeyPress"
             >
               <template #prepend>
-                <q-icon name="lock" color="primary" />
+                <q-icon name="lock" color="primary" size="xs" />
               </template>
               <template #append>
                 <q-icon
@@ -246,7 +255,7 @@
           <div class="q-ml-md col">
             <div class="text-h6 text-weight-bold">Réinitialisation du mot de passe</div>
             <div class="text-caption text-grey-7">
-              Indiquez votre matricule assuré
+              {{ isInsured ? 'Matricule, nom, email et date de naissance' : 'Indiquez votre identifiant' }}
             </div>
           </div>
           <q-btn
@@ -274,11 +283,52 @@
               :rules="[(v) => !!v?.trim() || 'Champ obligatoire']"
               lazy-rules
               autofocus
+              class="q-mb-md"
             >
               <template #prepend>
                 <q-icon name="badge" color="primary" />
               </template>
             </q-input>
+
+            <template v-if="isInsured">
+              <q-input
+                id="forgot_nom"
+                v-model="forgotDialog.nom"
+                name="nom"
+                label="Nom et prénom *"
+                outlined
+                stack-label
+                :disable="forgotLoading"
+                :rules="[(v) => !!v?.trim() || 'Champ obligatoire']"
+                lazy-rules
+                class="q-mb-md"
+              />
+              <q-input
+                id="forgot_email"
+                v-model="forgotDialog.email"
+                name="email"
+                label="Email *"
+                type="email"
+                outlined
+                stack-label
+                :disable="forgotLoading"
+                :rules="[(v) => !!v?.trim() || 'Champ obligatoire']"
+                lazy-rules
+                class="q-mb-md"
+              />
+              <q-input
+                id="forgot_date_naiss"
+                v-model="forgotDialog.date_naiss"
+                name="date_naiss"
+                label="Date de naissance (jj-mm-aaaa) *"
+                outlined
+                stack-label
+                mask="##-##-####"
+                :disable="forgotLoading"
+                :rules="[(v) => !!v?.trim() || 'Champ obligatoire']"
+                lazy-rules
+              />
+            </template>
           </q-form>
         </q-card-section>
 
@@ -308,14 +358,16 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from 'src/modules/shared/stores/authStore.js'
 import { controleChamps, validateKey } from 'src/modules/shared/utils/diversFonctions.js'
 import { calcMD5 } from 'src/modules/shared/utils/md5.js'
+import { isValidMatriculeAssure } from 'src/modules/assure/utils/assureRegisterLegacy.js'
+import { persistInsuredSession, repairInsuredSessionMarkers } from 'src/modules/shared/utils/portalSimAuthSession.js'
 
 /**
  * Connexion portail CNPS.
@@ -339,6 +391,7 @@ const emit = defineEmits(['authenticated'])
 const { t } = useI18n()
 const $q = useQuasar()
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const { loading, forgotLoading } = storeToRefs(authStore)
 
@@ -366,6 +419,9 @@ const passwordHiddenHash = computed(() =>
 const forgotDialog = reactive({
   open: false,
   num_assu: '',
+  email: '',
+  nom: '',
+  date_naiss: '',
 })
 
 const isInsured = computed(() => props.variant === 'insured')
@@ -473,7 +529,16 @@ function openUserGuide() {
 }
 
 function goCreateAccount() {
-  router.push({ name: 'declarations-home', query: { op: 'create' } })
+  router.push({ name: 'assure-register' })
+}
+
+function redirectInsuredAfterLogin() {
+  repairInsuredSessionMarkers()
+  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : null
+  if (redirect && redirect.startsWith('/')) {
+    return router.replace(redirect)
+  }
+  return router.replace({ name: 'assure-home' })
 }
 
 async function onSubmit() {
@@ -481,6 +546,16 @@ async function onSubmit() {
   if (!controleChamps(isInsured.value
     ? { num_assu: creds.login, mot2passe: creds.password }
     : { login: creds.login, userpassword: creds.password })) {
+    return
+  }
+
+  if (isInsured.value && !isValidMatriculeAssure(creds.login)) {
+    $q.notify({
+      type: 'negative',
+      message: t('modules.assure.register.matriculeInvalid'),
+      timeout: 3500,
+      position: 'top',
+    })
     return
   }
 
@@ -495,7 +570,7 @@ async function onSubmit() {
 
     $q.notify({
       type: 'positive',
-      message: `Bienvenue ${result.user.displayName}`,
+      message: `Bienvenue ${result.user?.displayName || creds.login}`,
       timeout: 1800,
       position: 'top',
     })
@@ -508,13 +583,29 @@ async function onSubmit() {
     showPassword.value = false
     persistRememberedMatricule()
 
-    emit('authenticated', {
-      login: result.user.login,
+    const authPayload = {
+      login: result.user?.login || creds.login,
       num_assu: isInsured.value ? formulaire.num_assu.trim() : undefined,
-      displayName: result.user.displayName,
-      profile: result.user.profile,
+      displayName: result.user?.displayName,
+      profile: result.user?.profile || (isInsured.value ? 'external' : 'internal'),
       token: result.token,
-    })
+      user: result.user,
+    }
+
+    emit('authenticated', authPayload)
+
+    if (isInsured.value) {
+      persistInsuredSession({
+        ...authPayload,
+        num_assu: authPayload.num_assu || authPayload.login,
+      })
+      repairInsuredSessionMarkers()
+      await redirectInsuredAfterLogin()
+      await nextTick()
+      if (router.currentRoute.value.name === 'assure-login') {
+        window.location.assign(router.resolve({ name: 'assure-home' }).href)
+      }
+    }
   } catch (err) {
     $q.notify({
       type: 'negative',
@@ -534,10 +625,23 @@ async function onForgotSubmit() {
   const valid = await forgotFormRef.value?.validate()
   if (!valid) return
 
+  if (isInsured.value && !isValidMatriculeAssure(forgotDialog.num_assu.trim())) {
+    $q.notify({
+      type: 'negative',
+      message: t('modules.assure.register.matriculeInvalid'),
+      timeout: 3500,
+      position: 'top',
+    })
+    return
+  }
+
   try {
     const result = await authStore.requestPasswordReset({
       login: forgotDialog.num_assu.trim(),
       variant: props.variant,
+      email: forgotDialog.email.trim(),
+      nom: forgotDialog.nom.trim(),
+      date_naiss: forgotDialog.date_naiss.trim(),
     })
 
     $q.notify({
@@ -552,6 +656,9 @@ async function onForgotSubmit() {
 
     forgotDialog.open = false
     forgotDialog.num_assu = ''
+    forgotDialog.email = ''
+    forgotDialog.nom = ''
+    forgotDialog.date_naiss = ''
   } catch (err) {
     $q.notify({
       type: 'negative',
@@ -720,6 +827,12 @@ async function onForgotSubmit() {
   font-size: 1rem;
 }
 
+.portal-sim-login__input--password :deep(.q-field__native),
+.portal-sim-login__input--password :deep(.q-field__input),
+.portal-sim-login__input--password :deep(input) {
+  text-transform: none;
+}
+
 .portal-sim-login__input {
   width: 100%;
 }
@@ -727,7 +840,11 @@ async function onForgotSubmit() {
 .portal-sim-login__input :deep(.q-field__control) {
   border-radius: 12px;
   background: #f8fafc;
-  min-height: clamp(44px, 12vw, 50px);
+  min-height: 36px;
+}
+
+.portal-sim-login__input--dense :deep(.q-field__control) {
+  min-height: 36px;
 }
 
 .portal-sim-login__input :deep(.q-field--focused .q-field__control) {

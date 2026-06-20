@@ -1,17 +1,28 @@
 <template>
   <q-dialog v-model="open" persistent full-width>
+    <ImmatAssuTrvControle
+      v-show="phase === 'controle'"
+      :code-tele="controleCredentials.codeTele"
+      :code-secret="controleCredentials.codeSecret"
+      :show-preview="controleValidated"
+      :validating="validatingControle"
+      :reload-token="controleReloadToken"
+      @close="closeDialog"
+      @edit="onEditFromControle"
+      @modify="onModifierFromControle"
+      @validate="onValidateFromControle"
+      @validated="onControleValidated"
+    />
     <q-card
+      v-show="phase === 'form'"
       :style="$q.screen.gt.sm ? 'width: 960px; max-width: 98vw' : 'width: 100%'"
-      class="immat-main-card"
+      class="immat-main-card column no-wrap"
     >
       <!-- ═══ EN-TÊTE ═══ -->
-      <q-card-section class="immat-header row items-center no-wrap q-pa-md">
-        <q-icon name="assignment_ind" size="32px" class="q-mr-md text-white" />
-        <div class="col">
-          <div class="text-h6 text-white text-weight-bold">{{ $t(service.name) }}</div>
-          <div class="text-caption text-blue-2">
-            {{ $t('immat.subtitle', 'Immatriculation en ligne — Régime Obligatoire') }}
-          </div>
+      <q-card-section class="immat-header row items-center no-wrap q-px-md q-py-xs">
+        <q-icon name="assignment_ind" size="22px" class="q-mr-sm text-white" />
+        <div class="col text-subtitle1 text-white text-weight-bold">
+          {{ $t(service.name) }}
         </div>
         <q-chip
           :label="form.regimeAffiC || 'Obligatoire'"
@@ -24,39 +35,25 @@
         <q-btn flat round dense icon="close" color="white" class="q-ml-sm" @click="closeDialog" />
       </q-card-section>
 
-      <!-- ═══ CHAMPS CACHÉS LEGACY ═══ -->
-      <div class="immat-legacy-hidden" aria-hidden="true" style="display: none">
-        <input type="hidden" name="regime" :value="form.regime" />
-        <input type="hidden" name="regimeAffi" :value="form.regimeAffi" />
-        <input type="hidden" name="date_effet" :value="form.date_effet" />
-        <input type="hidden" name="taux" :value="form.taux" />
-        <input type="hidden" name="min_date_effet" :value="form.min_date_effet" />
-        <input type="hidden" name="smig_annuel" :value="form.smig_annuel" />
-        <input type="hidden" name="max_cotisation_annuel" :value="form.max_cotisation_annuel" />
-        <input type="hidden" name="code_tele" :value="form.code_tele" />
-        <input type="hidden" name="code_secret" :value="form.code_secret" />
-        <input type="hidden" name="minDateAffi" :value="form.minDateAffi" />
-        <input type="hidden" name="Dest" :value="form.Dest" />
-        <input type="hidden" name="LIEU_NAISS_PERS" :value="form.LIEU_NAISS_PERS" />
-        <input type="hidden" name="CODE_PAYS_NAISS" :value="form.CODE_PAYS_NAISS" />
-        <input type="hidden" name="CIVILITE_PERS" :value="form.CIVILITE_PERS" />
-        <input type="hidden" name="NATIONALITE" :value="form.NATIONALITE" />
-        <input type="hidden" name="NUM_TYPEPIECE" :value="form.NUM_TYPEPIECE" />
-        <input type="hidden" name="LIEU_PIECE" :value="form.LIEU_PIECE" />
-        <input type="hidden" name="CODE_VILLE" :value="form.CODE_VILLE" />
-        <input type="hidden" name="CODE_CENTRECNPS" :value="form.CODE_CENTRECNPS" />
-        <input type="hidden" name="LIEU_NAISS_PERE" :value="form.LIEU_NAISS_PERE" />
-        <input type="hidden" name="CODE_PAYS_NAISSP" :value="form.CODE_PAYS_NAISSP" />
-        <input type="hidden" name="LIEU_NAISS_MERE" :value="form.LIEU_NAISS_MERE" />
-        <input type="hidden" name="CODE_PAYS_NAISSM" :value="form.CODE_PAYS_NAISSM" />
-        <input type="hidden" name="laction" :value="form.laction" />
-        <input type="hidden" name="valider" :value="form.valider" />
-      </div>
-
-      <q-scroll-area style="height: 700px">
-        <!-- ═══ FORMULAIRE STEPPER ═══ -->
-        <q-card-section class="q-pa-sm">
-          <q-form ref="formRef" @submit.prevent="submitForm">
+      <q-form ref="formRef" class="col column immat-form" greedy reactive-rules @submit.prevent="dialValidation = true">
+        <q-scroll-area class="col immat-scroll-area">
+          <q-inner-loading :showing="loadingInit" :label="referentialsLoadingLabel" />
+          <q-card-section v-if="referentialsError && !loadingInit" class="q-pb-none">
+            <q-banner rounded class="bg-negative text-white">
+              <template #avatar><q-icon name="cloud_off" /></template>
+              {{ referentialsError }}
+              <template #action>
+                <q-btn
+                  flat
+                  color="white"
+                  :label="$t('form.retry')"
+                  icon="refresh"
+                  @click="loadFormBootstrap"
+                />
+              </template>
+            </q-banner>
+          </q-card-section>
+          <q-card-section class="q-pa-sm">
             <q-stepper
               v-model="step"
               :vertical="!$q.screen.gt.sm"
@@ -95,10 +92,12 @@
                       dense
                       class="full-width"
                       :rules="[required, validateMatriculeCNPS]"
+                      :error="hasFieldError('mat_employeur')"
+                      :error-message="fieldErrorMsg('mat_employeur')"
                       :hint="$t('inputassu.employer_cnps_registration_number')"
                       @keyup.enter="fetchEmployerData"
                       @keydown.enter.prevent="fetchEmployerData"
-                      @update:model-value="(val) => (form.mat_employeur = val.toUpperCase())"
+                      @update:model-value="reevaluateMatricule"
                     >
                       <template v-slot:label
                         ><span class="req-label"
@@ -113,10 +112,11 @@
                           dense
                           icon="search"
                           color="primary"
+                          :loading="loadingEmployer"
                           @click="fetchEmployerData"
                           size="sm"
                         >
-                          <q-tooltip>{{ $t('form.search') }}</q-tooltip>
+                          <q-tooltip>{{ $t('immat.searchEmployer') }}</q-tooltip>
                         </q-btn>
                       </template>
                     </q-input>
@@ -232,7 +232,8 @@
                       readonly
                       class="full-width"
                       :rules="[required]"
-                      :error="stepErrors[1] && !form.DATE_EMB_PRE_SALL"
+                      :error="hasFieldError('DATE_EMB_PRE_SALL')"
+                      :error-message="fieldErrorMsg('DATE_EMB_PRE_SALL')"
                       :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
                       :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
                     >
@@ -249,7 +250,7 @@
                               :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                               :options="optionsDn"
                               color="primary"
-                              @update:model-value="calculateSmig"
+                              @update:model-value="(v) => { form.DATE_EMB_PRE_SALL = v; calculateSmig(); reevaluateField('DATE_EMB_PRE_SALL') }"
                             />
                           </q-popup-proxy>
                         </q-icon>
@@ -325,9 +326,12 @@
                       :label="$t('inputassu.current_income')"
                       outlined
                       dense
-                      type="number"
-                      min="0"
+                      type="tel"
+                      :maxlength="LEGACY_TELEIMMAS_DIGIT_LIMITS.REVENU_MENSUEL"
                       class="full-width"
+                      :error="hasFieldError('ActuelRevenu')"
+                      :error-message="fieldErrorMsg('ActuelRevenu')"
+                      @update:model-value="() => reevaluateField('ActuelRevenu')"
                     />
                   </div>
                 </div>
@@ -345,13 +349,16 @@
                       :label="$t('inputassu.hiring_notice')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       :counter-label="counterLabelFn"
                       max-files="1"
-                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png,.pdf"
-                      max-file-size="3072000"
+                      :accept="LEGACY_IMMAT_FILE_ACCEPT"
+                      :max-file-size="LEGACY_MAX_FILE_SIZE"
+                      :hint="fileMaxSizeHint"
                       :rules="[required]"
-                      :error="stepErrors[1] && !form.avisEmbauche"
+                      :error="hasFieldError('avisEmbauche')"
+                      :error-message="fieldErrorMsg('avisEmbauche')"
                       @update:model-value="onFileSelected('avisEmbauche')"
                       @rejected="onRejected"
                     >
@@ -367,15 +374,6 @@
                   </div>
                 </div>
 
-                <q-stepper-navigation class="q-mt-md">
-                  <q-btn
-                    @click="goToNextStep(2)"
-                    color="primary"
-                    :label="$t('form.next')"
-                    icon-right="arrow_forward"
-                    unelevated
-                  />
-                </q-stepper-navigation>
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -483,7 +481,8 @@
                       dense
                       class="full-width"
                       :rules="[required]"
-                      :error="stepErrors[2] && !form.DATE_NAISS_PERS"
+                      :error="hasFieldError('DATE_NAISS_PERS')"
+                      :error-message="fieldErrorMsg('DATE_NAISS_PERS')"
                       :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
                       :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
                     >
@@ -500,6 +499,7 @@
                               :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                               :options="optionsDn"
                               color="primary"
+                              @update:model-value="() => reevaluateField('DATE_NAISS_PERS')"
                             />
                           </q-popup-proxy>
                         </q-icon>
@@ -523,6 +523,7 @@
                     <q-select
                       v-model="form.LieuNaiss"
                       name="LieuNaiss"
+                      v-bind="arrondissementSelectProps"
                       :label="$t('inputassu.birth_district')"
                       :options="arrondissements"
                       option-label="NOM_ARROND"
@@ -533,8 +534,12 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
                       @filter="filterArrondissement"
                       :rules="[required]"
+                      :error="hasFieldError('LieuNaiss')"
+                      :error-message="fieldErrorMsg('LieuNaiss')"
+                      @update:model-value="() => reevaluateField('LieuNaiss')"
                     >
                       <template v-slot:label
                         ><span class="req-label"
@@ -559,6 +564,8 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
+                      @filter="filterMatrimonial"
                       :rules="[required]"
                     >
                       <template v-slot:label
@@ -584,6 +591,7 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
                       @filter="filterPays"
                       :rules="[required]"
                     >
@@ -617,6 +625,7 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
                       @filter="filterPieces"
                       :rules="[required]"
                     >
@@ -686,6 +695,7 @@
                     <q-select
                       v-model="form.LIEU_PIECEC"
                       name="LIEU_PIECEC"
+                      v-bind="arrondissementSelectProps"
                       :label="$t('inputassu.place_issuance_identity_document')"
                       :options="arrondissements"
                       option-label="NOM_ARROND"
@@ -696,6 +706,7 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
                       :hint="$t('inputassu.place_issuance_identity_document')"
                       @filter="filterArrondissement"
                       :rules="[required]"
@@ -716,11 +727,16 @@
                       :label="form.typepiece?.LIBELLE || $t('inputassu.identity_document_type')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       max-files="1"
-                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png,.pdf,.docx"
-                      max-file-size="3072000"
+                      :accept="LEGACY_IMMAT_FILE_ACCEPT"
+                      :max-file-size="LEGACY_MAX_FILE_SIZE"
+                      :hint="fileMaxSizeHint"
                       :rules="[required]"
+                      :error="hasFieldError('pieceIdentite')"
+                      :error-message="fieldErrorMsg('pieceIdentite')"
+                      @update:model-value="onFileSelected('pieceIdentite')"
                       @rejected="onRejected"
                     >
                       <template v-slot:prepend
@@ -739,11 +755,16 @@
                       :label="$t('inputassu.declaration_on_honor')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       max-files="1"
-                      accept=".gif,.jpg,.jpeg,.png,image/gif,image/jpeg,image/png,.pdf,.docx"
-                      max-file-size="3072000"
+                      :accept="LEGACY_IMMAT_FILE_ACCEPT"
+                      :max-file-size="LEGACY_MAX_FILE_SIZE"
+                      :hint="fileMaxSizeHint"
                       :rules="[required]"
+                      :error="hasFieldError('declarationHonneur')"
+                      :error-message="fieldErrorMsg('declarationHonneur')"
+                      @update:model-value="onFileSelected('declarationHonneur')"
                       @rejected="onRejected"
                     >
                       <template v-slot:prepend
@@ -753,23 +774,6 @@
                   </div>
                 </div>
 
-                <q-stepper-navigation class="q-mt-md">
-                  <q-btn
-                    @click="goToNextStep(3)"
-                    color="primary"
-                    :label="$t('form.next')"
-                    icon-right="arrow_forward"
-                    unelevated
-                  />
-                  <q-btn
-                    flat
-                    @click="step = 1"
-                    color="primary"
-                    :label="$t('form.previous')"
-                    icon="arrow_back"
-                    class="q-ml-sm"
-                  />
-                </q-stepper-navigation>
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -791,11 +795,14 @@
                   <div class="col-12 col-sm-6">
                     <q-input
                       v-model="form.NOM_PERE"
+                      name="NOM_PERE"
                       :label="$t('inputassu.last_name')"
                       outlined
                       dense
                       class="full-width"
-                      @update:model-value="(val) => (form.NOM_PERE = val.toUpperCase())"
+                      :error="hasFieldError('NOM_PERE')"
+                      :error-message="fieldErrorMsg('NOM_PERE')"
+                      @update:model-value="(val) => { form.NOM_PERE = val.toUpperCase(); reevaluateField('NOM_PERE') }"
                     />
                   </div>
                   <div class="col-12 col-sm-6">
@@ -811,10 +818,13 @@
                   <div class="col-12 col-sm-6">
                     <q-input
                       v-model="form.DATE_NAISS_PERSP"
+                      name="DATE_NAISS_PERSP"
                       :label="$t('inputassu.date_of_birth')"
                       outlined
                       dense
                       class="full-width"
+                      :error="hasFieldError('DATE_NAISS_PERSP')"
+                      :error-message="fieldErrorMsg('DATE_NAISS_PERSP')"
                       :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
                       :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
                     >
@@ -826,6 +836,7 @@
                               :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                               :options="optionsDn"
                               color="primary"
+                              @update:model-value="() => reevaluateField('DATE_NAISS_PERSP')"
                             />
                           </q-popup-proxy>
                         </q-icon>
@@ -856,6 +867,7 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
                       @filter="filterArrondissement"
                     />
                   </div>
@@ -902,23 +914,6 @@
                   </div>
                 </div>
 
-                <q-stepper-navigation class="q-mt-md">
-                  <q-btn
-                    @click="goToNextStep(4)"
-                    color="primary"
-                    :label="$t('form.next')"
-                    icon-right="arrow_forward"
-                    unelevated
-                  />
-                  <q-btn
-                    flat
-                    @click="step = 2"
-                    color="primary"
-                    :label="$t('form.previous')"
-                    icon="arrow_back"
-                    class="q-ml-sm"
-                  />
-                </q-stepper-navigation>
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -968,12 +963,14 @@
                   <div class="col-12 col-sm-6">
                     <q-input
                       v-model="form.DATE_NAISS_PERSM"
+                      name="DATE_NAISS_PERSM"
                       :label="$t('inputassu.date_of_birth')"
                       outlined
                       dense
                       class="full-width"
                       :rules="[required]"
-                      :error="stepErrors[4] && !form.DATE_NAISS_PERSM"
+                      :error="hasFieldError('DATE_NAISS_PERSM')"
+                      :error-message="fieldErrorMsg('DATE_NAISS_PERSM')"
                       :mask="locale === 'fr' ? '##/##/####' : '####-##-##'"
                       :hint="locale === 'fr' ? 'JJ/MM/AAAA' : 'YYYY-MM-DD'"
                     >
@@ -990,6 +987,7 @@
                               :mask="locale === 'fr' ? 'DD/MM/YYYY' : 'YYYY-MM-DD'"
                               :options="optionsDn"
                               color="primary"
+                              @update:model-value="() => reevaluateField('DATE_NAISS_PERSM')"
                             />
                           </q-popup-proxy>
                         </q-icon>
@@ -1027,6 +1025,7 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
                       @filter="filterArrondissement"
                       :rules="[required]"
                       :error="stepErrors[4] && !form.LieuNaissMere"
@@ -1089,23 +1088,6 @@
                   </div>
                 </div>
 
-                <q-stepper-navigation class="q-mt-md">
-                  <q-btn
-                    @click="goToNextStep(5)"
-                    color="primary"
-                    :label="$t('form.next')"
-                    icon-right="arrow_forward"
-                    unelevated
-                  />
-                  <q-btn
-                    flat
-                    @click="step = 3"
-                    color="primary"
-                    :label="$t('form.previous')"
-                    icon="arrow_back"
-                    class="q-ml-sm"
-                  />
-                </q-stepper-navigation>
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -1138,6 +1120,7 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
                       @filter="filterArrondissement"
                       :rules="[required]"
                     >
@@ -1175,8 +1158,18 @@
                       :label="$t('inputassu.postal_box')"
                       outlined
                       dense
+                      type="tel"
+                      :maxlength="LEGACY_TELEIMMAS_DIGIT_LIMITS.BP"
                       class="full-width"
-                      @update:model-value="(val) => (form.BP = val.toUpperCase())"
+                      :error="hasFieldError('BP')"
+                      :error-message="fieldErrorMsg('BP')"
+                      :rules="[
+                        (val) =>
+                          !val ||
+                          String(val).replace(/\D/g, '').length <= LEGACY_TELEIMMAS_DIGIT_LIMITS.BP ||
+                          $t('inputassu.bpMaxDigits', { max: LEGACY_TELEIMMAS_DIGIT_LIMITS.BP }),
+                      ]"
+                      @update:model-value="() => reevaluateField('BP')"
                     />
                   </div>
                 </div>
@@ -1194,9 +1187,10 @@
                       outlined
                       dense
                       type="tel"
-                      mask="+237 ### ### ###"
+                      maxlength="9"
+                      prefix="+237"
                       class="full-width"
-                      :rules="[required]"
+                      :rules="phoneRules"
                     >
                       <template v-slot:label
                         ><span class="req-label"
@@ -1229,8 +1223,13 @@
                       :label="$t('inputassu.fax')"
                       outlined
                       dense
+                      type="tel"
+                      :maxlength="LEGACY_TELEIMMAS_DIGIT_LIMITS.PHONE"
                       class="full-width"
-                      @update:model-value="(val) => (form.FAX_PERS = val.toUpperCase())"
+                      :error="hasFieldError('FAX_PERS')"
+                      :error-message="fieldErrorMsg('FAX_PERS')"
+                      :rules="phoneRulesOptional"
+                      @update:model-value="() => reevaluateField('FAX_PERS')"
                     />
                   </div>
                   <div class="col-12 col-sm-6">
@@ -1246,6 +1245,7 @@
                       input-debounce="0"
                       emit-value
                       map-options
+                      :disable="!referentialsReady"
                       :hint="$t('inputassu.centreCNPS')"
                       @filter="filterCentreCNPS"
                       :rules="[required]"
@@ -1259,23 +1259,6 @@
                   </div>
                 </div>
 
-                <q-stepper-navigation class="q-mt-md">
-                  <q-btn
-                    @click="goToNextStep(6)"
-                    color="primary"
-                    :label="$t('form.next')"
-                    icon-right="arrow_forward"
-                    unelevated
-                  />
-                  <q-btn
-                    flat
-                    @click="step = 4"
-                    color="primary"
-                    :label="$t('form.previous')"
-                    icon="arrow_back"
-                    class="q-ml-sm"
-                  />
-                </q-stepper-navigation>
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -1316,12 +1299,13 @@
                       <q-file
                         v-model="form.actesNaissance[index - 1]"
                         :label="$t('inputassu.birth_certificate_child', { number: index })"
-                        :hint="$t('inputassu.birth_certificate_child', { number: index })"
+                        :hint="fileHintWithSize($t('inputassu.birth_certificate_child', { number: index }))"
                         outlined
                         dense
+                        clearable
                         class="full-width"
-                        accept=".jpg,.jpeg,.png,.pdf"
-                        max-file-size="3072000"
+                        :accept="LEGACY_IMMAT_FILE_ACCEPT"
+                        :max-file-size="LEGACY_MAX_FILE_SIZE"
                         :rules="[(val) => !!val || $t('input.requis')]"
                         :error="stepErrors[6] && !form.actesNaissance[index - 1]"
                         @update:model-value="onFileSelected('actesNaissance', index - 1)"
@@ -1367,12 +1351,13 @@
                       <q-file
                         v-model="form.certificatsTravail[index - 1]"
                         :label="$t('inputassu.work_certificates', { number: index })"
-                        :hint="$t('inputassu.work_certificates', { number: index })"
+                        :hint="fileHintWithSize($t('inputassu.work_certificates', { number: index }))"
                         outlined
                         dense
+                        clearable
                         class="full-width"
-                        accept=".jpg,.jpeg,.png,.pdf"
-                        max-file-size="3072000"
+                        :accept="LEGACY_IMMAT_FILE_ACCEPT"
+                        :max-file-size="LEGACY_MAX_FILE_SIZE"
                         :rules="[(val) => !!val || $t('input.requis')]"
                         :error="stepErrors[6] && !form.certificatsTravail[index - 1]"
                         @update:model-value="onFileSelected('certificatsTravail')"
@@ -1399,13 +1384,16 @@
                   <div class="col-12 col-sm-3">
                     <q-input
                       v-model="form.nombConj"
+                      name="nombConj"
                       :label="$t('inputassu.number_of_spouses')"
                       type="number"
                       outlined
                       dense
                       class="full-width"
                       min="0"
-                      @update:model-value="resetFileField('actesMariage')"
+                      :error="hasFieldError('nombConj')"
+                      :error-message="fieldErrorMsg('nombConj')"
+                      @update:model-value="(v) => { form.nombConj = v; resetFileField('actesMariage'); reevaluateField('nombConj') }"
                     />
                   </div>
                   <template v-if="form.nombConj > 0">
@@ -1417,12 +1405,13 @@
                       <q-file
                         v-model="form.actesMariage[index - 1]"
                         :label="$t('inputassu.marriages_certificates', { number: index })"
-                        :hint="$t('inputassu.marriages_certificates', { number: index })"
+                        :hint="fileHintWithSize($t('inputassu.marriages_certificates', { number: index }))"
                         outlined
                         dense
+                        clearable
                         class="full-width"
-                        accept=".jpg,.jpeg,.png,.pdf"
-                        max-file-size="3072000"
+                        :accept="LEGACY_IMMAT_FILE_ACCEPT"
+                        :max-file-size="LEGACY_MAX_FILE_SIZE"
                         :rules="[(val) => !!val || $t('input.requis')]"
                         :error="stepErrors[6] && !form.actesMariage[index - 1]"
                         @update:model-value="onFileSelected('actesMariage', index - 1)"
@@ -1440,23 +1429,6 @@
                   </template>
                 </div>
 
-                <q-stepper-navigation class="q-mt-md">
-                  <q-btn
-                    @click="goToNextStep(7)"
-                    color="primary"
-                    :label="$t('form.next')"
-                    icon-right="arrow_forward"
-                    unelevated
-                  />
-                  <q-btn
-                    flat
-                    @click="step = 5"
-                    color="primary"
-                    :label="$t('form.previous')"
-                    icon="arrow_back"
-                    class="q-ml-sm"
-                  />
-                </q-stepper-navigation>
               </q-step>
 
               <!-- ══════════════════════════════════════════════
@@ -2077,49 +2049,85 @@
                   </div>
                   <!-- /row recap -->
 
-                  <!-- Actions finales -->
-                  <q-card flat class="bg-grey-1 q-mt-md">
-                    <q-card-section class="text-center">
-                      <q-stepper-navigation class="justify-center">
-                        <q-btn
-                          type="submit"
-                          color="primary"
-                          size="md"
-                          unelevated
-                          class="q-px-lg text-weight-bold"
-                          icon-right="send"
-                        >
-                          {{ $t('form.submit') }}
-                        </q-btn>
-                        <q-btn
-                          flat
-                          @click="step = 6"
-                          color="primary"
-                          :label="$t('form.previous')"
-                          icon="arrow_back"
-                          class="q-ml-md"
-                          size="md"
-                        />
-                        <q-btn
-                          flat
-                          color="secondary"
-                          size="md"
-                          class="q-ml-md"
-                          @click="previewDocument"
-                          icon="visibility"
-                        >
-                          {{ $t('form.preview') }}
-                        </q-btn>
-                      </q-stepper-navigation>
-                    </q-card-section>
-                  </q-card>
                 </div>
                 <!-- /q-pa-sm recap -->
               </q-step>
             </q-stepper>
-          </q-form>
-        </q-card-section>
-      </q-scroll-area>
+          </q-card-section>
+        </q-scroll-area>
+
+        <q-separator />
+        <q-card-actions align="right" class="immat-step-footer q-pa-sm">
+          <q-btn
+            v-if="step > 1"
+            flat
+            color="primary"
+            :label="$t('form.previous')"
+            icon="arrow_back"
+            @click="goToPreviousStep"
+          />
+          <q-space />
+          <q-btn
+            v-if="step < 7"
+            color="primary"
+            unelevated
+            :label="$t('form.next')"
+            icon-right="arrow_forward"
+            @click="goToNextStep(step + 1)"
+          />
+          <q-btn
+            v-else
+            type="submit"
+            color="primary"
+            unelevated
+            class="q-px-lg text-weight-bold"
+            icon-right="send"
+            :label="$t('form.submit')"
+          />
+        </q-card-actions>
+      </q-form>
+
+      <!-- ═══ DIALOGUE CONFIRMATION ═══ -->
+      <q-dialog v-model="dialValidation" persistent>
+        <q-card class="confirmation-card" style="min-width: 340px; max-width: 480px">
+          <q-card-section class="immat-header row items-center no-wrap q-py-sm">
+            <q-icon name="verified" size="md" class="q-mr-sm text-white" />
+            <div class="text-subtitle1 text-weight-bold col text-white">
+              {{ $t('form.confirmationTitle') }}
+            </div>
+            <q-btn flat round dense icon="close" color="white" @click="dialValidation = false" />
+          </q-card-section>
+          <q-card-section>
+            <div class="confirmation-message text-body2 q-mb-md">
+              <q-icon name="info" color="primary" class="q-mr-xs" />
+              {{ $t('form.confirmationMessage') }}
+            </div>
+            <div class="text-subtitle2 text-weight-medium q-mb-sm text-primary">
+              {{ $t('immep.confirmSubmit') }}
+            </div>
+            <q-option-group
+              v-model="form.validation"
+              :options="validationOptions"
+              color="primary"
+              inline
+              class="q-mt-sm"
+            />
+          </q-card-section>
+          <q-separator />
+          <q-card-actions align="right" class="q-pa-md">
+            <q-btn flat :label="$t('form.cancel')" color="grey-7" @click="dialValidation = false" />
+            <q-btn
+              unelevated
+              color="primary"
+              icon="send"
+              :label="$t('form.confirm')"
+              :disable="form.validation !== true"
+              :loading="spinner"
+              @click="submitForm"
+            />
+          </q-card-actions>
+        </q-card>
+      </q-dialog>
 
       <!-- <q-card-actions align="right" class="q-pa-sm">
         <q-btn
@@ -2156,130 +2164,58 @@
       <q-spinner-cube size="xl" color="primary" />
     </q-dialog>
 
-    <!-- ═══ DIALOGUE CONFIRMATION ═══ -->
-    <q-dialog v-model="showConfirmationDialog" persistent>
-      <q-card class="confirmation-card" style="min-width: 480px; max-width: 98vw">
-        <q-card-section class="bg-primary text-white text-center q-pa-md">
-          <q-icon name="help_outline" size="32px" class="q-mb-xs" />
-          <div class="text-h6 text-weight-bold">{{ $t('form.confirmationTitle') }}</div>
-        </q-card-section>
-        <q-card-section style="max-height: 50vh" class="scroll q-pa-md">
-          <div class="submission-types q-mt-sm">
-            <div class="text-subtitle2 text-weight-bold q-mb-md text-grey-8">
-              <q-icon name="radio_button_checked" class="q-mr-sm" />
-              {{ $t('form.selectSubmissionType') }}
-            </div>
-            <!-- Temporaire -->
-            <q-card
-              flat
-              bordered
-              class="submission-option q-mb-sm"
-              :class="{ 'selected-option': submissionType === 'temporary' }"
-              @click="submissionType = 'temporary'"
-            >
-              <q-card-section class="q-pa-sm">
-                <div class="row items-center">
-                  <q-radio
-                    v-model="submissionType"
-                    val="temporary"
-                    color="orange"
-                    class="q-mr-sm"
-                  />
-                  <div class="col">
-                    <div class="text-subtitle2 text-weight-bold text-orange-8">
-                      <q-icon name="schedule" class="q-mr-xs" />{{ $t('form.temporarySubmission') }}
-                    </div>
-                    <p class="text-caption text-grey-7 q-ma-none q-mt-xs">
-                      {{ $t('form.temporarySubmissionDescription') }}
-                    </p>
-                  </div>
-                </div>
-              </q-card-section>
-            </q-card>
-            <!-- Définitive -->
-            <q-card
-              flat
-              bordered
-              class="submission-option"
-              :class="{ 'selected-option': submissionType === 'definitive' }"
-              @click="submissionType = 'definitive'"
-            >
-              <q-card-section class="q-pa-sm">
-                <div class="row items-center">
-                  <q-radio
-                    v-model="submissionType"
-                    val="definitive"
-                    color="green"
-                    class="q-mr-sm"
-                  />
-                  <div class="col">
-                    <div class="text-subtitle2 text-weight-bold text-green-8">
-                      <q-icon name="check_circle" class="q-mr-xs" />{{
-                        $t('form.definitiveSubmission')
-                      }}
-                    </div>
-                    <p class="text-caption text-grey-7 q-ma-none q-mt-xs">
-                      {{ $t('form.definitiveSubmissionDescription') }}
-                    </p>
-                  </div>
-                </div>
-              </q-card-section>
-            </q-card>
-          </div>
-        </q-card-section>
-        <q-card-actions class="q-pa-md" align="center">
-          <q-btn
-            :label="$t('form.confirm')"
-            color="positive"
-            unelevated
-            size="md"
-            :disable="!submissionType"
-            :icon="submissionType === 'temporary' ? 'schedule' : 'send'"
-            @click="confirmSubmission"
-            class="q-px-xl"
-          />
-          <q-btn
-            :label="$t('form.cancel')"
-            color="grey-7"
-            size="md"
-            icon="close"
-            @click="showConfirmationDialog = false"
-            class="q-ml-md"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
   </q-dialog>
 </template>
 <script setup>
-import { ref, computed, defineProps, defineEmits, onMounted, watch } from 'vue'
+import { ref, computed, defineProps, defineEmits, onMounted, watch, nextTick } from 'vue'
 import { useNotify } from 'src/modules/shared/components/useNotify.js'
-import { arrondissements as rawArrondissements } from 'src/modules/shared/data/Arrondissements.js'
-import { pays as rawPays } from 'src/modules/shared/data/Pays.js'
-import { pieces as rawPieces } from 'src/modules/shared/data/Pieces.js'
-import { centres as rawCentres } from 'src/modules/shared/data/Centres.js'
-import { matrimonial as rawMatrimonial } from 'src/modules/immatriculations/data/Matrimonial.js'
 import {
   initImmatAssuTrvRegime0,
   buildLegacyFormData,
-  validateRegime0Business,
+  validateRegime0BusinessFieldMap,
   syncLegacyHiddenFields,
   parseLegacyDate,
 } from 'src/modules/immatriculations/utils/immatAssuTrvLegacy.js'
 import { useI18n } from 'vue-i18n'
 import html2pdf from 'html2pdf.js'
 import { submitTeleImmatAssure } from 'src/modules/immatriculations/api/immatAssureApi.js'
+import { resolveImmatSubmitNotifyMessage } from 'src/modules/immatriculations/api/immatAssureResponse.js'
+import {
+  fetchAssureTele,
+  fetchEmployerByMatricule,
+  fetchImmatAssuReferentials,
+  fetchSessionAssureInit,
+} from 'src/modules/immatriculations/api/teleImmatAssureApi.js'
+import { applyAssureTeleToForm } from 'src/modules/immatriculations/adapters/assureTeleAdapter.js'
+import { applyEmployerToForm } from 'src/modules/immatriculations/adapters/employerAdapter.js'
+import ImmatAssuTrvControle from 'src/modules/immatriculations/components/ImmatAssuTrvControle.vue'
+import { selectSmig } from 'src/modules/immatriculations/utils/selectSmig.js'
 import { useQuasar } from 'quasar'
+import { buildLegacyTelephoneRules } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
+import {
+  LEGACY_IMMAT_ASSURE_FILE_ACCEPT,
+  LEGACY_TELEIMMAS_DIGIT_LIMITS,
+} from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
 
-const $q = useQuasar()
-defineProps({
+/** Taille max pièce jointe — alignée teleImmat / GererAssure (3 Mo). */
+const LEGACY_MAX_FILE_SIZE = 3072000
+
+const props = defineProps({
   service: Object,
+  /** Reprise d'un dossier existant (modification / validation) */
+  codeTele: { type: String, default: '' },
+  codeSecret: { type: String, default: '' },
 })
 
+const $q = useQuasar()
+
 const { t, locale } = useI18n()
+const LEGACY_IMMAT_FILE_ACCEPT = LEGACY_IMMAT_ASSURE_FILE_ACCEPT
+const phoneRules = buildLegacyTelephoneRules(t, { required: true })
+const phoneRulesOptional = buildLegacyTelephoneRules(t, { required: false })
 const emit = defineEmits(['close'])
 
-const { notifyError, notifySuccess } = useNotify()
+const { notifyError, notifySuccess, notifyControleGenerated } = useNotify()
 
 const open = ref(true)
 const step = ref(1)
@@ -2289,151 +2225,243 @@ const recapContent = ref(null)
 const pdfDialog = ref(false)
 const pdfBlobUrl = ref(null)
 const spinner = ref(false)
-const showConfirmationDialog = ref(false)
-const submissionType = ref(null)
+const dialValidation = ref(false)
 const stepErrors = ref({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false })
+const fieldErrors = ref({})
 
-const arrondissements = ref([...rawArrondissements])
-const pays = ref([...rawPays])
-const pieces = ref([...rawPieces])
-const centres = ref([...rawCentres])
-const matrimonialList = ref([...rawMatrimonial])
+const phase = ref('form')
+const controleCredentials = ref({ codeTele: '', codeSecret: '' })
+const controleValidated = ref(false)
+const controleReloadToken = ref(0)
+const validatingControle = ref(false)
+const fromControleEdit = ref(false)
+const employerSmigLines = ref([])
+const loadingInit = ref(false)
+const loadingEmployer = ref(false)
+const referentialsReady = ref(false)
+const referentialsError = ref(null)
+const referentialsLoadingLabel = ref('')
 
-// Mock data for employers
-const employeurs = ref([
-  {
-    NUM_EMPLOYEUR: '010-7183310-M', // 010-7183301-K
-    RAISON_SOCIALE: 'BANANA SARL',
-    DATE_CREATION: '04/10/1996',
-    DATE_IMMAT: '04/08/1998',
-    BOITE_POSTALE: '1130',
-    ADRESSE_EMPLOYEUR: 'YAOUNDE',
-    CODE_CENTRE: '325',
-    DATE_EMB_PREM_SAL: '04/08/1998',
-    DATE_DEB_SERVICE: '04/08/1998',
-    NOM_COMMERCIAL: 'SOCIETE BANANA SARL',
-    POSITION: '1',
-    LIB_POSITION: 'ACTIF/REACTIVE',
-    REGIME: 'RÉGIME GÉNÉRAL',
-    RISQUE: 'Risque eleve',
-    LIB_CENTRE: 'CPS de MELEN',
-    CODE_REGIME: '1',
-    CODE: 'SMIG_AE',
-    SMIG: '43969',
-    DATE_DEBUT: '01/03/2024',
-    CODE_PIECE_GERANT: '56',
-    LIBELLE_PIECE: 'Carte Nationalité d Identité',
-    NOM_GERANT: 'NJONG NJONG',
-    PRENOM_GERANT: 'ERIC',
-    DATE_NAISS_GERANT: '28/09/1962',
-    SEXE_GERANT: 'M',
-    CODE_PAYS_NAT_GERANT: 'CMR',
-    NOM_PAYS: 'CAMEROON',
-    LIEU_NAISS_GERANT: 'E2801',
-    NOM_ARROND_NAISS_GERANT: 'WUM',
-    LIEU_PIECE_GERANT: 'J0601',
-    NOM_ARROND_PIECE_GERANT: 'YAOUNDE I',
-    NUM_PIECE_GERANT: '101038307',
-    DATE_PIECE_GERANT: '28/11/2016',
-    LOCALITE_NAISS_GERANT: 'WUM',
-    BP_GERANT: '1130',
-    ADR_GERANT: 'B.P. 1130 YAOUNDE',
-    EMAIL_GERANT: 'societe.banana@yahoo.fr',
-    TEL_GERANT: '222355275',
-    NUI_GERANT: 'P096214426111F',
-    ORDRE: '6',
-  },
+const arrondissementSelectProps = {
+  virtualScroll: true,
+  virtualScrollItemSize: 40,
+  popupContentStyle: 'max-height: 280px',
+}
+
+const arrondissementsAll = ref([])
+const paysAll = ref([])
+const piecesAll = ref([])
+const centresAll = ref([])
+const matrimonialAll = ref([])
+
+const arrondissements = ref([])
+const pays = ref([])
+const pieces = ref([])
+const centres = ref([])
+const matrimonialList = ref([])
+
+function getReferentialsSnapshot() {
+  return {
+    arrondissements: arrondissementsAll.value,
+    pays: paysAll.value,
+    pieces: piecesAll.value,
+    centres: centresAll.value,
+    matrimonial: matrimonialAll.value,
+  }
+}
+
+function applyReferentials(refs) {
+  arrondissementsAll.value = [...refs.arrondissements]
+  paysAll.value = [...refs.pays]
+  piecesAll.value = [...refs.pieces]
+  centresAll.value = [...refs.centres]
+  matrimonialAll.value = [...refs.matrimonial]
+
+  arrondissements.value = [...refs.arrondissements]
+  pays.value = [...refs.pays]
+  pieces.value = [...refs.pieces]
+  centres.value = [...refs.centres]
+  matrimonialList.value = [...refs.matrimonial]
+  referentialsReady.value = true
+}
+
+function createImmatAssuTrvFormDefaults() {
+  return {
+    mat_employeur: '',
+    RAISON_SOCIALE: '',
+    NOM_COMMERCIAL: '',
+    avisEmbauche: null,
+    DATE_EMB_PRE_SALL: '',
+    DATE_DEMANDE: '',
+    code_tele: '',
+    code_secret: '',
+    minDateAffi: '',
+    regime: '0',
+    regimeAffiC: 'Obligatoire',
+    regimeAffi: '0',
+    date_effet: '',
+    taux: '',
+    min_date_effet: '',
+    smig_annuel: '',
+    max_cotisation_annuel: '',
+    Dest: 'dossiers/assure/immas/',
+    laction: 'Créer',
+    valider: 'OUI',
+    CODE_echelon: '',
+    Specialite: '',
+    ADRESSE_EMPLOYEUR: '',
+    DATE_EMB_PREM_TRAV: '',
+    EFFECTIF_APPROX: 0,
+    CODE_categ: null,
+    NiveauAss: '',
+    ActuelRevenu: '',
+    SMIG_VALUE: 0,
+    SEXE_PERS: '',
+    NOM_PERS: '',
+    PRENOM_PERS: '',
+    DATE_NAISS_PERS: '',
+    LOCALITE_NAISS: '',
+    LieuNaiss: null,
+    LIEU_NAISS_PERS: '',
+    CODE_PAYS_NAISS: '',
+    NATIONALITEC: null,
+    NATIONALITE: '',
+    typepiece: null,
+    NUM_TYPEPIECE: '',
+    NUM_PIECE: '',
+    DATE_PIECE: '',
+    LIEU_PIECEC: null,
+    LIEU_PIECE: '',
+    civilite: null,
+    CIVILITE_PERS: '',
+    pieceIdentite: null,
+    declarationHonneur: null,
+    NOM_PERE: '',
+    PRENOM_PERE: '',
+    DATE_NAISS_PERSP: '',
+    LOCALITE_NAISS_PERE: '',
+    LieuNaissPere: null,
+    LIEU_NAISS_PERE: '',
+    CODE_PAYS_NAISSP: '',
+    etatP: 'Vivant',
+    DATE_DECES_PERSP: '',
+    NOM_MERE: '',
+    PRENOM_MERE: '',
+    DATE_NAISS_PERSM: '',
+    LOCALITE_NAISS_MERE: '',
+    LieuNaissMere: null,
+    LIEU_NAISS_MERE: '',
+    CODE_PAYS_NAISSM: '',
+    etatM: 'Vivant',
+    DATE_DECES_PERSM: '',
+    CODE_VILLEC: null,
+    CODE_VILLE: '',
+    QUARTIER: '',
+    TEL_PERS: '',
+    FAX_PERS: '',
+    Adresse: '',
+    EMAIL_PERS: '',
+    BP: '',
+    CODE_CENTRECNPSC: null,
+    CODE_CENTRECNPS: '',
+    nombEnfa: 0,
+    actesNaissance: [],
+    nombCert: 0,
+    certificatsTravail: [],
+    nombConj: 0,
+    actesMariage: [],
+    validation: false,
+  }
+}
+
+const validationOptions = computed(() => [
+  { label: t('input.yes'), value: true },
+  { label: t('input.no'), value: false },
 ])
 
-const form = ref({
-  mat_employeur: '',
-  RAISON_SOCIALE: '',
-  NOM_COMMERCIAL: '',
-  avisEmbauche: null,
-  DATE_EMB_PRE_SALL: '',
-  DATE_DEMANDE: '',
-  code_tele: '',
-  code_secret: '',
-  minDateAffi: '',
-  regime: '0',
-  regimeAffiC: 'Obligatoire',
-  regimeAffi: '0',
-  date_effet: '',
-  taux: '',
-  min_date_effet: '',
-  smig_annuel: '',
-  max_cotisation_annuel: '',
-  Dest: '',
-  laction: 'Créer',
-  valider: 'OUI',
-  CODE_echelon: '',
-  Specialite: '',
-  ADRESSE_EMPLOYEUR: '',
-  DATE_EMB_PREM_TRAV: '',
-  EFFECTIF_APPROX: 0,
-  CODE_categ: null,
-  NiveauAss: '',
-  ActuelRevenu: '',
-  SMIG_VALUE: 0,
-  SEXE_PERS: '',
-  NOM_PERS: '',
-  PRENOM_PERS: '',
-  DATE_NAISS_PERS: '',
-  LOCALITE_NAISS: '',
-  LieuNaiss: null,
-  LIEU_NAISS_PERS: '',
-  CODE_PAYS_NAISS: '',
-  NATIONALITEC: null,
-  NATIONALITE: '',
-  typepiece: null,
-  NUM_TYPEPIECE: '',
-  NUM_PIECE: '',
-  DATE_PIECE: '',
-  LIEU_PIECEC: null,
-  LIEU_PIECE: '',
-  civilite: null,
-  CIVILITE_PERS: '',
-  pieceIdentite: null,
-  declarationHonneur: null,
-  NOM_PERE: '',
-  PRENOM_PERE: '',
-  DATE_NAISS_PERSP: '',
-  LOCALITE_NAISS_PERE: '',
-  LieuNaissPere: null,
-  LIEU_NAISS_PERE: '',
-  CODE_PAYS_NAISSP: '',
-  etatP: 'Vivant',
-  DATE_DECES_PERSP: '',
-  NOM_MERE: '',
-  PRENOM_MERE: '',
-  DATE_NAISS_PERSM: '',
-  LOCALITE_NAISS_MERE: '',
-  LieuNaissMere: null,
-  LIEU_NAISS_MERE: '',
-  CODE_PAYS_NAISSM: '',
-  etatM: 'Vivant',
-  DATE_DECES_PERSM: '',
-  CODE_VILLEC: null,
-  CODE_VILLE: '',
-  QUARTIER: '',
-  TEL_PERS: '',
-  FAX_PERS: '',
-  Adresse: '',
-  EMAIL_PERS: '',
-  BP: '',
-  CODE_CENTRECNPSC: null,
-  CODE_CENTRECNPS: '',
-  nombEnfa: 0,
-  actesNaissance: [],
-  nombCert: 0,
-  certificatsTravail: [],
-  nombConj: 0,
-  actesMariage: [],
-})
+const form = ref(createImmatAssuTrvFormDefaults())
 
 onMounted(() => {
-  initImmatAssuTrvRegime0(form.value)
+  referentialsLoadingLabel.value = t('immat.referentials.loading')
+  loadFormBootstrap()
 })
+
+async function loadFormBootstrap() {
+  loadingInit.value = true
+  referentialsReady.value = false
+  referentialsError.value = null
+  try {
+    referentialsLoadingLabel.value = t('immat.referentials.loadingLists')
+    const refs = await fetchImmatAssuReferentials()
+    applyReferentials(refs)
+
+    referentialsLoadingLabel.value = t('immat.referentials.loadingSession')
+    const session = await fetchSessionAssureInit({ regime: '0' }).catch(() => null)
+    if (session) {
+      initImmatAssuTrvRegime0(form.value, {
+        date_demande: session.DATE_DEMANDE,
+        date_effet: session.date_effet,
+        taux: session.taux,
+        min_date_effet: session.min_date_effet,
+        smig_annuel: session.smig_annuel,
+        max_cotisation_annuel: session.max_cotisation_annuel,
+      })
+    } else {
+      initImmatAssuTrvRegime0(form.value)
+    }
+  } catch (e) {
+    referentialsError.value = e?.message || t('immat.referentials.error')
+    notifyError(referentialsError.value)
+  } finally {
+    loadingInit.value = false
+    referentialsLoadingLabel.value = t('immat.referentials.loading')
+  }
+
+  const ct = props.codeTele || form.value.code_tele
+  const cs = props.codeSecret || form.value.code_secret
+  if (ct && cs && referentialsReady.value) {
+    await loadExistingDossier(ct, cs)
+  }
+}
+
+async function loadExistingDossier(codeTele, codeSecret, options = {}) {
+  try {
+    $q.loading.show({
+      message: options.loadingMessage || t('immat.controle.loadingDossier'),
+    })
+    const row = await fetchAssureTele(codeTele, codeSecret)
+    if (!row) return
+    applyAssureTeleToForm(form.value, row, getReferentialsSnapshot())
+    form.value.code_tele = codeTele
+    form.value.code_secret = codeSecret
+    if (form.value._dossierExploite) {
+      notifyError(t('immat.controle.dossierExploite'))
+    }
+    if (form.value.mat_employeur) {
+      await fetchEmployerData()
+    }
+  } catch (e) {
+    notifyError(e?.message || t('messages.error'))
+  } finally {
+    $q.loading.hide()
+  }
+}
+
+const fileMaxSizeHint = computed(() => t('form.maxFileSizeHint'))
+
+function fileHintWithSize(label = '') {
+  const max = fileMaxSizeHint.value
+  return label ? `${label} — ${max}` : max
+}
+
+watch(
+  () => form.value.DATE_EMB_PRE_SALL,
+  (hireDate) => {
+    if (hireDate && employerSmigLines.value.length) {
+      form.value.SMIG_VALUE = selectSmig(employerSmigLines.value, hireDate)
+    }
+  },
+)
 
 watch(
   () => form.value,
@@ -2470,10 +2498,96 @@ const dynamicTextClass = computed(() => [
 
 const required = (val) => !!val || 'Ce champ est requis / This field is required'
 
+const hasFieldError = (field) => Boolean(fieldErrors.value[field])
+const fieldErrorMsg = (field) => fieldErrors.value[field] || undefined
+
+/** Champs dont la validité dépend d'un autre (réévaluation croisée). */
+const FIELD_RELATED = {
+  DATE_NAISS_PERS: ['DATE_EMB_PRE_SALL'],
+  DATE_EMB_PRE_SALL: ['DATE_NAISS_PERS', 'DATE_EMB_PREM_TRAV'],
+  DATE_EMB_PREM_TRAV: ['DATE_EMB_PRE_SALL'],
+  DATE_NAISS_PERSM: ['DATE_NAISS_PERS'],
+  DATE_NAISS_PERSP: ['DATE_NAISS_PERS', 'NOM_PERE'],
+  NOM_PERE: ['DATE_NAISS_PERSP'],
+  ActuelRevenu: ['ActuelRevenu'],
+}
+
+function updateStepErrorState() {
+  const currentStep = step.value
+  const map = validateRegime0BusinessFieldMap(form.value, currentStep)
+  if (Object.keys(map).length === 0) {
+    stepErrors.value[currentStep] = false
+  }
+}
+
+/**
+ * Réévalue un champ à la saisie — retire l'erreur dès que la valeur est conforme.
+ * @param {string} field
+ */
+function reevaluateField(field) {
+  syncLegacyHiddenFields(form.value)
+  const keys = [field, ...(FIELD_RELATED[field] || [])]
+  const next = { ...fieldErrors.value }
+
+  for (const scope of [step.value, null]) {
+    const map = validateRegime0BusinessFieldMap(form.value, scope)
+    for (const key of keys) {
+      if (map[key]) next[key] = map[key]
+      else delete next[key]
+    }
+  }
+
+  fieldErrors.value = next
+  updateStepErrorState()
+}
+
+function reevaluateMatricule() {
+  const mat = String(form.value.mat_employeur || '')
+    .trim()
+    .toUpperCase()
+  form.value.mat_employeur = mat
+  const next = { ...fieldErrors.value }
+  const formatOk = /^(?:\d{3}-\d{7}-\d{3}-[A-Z]|\d{3}-\d{7}-[A-Z])$/.test(mat)
+  if (!mat) next.mat_employeur = t('errors.required')
+  else if (!formatOk) next.mat_employeur = t('errors.invalid_cnps_format')
+  else delete next.mat_employeur
+  fieldErrors.value = next
+  updateStepErrorState()
+}
+
+function scrollToFirstInvalid() {
+  nextTick(() => {
+    const el = formRef.value?.$el?.querySelector('.q-field--error')
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
+}
+
+async function validateCurrentForm(stepScope = null) {
+  syncLegacyHiddenFields(form.value)
+  fieldErrors.value = validateRegime0BusinessFieldMap(form.value, stepScope)
+  const valid = await formRef.value?.validate()
+  const businessOk = Object.keys(fieldErrors.value).length === 0
+  await nextTick()
+  if (!valid || !businessOk) {
+    const firstBusiness = Object.values(fieldErrors.value)[0]
+    if (firstBusiness) {
+      notifyError(firstBusiness)
+    } else if (!valid) {
+      notifyError(t('immat.validation.requiredFields'))
+    }
+    scrollToFirstInvalid()
+    return false
+  }
+  return true
+}
+
 const validateEmail = (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || t('errors.invalidEmail')
 
 const validateMatriculeCNPS = (val) => {
-  const regex = /^(?:\d{3}-\d{7}-\d{3}-[A-Z]|\d{3}-\d{7}-[A-Z])$/.test(val)
+  const normalized = String(val || '')
+    .trim()
+    .toUpperCase()
+  const regex = /^(?:\d{3}-\d{7}-\d{3}-[A-Z]|\d{3}-\d{7}-[A-Z])$/.test(normalized)
   return regex || t('errors.invalid_cnps_format')
 }
 
@@ -2488,58 +2602,120 @@ const optionsDn = (date) => {
 
 const filterArrondissement = (val, update) => {
   update(() => {
-    arrondissements.value = rawArrondissements.filter((arr) =>
-      arr.NOM_ARROND.toLowerCase().includes(val.toLowerCase()),
-    )
+    const needle = (val || '').toLowerCase()
+    arrondissements.value = needle
+      ? arrondissementsAll.value.filter((arr) =>
+          String(arr.NOM_ARROND || '')
+            .toLowerCase()
+            .includes(needle),
+        )
+      : [...arrondissementsAll.value]
+  })
+}
+
+const filterMatrimonial = (val, update) => {
+  update(() => {
+    const needle = (val || '').toLowerCase()
+    matrimonialList.value = needle
+      ? matrimonialAll.value.filter((item) =>
+          String(item.LIBELLE_MATRI || '')
+            .toLowerCase()
+            .includes(needle),
+        )
+      : [...matrimonialAll.value]
   })
 }
 
 const filterPays = (val, update) => {
   update(() => {
-    pays.value = rawPays.filter((pays) =>
-      pays.nationalite.toLowerCase().includes(val.toLowerCase()),
-    )
+    const needle = (val || '').toLowerCase()
+    pays.value = needle
+      ? paysAll.value.filter((item) =>
+          String(item.nationalite || '')
+            .toLowerCase()
+            .includes(needle),
+        )
+      : [...paysAll.value]
   })
 }
 
 const filterPieces = (val, update) => {
   update(() => {
-    pieces.value = rawPieces.filter((piece) =>
-      piece.LIBELLE.toLowerCase().includes(val.toLowerCase()),
-    )
+    const needle = (val || '').toLowerCase()
+    pieces.value = needle
+      ? piecesAll.value.filter((piece) =>
+          String(piece.LIBELLE || '')
+            .toLowerCase()
+            .includes(needle),
+        )
+      : [...piecesAll.value]
   })
 }
 
 const filterCentreCNPS = (val, update) => {
   update(() => {
-    centres.value = rawCentres.filter((centre) =>
-      centre.LIB_CENTRE.toLowerCase().includes(val.toLowerCase()),
-    )
+    const needle = (val || '').toLowerCase()
+    centres.value = needle
+      ? centresAll.value.filter((centre) =>
+          String(centre.LIB_CENTRE || '')
+            .toLowerCase()
+            .includes(needle),
+        )
+      : [...centresAll.value]
   })
 }
 
 const calculateSmig = () => {
-  const hire = parseLegacyDate(form.value.DATE_EMB_PRE_SALL)
+  const hire = form.value.DATE_EMB_PRE_SALL
   if (!hire) return
-  form.value.SMIG_VALUE = hire.getFullYear() >= 2014 ? 36270 : 28182
+  if (employerSmigLines.value.length) {
+    form.value.SMIG_VALUE = selectSmig(employerSmigLines.value, hire)
+    return
+  }
+  const parsed = parseLegacyDate(hire)
+  if (!parsed) return
+  form.value.SMIG_VALUE = parsed.getFullYear() >= 2014 ? 36270 : 28182
 }
 
 const fetchEmployerData = async () => {
-  const matricule = form.value.mat_employeur
-  if (!validateMatriculeCNPS(matricule)) {
-    notifyError(t('messages.error'))
+  const matricule = String(form.value.mat_employeur || '')
+    .trim()
+    .toUpperCase()
+  form.value.mat_employeur = matricule
+
+  if (!matricule) {
+    fieldErrors.value = { mat_employeur: t('errors.required') }
+    await formRef.value?.validate()
+    scrollToFirstInvalid()
     return
   }
-  const employer = employeurs.value.find((e) => e.NUM_EMPLOYEUR === matricule)
-  if (employer) {
-    form.value.NOM_COMMERCIAL = employer.NOM_COMMERCIAL
-    form.value.RAISON_SOCIALE = employer.RAISON_SOCIALE
-    form.value.ADRESSE_EMPLOYEUR = employer.ADRESSE_EMPLOYEUR
-    form.value.DATE_EMB_PREM_TRAV = employer.DATE_EMB_PREM_SAL
-    form.value.SMIG_VALUE = employer.SMIG
-    notifySuccess(t('messages.employer_found'))
-  } else {
-    notifyError(t('messages.employer_not_found'))
+  if (validateMatriculeCNPS(matricule) !== true) {
+    fieldErrors.value = { mat_employeur: t('errors.invalid_cnps_format') }
+    await formRef.value?.validate()
+    scrollToFirstInvalid()
+    return
+  }
+  reevaluateMatricule()
+  loadingEmployer.value = true
+  try {
+    const rows = await fetchEmployerByMatricule(matricule)
+    employerSmigLines.value = rows
+    const { warning } = applyEmployerToForm(
+      form.value,
+      rows[0],
+      rows,
+      form.value.DATE_EMB_PRE_SALL,
+    )
+    if (warning) {
+      notifyError(warning)
+    } else {
+      notifySuccess(t('messages.employer_found'))
+    }
+  } catch (e) {
+    employerSmigLines.value = []
+    notifyError(e?.message || t('messages.employer_not_found'))
+  } finally {
+    loadingEmployer.value = false
   }
 }
 
@@ -2548,13 +2724,14 @@ const resetFileField = (field) => {
 }
 
 const onFileSelected = (field) => (file) => {
-  if (file && file.size > 3072000) {
+  if (file && file.size > LEGACY_MAX_FILE_SIZE) {
     notifyError(t('errors.file_too_large'))
     form.value[field] =
       field === 'avisEmbauche' || field === 'pieceIdentite' || field === 'declarationHonneur'
         ? null
         : []
   }
+  reevaluateField(field)
 }
 
 const onRejected = (rejectedEntries) => {
@@ -2579,17 +2756,17 @@ const isStepAllowed = (stepNumber) => {
   return stepNumber <= maxStep.value
 }
 
+const goToPreviousStep = () => {
+  if (step.value > 1) {
+    step.value -= 1
+  }
+}
+
 const goToNextStep = async (nextStep) => {
   const currentStep = step.value
-  syncLegacyHiddenFields(form.value)
-  const valid = await formRef.value.validate()
-  const businessErr = validateRegime0Business(form.value, currentStep)
-  if (!valid || businessErr) {
+  const ok = await validateCurrentForm(currentStep)
+  if (!ok) {
     stepErrors.value[currentStep] = true
-    notifyError(
-      businessErr ||
-        'Veuillez remplir tous les champs requis / Please fill in all required fields.',
-    )
     return
   }
   stepErrors.value[currentStep] = false
@@ -2600,67 +2777,106 @@ const goToNextStep = async (nextStep) => {
 }
 
 const submitForm = async () => {
-  syncLegacyHiddenFields(form.value)
-  const valid = await formRef.value.validate()
-  const businessErr = validateRegime0Business(form.value, null)
-  if (!valid || businessErr) {
-    notifyError(
-      businessErr ||
-        'Veuillez remplir tous les champs requis / Please fill in all required fields.',
-    )
+  dialValidation.value = false
+  const ok = await validateCurrentForm(null)
+  if (!ok) {
+    stepErrors.value[7] = true
     return
   }
-  showConfirmationDialog.value = true
+  stepErrors.value[7] = false
+  await confirmSubmission()
 }
 
 const confirmSubmission = async () => {
-  if (!submissionType.value) {
-    notifyError(t('form.selectSubmissionType'))
-    return
-  }
   spinner.value = true
+  const revalidateFromControle = fromControleEdit.value
   try {
     const formData = buildLegacyFormData(form.value, {
-      submissionType: submissionType.value,
+      submissionType: revalidateFromControle ? 'definitive' : 'temporary',
     })
     if (import.meta.env.DEV) {
       console.info('GererAssure FormData (régime 0):', [...formData.entries()])
     }
     const result = await submitTeleImmatAssure(formData)
-    notifySuccess(result.message || t('form.submitted'))
-    closeDialog()
+    const codeTele = result.codeTele
+    const codeSecret = result.codeSecret
+
+    form.value.code_tele = codeTele
+    form.value.code_secret = codeSecret
+    form.value.laction = 'Modifier'
+    form.value.valider = revalidateFromControle ? 'OUI' : 'NON'
+    controleCredentials.value = { codeTele, codeSecret }
+    controleValidated.value = revalidateFromControle
+    fromControleEdit.value = false
+    controleReloadToken.value += 1
+    phase.value = 'controle'
+
+    if (revalidateFromControle) {
+      notifySuccess(resolveImmatSubmitNotifyMessage(result, t('form.submitted')))
+    } else {
+      notifyControleGenerated(resolveImmatSubmitNotifyMessage(result, t('form.submitted')))
+    }
   } catch (error) {
     const msg = error?.message || String(error)
-    notifyError(t('form.submit_error', { error: msg }))
+    notifyError(msg || t('form.submit_error', { error: '' }))
   } finally {
     spinner.value = false
-    showConfirmationDialog.value = false
-    submissionType.value = null
   }
+}
+
+async function onEditFromControle({ codeTele, codeSecret }) {
+  fromControleEdit.value = true
+  controleValidated.value = false
+  phase.value = 'form'
+  await loadExistingDossier(codeTele, codeSecret, {
+    loadingMessage: t('immat.controle.loadingDossier'),
+  })
+  form.value.laction = 'Modifier'
+  form.value.valider = 'NON'
+  step.value = 7
+  maxStep.value = 7
+  await nextTick()
+}
+
+function onModifierFromControle() {
+  fromControleEdit.value = true
+  controleValidated.value = false
+  phase.value = 'form'
+  form.value.laction = 'Modifier'
+  form.value.valider = 'NON'
+  step.value = 7
+  maxStep.value = 7
+}
+
+async function onValidateFromControle() {
+  validatingControle.value = true
+  try {
+    const formData = buildLegacyFormData(form.value, { submissionType: 'definitive' })
+    const result = await submitTeleImmatAssure(formData)
+    form.value.code_tele = result.codeTele || form.value.code_tele
+    form.value.code_secret = result.codeSecret || form.value.code_secret
+    form.value.laction = 'Modifier'
+    form.value.valider = 'OUI'
+    controleCredentials.value = {
+      codeTele: result.codeTele || form.value.code_tele,
+      codeSecret: result.codeSecret || form.value.code_secret,
+    }
+    controleValidated.value = true
+    controleReloadToken.value += 1
+    notifySuccess(resolveImmatSubmitNotifyMessage(result, t('form.submitted')))
+  } catch (error) {
+    const msg = error?.message || String(error)
+    notifyError(msg || t('form.submit_error', { error: '' }))
+  } finally {
+    validatingControle.value = false
+  }
+}
+
+function onControleValidated() {
+  controleValidated.value = true
 }
 
 const downloadPDF = async () => {
-  spinner.value = true
-  try {
-    const element = recapContent.value
-    const opt = {
-      margin: 1,
-      filename: 'immatriculation_form.pdf',
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-    }
-    const pdf = await html2pdf().from(element).set(opt).toPdf().output('blob')
-    pdfBlobUrl.value = URL.createObjectURL(pdf)
-    pdfDialog.value = true
-  } catch (error) {
-    notifyError(t('pdf.generation_error', error))
-  } finally {
-    spinner.value = false
-  }
-}
-
-const previewDocument = async () => {
   spinner.value = true
   try {
     const element = recapContent.value
@@ -2782,33 +2998,81 @@ const closeDialog = () => {
 .immat-main-card {
   border-radius: 12px;
   overflow: hidden;
+  height: min(88vh, 820px);
+  max-height: 92vh;
+}
+
+.immat-form {
+  min-height: 0;
+}
+
+.immat-scroll-area {
+  height: 0;
+  flex: 1 1 auto;
+  min-height: 280px;
+}
+
+.immat-step-footer {
+  flex-shrink: 0;
+  background: #f5f7fa;
+  border-top: 1px solid #e0e0e0;
 }
 
 .immat-header {
   background: linear-gradient(135deg, #1565c0 0%, #1976d2 60%, #42a5f5 100%);
+  min-height: unset;
 }
 
 /* ── Stepper ── */
-.immat-stepper .q-stepper__header {
+.immat-stepper :deep(.q-stepper__header) {
   background: #f5f7fa;
   border-bottom: 1px solid #e0e0e0;
+  min-height: unset;
+  padding: 2px 4px;
+}
+
+.immat-stepper :deep(.q-stepper__tab) {
+  min-height: 40px;
+  padding: 4px 6px;
+}
+
+.immat-stepper :deep(.q-stepper__title) {
+  font-size: 0.7rem;
+  line-height: 1.15;
+  margin-top: 0;
+  padding: 0 2px;
+}
+
+.immat-stepper :deep(.q-stepper__label) {
+  margin-top: 0;
+}
+
+.immat-stepper :deep(.q-stepper__dot) {
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+  font-size: 14px;
+}
+
+.immat-stepper :deep(.q-stepper__line) {
+  margin-top: 11px;
 }
 
 /* ── En-têtes de sous-sections ── */
 .step-section-header {
   display: flex;
   align-items: center;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   color: #1565c0;
   background: #e3f2fd;
   border-left: 3px solid #1976d2;
-  padding: 5px 10px;
+  padding: 3px 8px;
   border-radius: 0 4px 4px 0;
-  margin-bottom: 10px;
-  margin-top: 4px;
+  margin-bottom: 6px;
+  margin-top: 2px;
 }
 
 .step-section-header--blue {

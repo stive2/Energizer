@@ -1,4 +1,14 @@
 /** Régime 0 — assuré travailleur obligatoire (tele_imma_assure.jsp?regime=0). */
+import {
+  appendLegacyFormField,
+  collectTeleimmasNumericFieldErrors,
+  legacyBpDigits,
+  legacyPhoneDigits,
+  legacyRevenuMensuelDigits,
+} from './immatLegacyCommon.js'
+
+export { legacyPhoneDigits } from './immatLegacyCommon.js'
+
 export const REGIME_TRAVAILLEUR = '0'
 
 const ECAR_MIN_MONTHS = 12 * 14
@@ -158,6 +168,11 @@ function civiliteLabel(val) {
   return String(val)
 }
 
+function legacyDigitsOnly(val) {
+  if (val == null || val === '') return ''
+  return String(val).replace(/\D/g, '')
+}
+
 /** Met à jour les champs cachés alignés sur imma_assure.js (select listeners). */
 export function syncLegacyHiddenFields(form) {
   const ln = arrondRecord(form.LieuNaiss)
@@ -207,7 +222,7 @@ export function initImmatAssuTrvRegime0(form, session = {}) {
     max_cotisation_annuel: session.max_cotisation_annuel || '',
     code_tele: session.code_tele || session.codeTele || '',
     code_secret: session.code_secret || session.codeSecret || '',
-    Dest: session.Dest || '',
+    Dest: session.Dest || 'dossiers/assure/immas/',
     laction: 'Créer',
     valider: 'OUI',
     nombEnfa: form.nombEnfa ?? 0,
@@ -230,10 +245,88 @@ export function initImmatAssuTrvRegime0(form, session = {}) {
   })
 }
 
-const IMAGE_EXT = /\.(gif|jpe?g|png)$/i
+const IMAGE_EXT = /\.(gif|jpe?g|png|pdf)$/i
 
 export function isLegacyImageFile(file) {
   return file && IMAGE_EXT.test(file.name || '')
+}
+
+/**
+ * Validations communes assuré / parents (régime 0 et 1).
+ * @param {(field: string, message: string) => void} push
+ */
+export function collectImmatPersonValidationErrors(form, step, push) {
+  syncLegacyHiddenFields(form)
+
+  const checkAll = step === null || step === 7
+  const check2 = step === null || step === 2
+  const check3 = step === null || step === 3
+  const check4 = step === null || step === 4
+  const check5 = step === null || step === 5
+  const check6 = step === null || step === 6
+
+  if (check5 || checkAll) {
+    collectTeleimmasNumericFieldErrors(form, push)
+  }
+
+  if (check2 || checkAll) {
+    if (!form.LIEU_NAISS_PERS) {
+      push('LieuNaiss', "L'arrondissement de naissance de l'assuré est obligatoire.")
+    }
+    if (form.NUM_TYPEPIECE && !form.pieceIdentite) {
+      push('pieceIdentite', "La pièce d'identité est obligatoire.")
+    }
+    if (form.NUM_TYPEPIECE && form.NUM_TYPEPIECE !== '99' && !form.declarationHonneur) {
+      push('declarationHonneur', "La déclaration sur l'honneur est obligatoire.")
+    }
+    const refDate = form.DATE_DEMANDE || formatDateFr()
+    if (monthsBetween(refDate, form.DATE_NAISS_PERS) < ECAR_MIN_MONTHS) {
+      push('DATE_NAISS_PERS', 'Vous avez moins de 14 ans à ce jour.')
+    }
+    if (yearsBetween(new Date(), form.DATE_NAISS_PERS) < 14) {
+      push('DATE_NAISS_PERS', 'Vous avez moins de 14 ans.')
+    }
+  }
+
+  if (check3 || check4 || checkAll) {
+    if (form.DATE_NAISS_PERSM && compareDates(form.DATE_NAISS_PERSM, form.DATE_NAISS_PERS) === 1) {
+      push('DATE_NAISS_PERSM', "Date de naissance de l'assuré antérieure à celle de sa mère.")
+    }
+    if (form.DATE_NAISS_PERSM && yearsBetween(form.DATE_NAISS_PERS, form.DATE_NAISS_PERSM) <= 8) {
+      push('DATE_NAISS_PERSM', "Écart d'âge trop petit entre le travailleur et sa mère.")
+    }
+    const pere = (form.NOM_PERE || '').trim()
+    if (pere && pere.length > 0 && pere !== 'PND') {
+      if (form.DATE_NAISS_PERSP && compareDates(form.DATE_NAISS_PERSP, form.DATE_NAISS_PERS) === 1) {
+        push('DATE_NAISS_PERSP', "Date de naissance de l'assuré antérieure à celle de son père.")
+      }
+      if (form.DATE_NAISS_PERSP && yearsBetween(form.DATE_NAISS_PERS, form.DATE_NAISS_PERSP) <= 12) {
+        push('DATE_NAISS_PERSP', "Écart d'âge trop petit entre le travailleur et son père.")
+      }
+    } else if (form.LOCALITE_NAISS_PERE || form.DATE_NAISS_PERSP) {
+      push('NOM_PERE', 'Saisissez à nouveau les informations du père ou bien laissez les vides.')
+    }
+  }
+
+  if (check2 || checkAll) {
+    if (form.pieceIdentite && !isLegacyImageFile(form.pieceIdentite)) {
+      push('pieceIdentite', "La pièce d'identité doit être une image (gif, jpeg, jpg, png) ou un PDF.")
+    }
+    if (
+      form.NUM_TYPEPIECE &&
+      form.NUM_TYPEPIECE !== '99' &&
+      form.declarationHonneur &&
+      !isLegacyImageFile(form.declarationHonneur)
+    ) {
+      push('declarationHonneur', "La déclaration sur l'honneur doit être une image (gif, jpeg, jpg, png) ou un PDF.")
+    }
+  }
+
+  if (check6 || checkAll) {
+    if (form.SEXE_PERS === 'FEMININ' && Number(form.nombConj) > 1) {
+      push('nombConj', "Une assurée ne peut avoir qu'un seul conjoint déclaré.")
+    }
+  }
 }
 
 /**
@@ -241,78 +334,20 @@ export function isLegacyImageFile(file) {
  * @returns {string|null}
  */
 export function validateImmatPersonRules(form, step = null) {
-  syncLegacyHiddenFields(form)
-
-  const checkAll = step === null || step === 7
-  const check2 = step === null || step === 2
-  const check3 = step === null || step === 3
-  const check4 = step === null || step === 4
-  const check6 = step === null || step === 6
-
-  if (check2 || checkAll) {
-    if (!form.LIEU_NAISS_PERS) {
-      return "L'arrondissement de naissance de l'assuré est obligatoire."
-    }
-    if (form.NUM_TYPEPIECE && !form.pieceIdentite) {
-      return "La pièce d'identité est obligatoire."
-    }
-    if (form.NUM_TYPEPIECE && form.NUM_TYPEPIECE !== '99' && !form.declarationHonneur) {
-      return "La déclaration sur l'honneur est obligatoire."
-    }
-    const refDate = form.DATE_DEMANDE || formatDateFr()
-    if (monthsBetween(refDate, form.DATE_NAISS_PERS) < ECAR_MIN_MONTHS) {
-      return 'Vous avez moins de 14 ans à ce jour.'
-    }
-    if (yearsBetween(new Date(), form.DATE_NAISS_PERS) < 14) {
-      return 'Vous avez moins de 14 ans.'
-    }
-  }
-
-  if (check3 || check4 || checkAll) {
-    if (form.DATE_NAISS_PERSM && compareDates(form.DATE_NAISS_PERSM, form.DATE_NAISS_PERS) === 1) {
-      return "Date de naissance de l'assuré antérieure à celle de sa mère."
-    }
-    if (form.DATE_NAISS_PERSM && yearsBetween(form.DATE_NAISS_PERS, form.DATE_NAISS_PERSM) <= 8) {
-      return "Écart d'âge trop petit entre le travailleur et sa mère."
-    }
-    const pere = (form.NOM_PERE || '').trim()
-    if (pere && pere.length > 0 && pere !== 'PND') {
-      if (form.DATE_NAISS_PERSP && compareDates(form.DATE_NAISS_PERSP, form.DATE_NAISS_PERS) === 1) {
-        return "Date de naissance de l'assuré antérieure à celle de son père."
-      }
-      if (form.DATE_NAISS_PERSP && yearsBetween(form.DATE_NAISS_PERS, form.DATE_NAISS_PERSP) <= 12) {
-        return "Écart d'âge trop petit entre le travailleur et son père."
-      }
-    } else if (form.LOCALITE_NAISS_PERE || form.DATE_NAISS_PERSP) {
-      return 'Saisissez à nouveau les informations du père ou bien laissez les vides.'
-    }
-  }
-
-  if (check2 || checkAll) {
-    if (form.pieceIdentite && !isLegacyImageFile(form.pieceIdentite)) {
-      return "La pièce d'identité doit être une image (gif, jpeg, jpg, png)."
-    }
-    if (form.NUM_TYPEPIECE && form.NUM_TYPEPIECE !== '99' && form.declarationHonneur && !isLegacyImageFile(form.declarationHonneur)) {
-      return "La déclaration sur l'honneur doit être une image (gif, jpeg, jpg, png)."
-    }
-  }
-
-  if (check6 || checkAll) {
-    if (form.SEXE_PERS === 'FEMININ' && Number(form.nombConj) > 1) {
-      return 'Une assurée ne peut avoir qu\'un seul conjoint déclaré.'
-    }
-  }
-
-  return null
+  const errors = []
+  collectImmatPersonValidationErrors(form, step, (field, message) => errors.push({ field, message }))
+  return errors[0]?.message ?? null
 }
 
 /**
- * Validations métier régime 0 (handler Valider + contrôles par étape).
- * @returns {string|null} message d'erreur ou null si OK
+ * Validations métier régime 0 — liste des erreurs par champ.
+ * @returns {{ field: string, message: string }[]}
  */
-export function validateRegime0Business(form, step = null) {
-  const personErr = validateImmatPersonRules(form, step)
-  if (personErr) return personErr
+export function collectRegime0ValidationErrors(form, step = null) {
+  const errors = []
+  const push = (field, message) => errors.push({ field, message })
+
+  collectImmatPersonValidationErrors(form, step, push)
 
   syncLegacyHiddenFields(form)
 
@@ -320,33 +355,58 @@ export function validateRegime0Business(form, step = null) {
   const check1 = step === null || step === 1
 
   if (check1 || checkAll) {
-    if (form.DATE_EMB_PRE_SALL && monthsBetween(form.DATE_EMB_PRE_SALL, form.DATE_NAISS_PERS) < ECAR_MIN_MONTHS) {
-      return "Vous avez moins de 14 ans à la date d'embauche."
+    collectTeleimmasNumericFieldErrors(form, push)
+    if (
+      form.DATE_EMB_PRE_SALL &&
+      monthsBetween(form.DATE_EMB_PRE_SALL, form.DATE_NAISS_PERS) < ECAR_MIN_MONTHS
+    ) {
+      push('DATE_EMB_PRE_SALL', "Vous avez moins de 14 ans à la date d'embauche.")
     }
     if (
       form.DATE_EMB_PREM_TRAV &&
       form.DATE_EMB_PRE_SALL &&
       compareDates(form.DATE_EMB_PREM_TRAV, form.DATE_EMB_PRE_SALL) === 1
     ) {
-      return 'Votre date embauche chez cet employeur est antérieure à sa date première embauche.'
+      push(
+        'DATE_EMB_PRE_SALL',
+        'Votre date embauche chez cet employeur est antérieure à sa date première embauche.',
+      )
     }
     const revenu = Number(form.ActuelRevenu)
     const smig = Number(form.SMIG_VALUE)
-    if (form.ActuelRevenu !== '' && form.ActuelRevenu != null && !Number.isNaN(revenu) && !Number.isNaN(smig) && revenu - smig < 0) {
-      return `Le salaire est inférieur au smig ${smig} F CFA.`
+    if (
+      form.ActuelRevenu !== '' &&
+      form.ActuelRevenu != null &&
+      !Number.isNaN(revenu) &&
+      !Number.isNaN(smig) &&
+      revenu - smig < 0
+    ) {
+      push('ActuelRevenu', `Le salaire est inférieur au smig ${smig} F CFA.`)
     }
     if (form.avisEmbauche && !isLegacyImageFile(form.avisEmbauche)) {
-      return "L'avis d'embauche doit être une image (gif, jpeg, jpg, png)."
+      push('avisEmbauche', "L'avis d'embauche doit être une image (gif, jpeg, jpg, png) ou un PDF.")
     }
   }
 
-  return null
+  return errors
 }
 
-function appendScalar(fd, key, value) {
-  if (value === null || value === undefined || value === '') return
-  if (typeof value === 'object') return
-  fd.append(key, String(value))
+/** @returns {Record<string, string>} */
+export function validateRegime0BusinessFieldMap(form, step = null) {
+  const map = {}
+  for (const { field, message } of collectRegime0ValidationErrors(form, step)) {
+    if (!map[field]) map[field] = message
+  }
+  return map
+}
+
+/**
+ * Validations métier régime 0 (handler Valider + contrôles par étape).
+ * @returns {string|null} message d'erreur ou null si OK
+ */
+export function validateRegime0Business(form, step = null) {
+  const errors = collectRegime0ValidationErrors(form, step)
+  return errors[0]?.message ?? null
 }
 
 /**
@@ -367,12 +427,32 @@ export function buildLegacyFormData(form, options = {}) {
   f.NATIONALITEC = typeof f.NATIONALITEC === 'object' && f.NATIONALITEC?.nationalite ? f.NATIONALITEC.nationalite : f.NATIONALITEC
   const centreObj =
     f.CODE_CENTRECNPSC && typeof f.CODE_CENTRECNPSC === 'object' ? f.CODE_CENTRECNPSC : null
+  const centreCodeVal = centreObj?.CODE_CENTRE || f.CODE_CENTRECNPS || ''
+  f.codeCentrePrefText = centreCodeVal
+  f.CODE_CENTRECNPS = centreCodeVal
   f.CODE_CENTRECNPSC = centreObj?.LIB_CENTRE || ''
+
+  f.TEL_PERS = legacyPhoneDigits(f.TEL_PERS)
+  f.FAX_PERS = legacyPhoneDigits(f.FAX_PERS)
+  f.BP = legacyBpDigits(f.BP)
+  if (f.ActuelRevenu != null && f.ActuelRevenu !== '') {
+    f.ActuelRevenu = legacyRevenuMensuelDigits(f.ActuelRevenu)
+  }
+  if (f.EFFECTIF_APPROX != null && f.EFFECTIF_APPROX !== '') {
+    f.EFFECTIF_APPROX = legacyDigitsOnly(f.EFFECTIF_APPROX)
+  }
+  if (f.CODE_categ != null && f.CODE_categ !== '') {
+    f.CODE_categ = String(f.CODE_categ)
+  }
+  if (f.CODE_echelon != null && f.CODE_echelon !== '') {
+    f.CODE_echelon = String(f.CODE_echelon)
+  }
 
   if (options.submissionType === 'temporary') f.valider = 'NON'
   else if (options.submissionType === 'definitive') f.valider = 'OUI'
 
-  LEGACY_TEXT_FIELDS.forEach((key) => appendScalar(fd, key, f[key]))
+  LEGACY_TEXT_FIELDS.forEach((key) => appendLegacyFormField(fd, key, f[key]))
+  appendLegacyFormField(fd, 'codeCentrePrefText', f.codeCentrePrefText)
 
   if (f.avisEmbauche) fd.append('110', f.avisEmbauche, f.avisEmbauche.name)
   if (f.pieceIdentite && f.NUM_TYPEPIECE) {

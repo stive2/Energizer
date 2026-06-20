@@ -1,5 +1,5 @@
 <template>
-  <div class="q-pa-sm periode-activite">
+  <div class="q-pa-xs q-pa-sm periode-activite">
 
     <!-- Bannière d'erreur -->
     <q-banner v-if="errorMsg" class="bg-negative text-white q-mb-sm" rounded dense>
@@ -10,40 +10,63 @@
       </template>
     </q-banner>
 
-    <q-card class="card-elevated">
-      <q-card-section class="table-toolbar q-py-sm q-px-sm q-px-md">
-        <div class="row items-center q-col-gutter-sm q-mb-xs">
-          <div class="col-12 col-lg-auto row items-center no-wrap q-gutter-xs toolbar-title-row">
-            <q-icon name="calendar_month" size="sm" color="primary" />
-            <span class="text-body2 text-weight-bold text-primary">Interruptions &amp; Périodes d'Activité</span>
-            <q-badge outline color="primary" :label="`${periodes.length}`" />
+    <q-card class="dossiers-card">
+      <div class="dossiers-hero">
+        <div class="dossiers-hero__left">
+          <div class="dossiers-hero__icon-wrap">
+            <q-icon name="calendar_month" size="28px" color="white" />
           </div>
-          <q-form class="col-12 col-lg toolbar-search-form" @submit.prevent="searchPeriodes" @reset.prevent="resetSearch">
-            <div class="row q-col-gutter-sm items-center">
-              <div class="col-12 col-sm-6 col-md-3 col-lg-auto">
-                <q-select v-model="cbxcritere" name="cbxcritere" :options="searchOptions" label="Critères" label-color="primary"
-                  outlined dense emit-value map-options color="primary" class="toolbar-field toolbar-field--critere full-width" hide-bottom-space />
-              </div>
-              <div class="col-12 col-sm-6 col-md-4 col-lg-auto">
-                <q-input v-model="txtvaleurdeb" name="txtvaleurdeb" label="Valeur de Début" label-color="primary" outlined dense color="primary"
-                  class="toolbar-field toolbar-field--valeur full-width" hide-bottom-space
-                  @update:model-value="val => (txtvaleurdeb = (val || '').toUpperCase())"
-                  @keyup.enter="searchPeriodes" />
-              </div>
-              <div class="col-12 col-sm-12 col-md-4 col-lg-auto row q-gutter-sm items-center toolbar-actions">
-                <q-btn type="submit" color="primary" icon="search" label="Rechercher" dense unelevated :loading="loading" class="toolbar-btn col-grow col-sm-auto" />
-                <q-btn type="reset" flat dense round color="primary" icon="restart_alt" :disable="loading"><q-tooltip>Réinitialiser</q-tooltip></q-btn>
-              </div>
-            </div>
-          </q-form>
+          <div>
+            <div class="dossiers-hero__title">Interruptions &amp; Périodes d'Activité</div>
+            <div class="dossiers-hero__sub">Gestion des périodes salariales assuré / employeur</div>
+          </div>
         </div>
-        <div class="text-caption text-primary toolbar-hint row items-center">
-          <q-icon name="touch_app" size="xs" class="q-mr-xs flex-shrink-0" />
+        <q-badge class="dossiers-hero__badge" :label="`${periodes.length} ligne${periodes.length !== 1 ? 's' : ''}`" />
+      </div>
+
+      <div class="search-bar-wrap">
+        <q-form class="search-bar" @submit.prevent="searchPeriodes" @reset.prevent="resetSearch">
+          <q-select
+            v-model="cbxcritere"
+            name="cbxcritere"
+            :options="searchOptions"
+            label="Critère"
+            outlined dense emit-value map-options hide-bottom-space
+            color="primary" label-color="primary" class="search-bar__critere"
+          />
+          <q-input
+            v-model="txtvaleurdeb"
+            name="txtvaleurdeb"
+            label="Valeur recherchée"
+            outlined dense clearable hide-bottom-space
+            color="primary" label-color="primary" class="search-bar__value"
+            @update:model-value="val => (txtvaleurdeb = (val || '').toUpperCase())"
+            @keyup.enter="searchPeriodes"
+          />
+          <q-input
+            v-model="txtvaleurfin"
+            name="txtvaleurfin"
+            label="Valeur de fin"
+            outlined dense clearable hide-bottom-space
+            color="primary" label-color="primary" class="search-bar__value"
+            @update:model-value="val => (txtvaleurfin = (val || '').toUpperCase())"
+          />
+          <q-btn type="submit" color="primary" icon="search" label="Rechercher" unelevated :loading="loading" class="search-bar__btn" no-caps />
+          <q-btn type="reset" flat round dense color="primary" icon="restart_alt" :disable="loading" />
+        </q-form>
+        <div class="search-hint">
+          <q-icon name="touch_app" size="14px" class="q-mr-xs" color="primary" />
           <span>Cliquez sur un N° assuré pour ouvrir la saisie période d'activité</span>
         </div>
-      </q-card-section>
+      </div>
 
-      <q-card-section class="q-pa-none pf-table-responsive">
+      <div class="table-divider" v-if="!loading && periodes.length > 0">
+        <span class="table-divider__line" />
+        <span class="table-divider__text">{{ periodes.length }} résultat{{ periodes.length !== 1 ? 's' : '' }}</span>
+        <span class="table-divider__line" />
+      </div>
+
+      <div class="q-pa-none pf-table-responsive">
         <q-table
           :rows="periodes"
           :columns="visibleTableColumns"
@@ -53,7 +76,7 @@
           dense flat
           :rows-per-page-options="tableRowsPerPageOptions"
           :pagination="{ rowsPerPage: tableDefaultRowsPerPage }"
-          no-data-label="Aucun enregistrement trouvé — modifiez les critères de recherche"
+          no-data-label="Aucun enregistrement — modifiez les filtres ou cliquez sur Rechercher"
           class="pf-module-table"
         >
           <template v-slot:header-cell="props">
@@ -99,7 +122,7 @@
             <q-inner-loading showing color="primary" />
           </template>
         </q-table>
-      </q-card-section>
+      </div>
     </q-card>
 
     <!-- ═══════════════════════════════════════════════════════
@@ -125,70 +148,83 @@
         <q-card-section class="q-pa-md overflow-auto dialog-body">
           <q-form ref="saisieFormRef" class="pf-legacy-form" @submit.prevent="submitForm" @reset="resetForm">
 
-            <div class="row pf-form-row q-col-gutter-sm">
-              <div class="col-12 col-md-4">
-                <div class="pf-legacy-cell">
-                  <span class="pf-legacy-label">Matricule Employeur</span>
-                  <q-input v-model="form.txtsaisiematempl" name="txtsaisiematempl" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
-                </div>
+            <div class="pf-form-section">
+              <div class="pf-form-section__title">
+                <q-icon name="business" size="16px" /> Informations employeur
               </div>
-              <div class="col-12 col-md-4">
-                <div class="pf-legacy-cell">
-                  <span class="pf-legacy-label">Raison Sociale</span>
-                  <q-input v-model="form.txtraisonsociale" name="txtraisonsociale" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+              <div class="row pf-form-row q-col-gutter-sm">
+                <div class="col-12 col-md-4">
+                  <div class="pf-legacy-cell">
+                    <q-input v-model="form.txtsaisiematempl" name="txtsaisiematempl" label="Matricule Employeur" placeholder="Matricule Employeur"
+                      stack-label dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                  </div>
                 </div>
-              </div>
-              <div class="col-12 col-md-4">
-                <div class="pf-legacy-cell">
-                  <span class="pf-legacy-label">Date Affiliation</span>
-                  <q-input v-model="form.txtsaisiedateembauche" name="txtsaisiedateembauche" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                <div class="col-12 col-md-4">
+                  <div class="pf-legacy-cell">
+                    <q-input v-model="form.txtraisonsociale" name="txtraisonsociale" label="Raison Sociale" placeholder="Raison Sociale"
+                      stack-label dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                  </div>
                 </div>
-              </div>
-            </div>
-
-            <div class="row pf-form-row pf-form-row--alt q-col-gutter-sm">
-              <div class="col-12 col-md-4">
-                <div class="pf-legacy-cell">
-                  <span class="pf-legacy-label">N° Assuré</span>
-                  <q-input v-model="form.txtsaisienumassu" name="txtsaisienumassu" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
-                </div>
-              </div>
-              <div class="col-12 col-md-4">
-                <div class="pf-legacy-cell">
-                  <span class="pf-legacy-label">Noms Assuré</span>
-                  <q-input v-model="form.txtsaisietextenomassu" name="txtsaisietextenomassu" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
-                </div>
-              </div>
-              <div class="col-12 col-md-4">
-                <div class="pf-legacy-cell">
-                  <span class="pf-legacy-label">Prénoms Assuré</span>
-                  <q-input v-model="form.txtsaisietexteprenomassu" name="txtsaisietexteprenomassu" dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                <div class="col-12 col-md-4">
+                  <div class="pf-legacy-cell">
+                    <q-input v-model="form.txtsaisiedateembauche" name="txtsaisiedateembauche" label="Date Affiliation" placeholder="JJ/MM/AAAA"
+                      stack-label dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div class="row pf-form-row q-col-gutter-sm">
-              <div class="col-12 col-sm-6 col-md-3">
-                <div class="pf-legacy-cell">
-                  <span class="pf-legacy-label">Type</span>
-                  <q-select v-model="form.cbxtype" name="cbxtype" :options="typeOptions" dense outlined emit-value map-options hide-bottom-space
-                    class="pf-legacy-input pf-legacy-input--select"
-                    :rules="[v => !!v || 'Veuillez sélectionner le type de chaque opération']" />
+            <div class="pf-form-section">
+              <div class="pf-form-section__title">
+                <q-icon name="person" size="16px" /> Informations personnelles de l'assuré
+              </div>
+              <div class="row pf-form-row q-col-gutter-sm">
+                <div class="col-12 col-md-4">
+                  <div class="pf-legacy-cell">
+                    <q-input v-model="form.txtsaisienumassu" name="txtsaisienumassu" label="N° Assuré" placeholder="N° Assuré"
+                      stack-label dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                  </div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <div class="pf-legacy-cell">
+                    <q-input v-model="form.txtsaisietextenomassu" name="txtsaisietextenomassu" label="Noms Assuré" placeholder="Noms Assuré"
+                      stack-label dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                  </div>
+                </div>
+                <div class="col-12 col-md-4">
+                  <div class="pf-legacy-cell">
+                    <q-input v-model="form.txtsaisietexteprenomassu" name="txtsaisietexteprenomassu" label="Prénoms Assuré" placeholder="Prénoms Assuré"
+                      stack-label dense outlined readonly hide-bottom-space class="pf-legacy-input" />
+                  </div>
                 </div>
               </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <div class="pf-legacy-cell">
-                  <span class="pf-legacy-label">Matricule Assuré</span>
-                  <q-input v-model="form.txtsaisiematassu" name="txtsaisiematassu" dense outlined hide-bottom-space bg-color="yellow-1" class="pf-legacy-input"
-                    :rules="[v => !!v || 'Veuillez saisir le Numéro Assuré SVP!!!']" />
-                </div>
+            </div>
+
+            <div class="pf-form-section">
+              <div class="pf-form-section__title">
+                <q-icon name="edit_calendar" size="16px" /> Période d'activité
               </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <div class="pf-legacy-cell">
-                  <span class="pf-legacy-label">Date Embauche</span>
-                  <q-input v-model="form.txtSaisiedatedebutreprise" name="txtSaisiedatedebutreprise" dense outlined hide-bottom-space
-                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date"
-                    :rules="[v => !!v || 'Veuillez saisir une Date embauche SVP!!!']">
+              <div class="row pf-form-row q-col-gutter-sm">
+                <div class="col-12 col-sm-6 col-md-3">
+                  <div class="pf-legacy-cell">
+                    <q-select v-model="form.cbxtype" name="cbxtype" label="Type" stack-label :options="typeOptions" dense outlined emit-value map-options hide-bottom-space
+                      class="pf-legacy-input pf-legacy-input--select"
+                      :rules="[v => !!v || 'Veuillez sélectionner le type de chaque opération']" />
+                  </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                  <div class="pf-legacy-cell">
+                    <q-input v-model="form.txtsaisiematassu" name="txtsaisiematassu" label="Matricule Assuré" placeholder="Matricule Assuré"
+                      stack-label dense outlined hide-bottom-space bg-color="yellow-1" class="pf-legacy-input"
+                      :rules="[v => !!v || 'Veuillez saisir le Numéro Assuré SVP!!!']"
+                      @update:model-value="v => upper('txtsaisiematassu', v)" />
+                  </div>
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                  <div class="pf-legacy-cell">
+                    <q-input v-model="form.txtSaisiedatedebutreprise" name="txtSaisiedatedebutreprise" label="Date Embauche" placeholder="JJ/MM/AAAA"
+                      stack-label dense outlined hide-bottom-space bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date"
+                      :rules="[v => !!v || 'Veuillez saisir une Date embauche SVP!!!']">
                     <template v-slot:append>
                       <q-icon name="event" class="cursor-pointer" size="xs">
                         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -200,12 +236,11 @@
                     </template>
                   </q-input>
                 </div>
-              </div>
-              <div class="col-12 col-sm-6 col-md-3">
-                <div class="pf-legacy-cell">
-                  <span class="pf-legacy-label">Date Cessation</span>
-                  <q-input v-model="form.txtSaisiedatefinreprise" name="txtSaisiedatefinreprise" dense outlined hide-bottom-space
-                    bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date">
+                </div>
+                <div class="col-12 col-sm-6 col-md-3">
+                  <div class="pf-legacy-cell">
+                    <q-input v-model="form.txtSaisiedatefinreprise" name="txtSaisiedatefinreprise" label="Date Cessation" placeholder="JJ/MM/AAAA"
+                      stack-label dense outlined hide-bottom-space bg-color="yellow-1" class="pf-legacy-input pf-legacy-input--date">
                     <template v-slot:append>
                       <q-icon name="event" class="cursor-pointer" size="xs">
                         <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -217,20 +252,21 @@
                     </template>
                   </q-input>
                 </div>
+                </div>
               </div>
-            </div>
-
-            <div class="row pf-form-row pf-form-row--alt q-col-gutter-sm">
-              <div class="col-12 col-md-4">
-                <div class="pf-legacy-cell">
-                  <span class="pf-legacy-label">Numéro Employeur</span>
-                  <q-input v-model="form.txtsaisienumempl" name="txtsaisienumempl" dense outlined hide-bottom-space bg-color="yellow-1" class="pf-legacy-input"
-                    :rules="[v => !!v || 'Veuillez saisir le Numéro Employeur SVP!!!']" />
+              <div class="row pf-form-row q-col-gutter-sm q-mt-xs">
+                <div class="col-12 col-md-4">
+                  <div class="pf-legacy-cell">
+                    <q-input v-model="form.txtsaisienumempl" name="txtsaisienumempl" label="Numéro Employeur" placeholder="Numéro Employeur"
+                      stack-label dense outlined hide-bottom-space bg-color="yellow-1" class="pf-legacy-input"
+                      :rules="[v => !!v || 'Veuillez saisir le Numéro Employeur SVP!!!']"
+                      @update:model-value="v => upper('txtsaisienumempl', v)" />
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div class="row q-col-gutter-sm q-mt-md dialog-actions">
+            <div class="row q-col-gutter-sm pf-form-actions dialog-actions">
               <div class="col-12 col-sm-auto">
                 <q-btn type="submit" color="primary" label="Valider" unelevated class="full-width pf-legacy-btn" :loading="submitting" />
               </div>
@@ -248,26 +284,22 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive } from 'vue'
 import { useQuasar } from 'quasar'
 import { useLiquidationPfStore } from 'src/modules/energizer/stores/liquidationPfStore.js'
 import { usePfModuleTable } from 'src/modules/shared/composables/usePfModuleTable.js'
+import { usePfDossierCatalogTable } from 'src/modules/energizer/composables/usePfDossierCatalogTable.js'
+import { formatLegacyServerMessage } from 'src/modules/energizer/api/adapters/parseNouveauDossierLegacyHtml.js'
+import { setLegacyUppercaseText } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
 
 defineOptions({ name: 'PeriodeActivite' })
 
 const $q = useQuasar()
 const pfStore = useLiquidationPfStore()
 
-// ─── Interface ──────────────────────────────────────────────────
-const loading    = ref(false)
 const submitting = ref(false)
-const errorMsg   = ref('')
 const showDialog = ref(false)
 const saisieFormRef = ref(null)
-
-// ─── Recherche ──────────────────────────────────────────────────
-const cbxcritere   = ref('fnumassu')
-const txtvaleurdeb = ref('')
 
 const searchOptions = [
   { label: 'Num Assuré',  value: 'fnumassu' },
@@ -297,8 +329,28 @@ const FORM_INITIAL = {
 
 const form = reactive({ ...FORM_INITIAL })
 
-// ─── Table ──────────────────────────────────────────────────────
-const periodes = ref([])
+function upper(field, val) {
+  setLegacyUppercaseText(form, field, val)
+}
+
+const {
+  loading,
+  errorMsg,
+  cbxcritere,
+  txtvaleurdeb,
+  txtvaleurfin,
+  dossiers: periodes,
+  searchDossiers: searchPeriodes,
+  resetSearch,
+  loadCatalog,
+} = usePfDossierCatalogTable({
+  pfStore,
+  mode: 'periodes',
+  $q,
+  withEndFilter: true,
+  defaultCritere: 'fnumassu',
+  defaultStart: '',
+})
 
 const tableColumns = [
   { name: 'index',      label: 'N°',                 field: 'index',      align: 'center', style: 'width:50px' },
@@ -312,51 +364,6 @@ const tableColumns = [
 const { visibleTableColumns, tableGrid, tableRowsPerPageOptions, tableDefaultRowsPerPage } = usePfModuleTable(tableColumns, {
   mobileCols: ['index', 'numassu', 'nomassu', 'typeact'],
   tabletHidden: ['dateembauche', 'datecessation', 'numempl'],
-})
-
-// ─── Données de test (à retirer en production) ──────────────────
-const MOCK_PERIODES = [
-  {
-    rowKey: '1', numassu: '5-20-97-123456-78',
-    nomassu: 'KAMGA Marie-Claire', numempl: '1-20-97-001234',
-    typeact: 'ACT', libelleType: 'En Activité',
-    dateembauche: '01-03-2020', datecessation: '',
-    dateaffiliation: '01-03-2020', matempl: '1-20-97-001234',
-    raisonsociale: 'SOCIÉTÉ DEMO SARL', prenomassu: 'Marie-Claire',
-  },
-  {
-    rowKey: '2', numassu: '5-20-97-654321-12',
-    nomassu: 'NKOA Sylvie', numempl: '1-20-97-005678',
-    typeact: 'INT', libelleType: 'INTERRUPTION',
-    dateembauche: '15-06-2018', datecessation: '28-02-2026',
-    dateaffiliation: '15-06-2018', matempl: '1-20-97-005678',
-    raisonsociale: 'ENTREPRISE NORD SARL', prenomassu: 'Sylvie',
-  },
-  {
-    rowKey: '3', numassu: '5-20-97-987654-55',
-    nomassu: 'MBELLA Claire', numempl: '1-20-97-009012',
-    typeact: 'ACT', libelleType: 'En Activité',
-    dateembauche: '10-01-2022', datecessation: '',
-    dateaffiliation: '10-01-2022', matempl: '1-20-97-009012',
-    raisonsociale: 'CABINET CONSEIL SUD', prenomassu: 'Claire',
-  },
-  {
-    rowKey: '4', numassu: '5-20-97-111222-33',
-    nomassu: 'ATANGANA Patience', numempl: '1-20-97-003344',
-    typeact: 'INT', libelleType: 'INTERRUPTION',
-    dateembauche: '05-09-2015', datecessation: '31-12-2025',
-    dateaffiliation: '05-09-2015', matempl: '1-20-97-003344',
-    raisonsociale: 'IMPORT EXPORT CENTRE', prenomassu: 'Patience',
-  },
-]
-
-onMounted(async () => {
-  try {
-    const list = await pfStore.loadPeriodes()
-    periodes.value = list?.length ? list : MOCK_PERIODES
-  } catch {
-    periodes.value = MOCK_PERIODES
-  }
 })
 
 // ─── Chargement depuis table (équivalent loading()) ──────────────
@@ -408,12 +415,22 @@ async function submitForm() {
 
   submitting.value = true
   try {
-    await pfStore.submitPeriode(form)
-    $q.notify({ type: 'positive', message: 'Période d\'activité enregistrée avec succès !', position: 'top', icon: 'check_circle' })
+    const result = await pfStore.submitPeriode(form)
+    $q.notify({
+      type: 'positive',
+      message: result?.message || "Période d'activité enregistrée avec succès !",
+      position: 'top',
+      icon: 'check_circle',
+    })
     showDialog.value = false
     resetForm()
-  } catch {
-    $q.notify({ type: 'negative', message: "Erreur lors de l'enregistrement", position: 'top' })
+    await loadCatalog()
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: formatLegacyServerMessage(error?.message) || "Erreur lors de l'enregistrement",
+      position: 'top',
+    })
   } finally {
     submitting.value = false
   }
@@ -425,29 +442,6 @@ function resetForm() {
   saisieFormRef.value?.resetValidation()
 }
 
-// ─── Recherche ───────────────────────────────────────────────────
-async function searchPeriodes() {
-  loading.value = true
-  errorMsg.value = ''
-  try {
-    periodes.value = await pfStore.loadPeriodes({
-      criteria: cbxcritere.value,
-      start: txtvaleurdeb.value,
-    })
-    $q.notify({ type: 'info', message: 'Recherche effectuée', position: 'top' })
-  } catch {
-    periodes.value = MOCK_PERIODES
-  } finally {
-    loading.value = false
-  }
-}
-
-function resetSearch() {
-  cbxcritere.value = 'fnumassu'
-  txtvaleurdeb.value = ''
-  periodes.value = MOCK_PERIODES
-  errorMsg.value = ''
-}
 </script>
 
 <style scoped>
@@ -456,13 +450,87 @@ function resetSearch() {
   margin: 0 auto;
 }
 
-.card-elevated {
-  border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+.dossiers-card {
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(25, 118, 210, 0.10), 0 1px 4px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(25, 118, 210, 0.10);
 }
 
-.card-header-rounded {
-  border-radius: 15px 15px 0 0;
+.dossiers-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 24px 16px;
+  background: linear-gradient(135deg, #1565c0 0%, #1976d2 60%, #42a5f5 100%);
+  position: relative;
+  overflow: hidden;
+}
+.dossiers-hero__left { display: flex; align-items: center; gap: 14px; z-index: 1; }
+.dossiers-hero__icon-wrap {
+  width: 46px; height: 46px; border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  display: flex; align-items: center; justify-content: center;
+}
+.dossiers-hero__title { font-size: 1.05rem; font-weight: 700; color: #fff; }
+.dossiers-hero__sub { font-size: 0.78rem; color: rgba(255, 255, 255, 0.75); margin-top: 2px; }
+.dossiers-hero__badge {
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: #fff !important;
+  font-weight: 700;
+  padding: 5px 14px;
+  border-radius: 20px;
 }
 
+.search-bar-wrap {
+  padding: 16px 20px 10px;
+  background: #fafbff;
+  border-bottom: 1px solid rgba(25, 118, 210, 0.08);
+}
+.search-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.search-bar__critere { flex: 0 0 200px; min-width: 160px; }
+.search-bar__value { flex: 1 1 180px; min-width: 140px; }
+.search-bar__btn { height: 40px; min-width: 130px; font-weight: 600; }
+.search-hint { display: flex; align-items: center; margin-top: 8px; font-size: 0.78rem; color: #1976d2; opacity: 0.75; }
+.table-divider {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 20px; background: #fafbff;
+}
+.table-divider__line { flex: 1; height: 1px; background: rgba(25, 118, 210, 0.12); }
+.table-divider__text { font-size: 0.78rem; color: #555; white-space: nowrap; }
+.row-index {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(25, 118, 210, 0.1); color: #1976d2;
+  font-size: 0.75rem; font-weight: 700;
+}
+.dossier-link {
+  display: inline-flex; align-items: center;
+  color: #1565c0; font-weight: 700; text-decoration: none;
+}
+.pf-grid-card {
+  background: #fff;
+  border: 1px solid rgba(25, 118, 210, 0.12);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 6px;
+  cursor: pointer;
+}
+
+@import 'src/css/pf-dialog-form.scss';
+
+.pf-legacy-form { background: #f0f0f0; padding: 12px 14px; border-radius: 6px; }
+.pf-form-row--alt { background: transparent; }
+.pf-legacy-input { width: 100%; }
+.pf-legacy-btn { min-width: 120px; min-height: 36px; }
+.dialog-form-card { display: flex; flex-direction: column; min-height: 0; }
+.dialog-bar { min-height: 52px; }
+.dialog-body { flex: 1; overflow-y: auto; }
+
+@media (max-width: 767px) {
+  .search-bar__critere,
+  .search-bar__value,
+  .search-bar__btn { flex: 1 1 100%; }
+}
 </style>

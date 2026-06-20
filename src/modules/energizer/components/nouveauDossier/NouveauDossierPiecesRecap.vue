@@ -40,7 +40,7 @@
         color="grey-8"
         no-caps
         :label="t('reception.nouveauDossier.pause')"
-        @click="store.goToJaccueil()"
+        @click="store.pauseDossier()"
       />
       <q-btn
         color="primary"

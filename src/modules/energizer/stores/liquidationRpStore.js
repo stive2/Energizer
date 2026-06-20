@@ -2,10 +2,13 @@ import { defineStore } from 'pinia'
 import {
   fetchRpEmployeur,
   searchRpDossiers,
+  searchRpCertificatDossiers,
   saveRpDeclaration,
+  fetchRpReferentials,
   saveCertificatInit,
   saveCertificatDeces,
   saveNoteFrais,
+  saveTiersBeneficiaire,
   fetchNotesFraisDossiers,
   fetchNotesFraisObjets,
   fetchTiersBeneficiaires,
@@ -30,6 +33,20 @@ export const useLiquidationRpStore = defineStore('energizer-liquidation-rp', {
       } finally {
         this.loading = false
       }
+    },
+
+    async loadRpCertificatDossiers() {
+      this.loading = true
+      try {
+        this.dossiers = await searchRpCertificatDossiers()
+        return this.dossiers
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async loadRpReferentials() {
+      return fetchRpReferentials()
     },
 
     async fetchEmployeur(matricule) {
@@ -67,6 +84,15 @@ export const useLiquidationRpStore = defineStore('energizer-liquidation-rp', {
       this.submitting = true
       try {
         return await saveNoteFrais(form)
+      } finally {
+        this.submitting = false
+      }
+    },
+
+    async submitTiersBeneficiaire(form) {
+      this.submitting = true
+      try {
+        return await saveTiersBeneficiaire(form)
       } finally {
         this.submitting = false
       }

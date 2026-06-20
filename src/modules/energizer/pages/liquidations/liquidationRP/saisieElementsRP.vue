@@ -1,8 +1,6 @@
 <template>
   <q-page class="q-pa-md saisie-elements-rp-page">
 
-    <AppBreadcrumbs :menu-items="energizerMenu" class="q-mb-md" />
-
     <!-- ════════════════════════════════════════════════
          LANDING : grille de cartes
     ════════════════════════════════════════════════ -->
@@ -97,10 +95,9 @@ import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import NewCertificat       from 'src/modules/energizer/components/prestationRP/NewCertificatMedical.vue'
-import AppBreadcrumbs from 'src/modules/shared/components/layout/AppBreadcrumbs.vue'
-import { energizerMenu } from 'src/modules/energizer/config/energizerMenu.js'
 import NewCertificatDeces  from 'src/modules/energizer/components/prestationRP/newcertificatdeces.vue'
 import NlleNoteDeFrags     from 'src/modules/energizer/components/prestationRP/nllenotedefrais.vue'
+import NewTiersBeneficiaire from 'src/modules/energizer/components/prestationRP/NewTiersBeneficiaire.vue'
 
 defineOptions({ name: 'SaisieElementsRPPage' })
 
@@ -126,6 +123,15 @@ const panels = [
     btnColor: 'red',
     description: 'Certificat médical de décès et genre de mort',
     component: NewCertificatDeces,
+  },
+  {
+    id: 'tiersBeneficiaire',
+    labelKey: 'layout.sidebar.rpTiersBeneficiaire',
+    icon: 'group_add',
+    color: '#1976D2',
+    btnColor: 'primary',
+    description: 'Création ou mise à jour d\'un tiers bénéficiaire AT/MP',
+    component: NewTiersBeneficiaire,
   },
   {
     id: 'noteDeFrags',
@@ -190,6 +196,7 @@ watch(
 .panel-card--delay-0 { animation-delay: 0ms; }
 .panel-card--delay-1 { animation-delay: 70ms; }
 .panel-card--delay-2 { animation-delay: 140ms; }
+.panel-card--delay-3 { animation-delay: 210ms; }
 @keyframes cardFadeUp {
   from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: translateY(0); }

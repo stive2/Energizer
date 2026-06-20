@@ -1,8 +1,9 @@
 /* Dépôt prestations familiales — design formulaires (logique inchangée) */
-$depot-pf-field-width: 500px;
+$depot-pf-field-width: 560px;
 $depot-pf-gap: 16px;
 $depot-pf-gap-half: $depot-pf-gap * 0.5;
 $depot-pf-stack-width: $depot-pf-field-width * 2 + $depot-pf-gap;
+$depot-pf-stack-width-active: 2440px;
 $depot-pf-primary: #1565c0;
 $depot-pf-primary-soft: #e3f2fd;
 $depot-pf-surface: #ffffff;
@@ -12,9 +13,24 @@ $depot-pf-text: #1e293b;
 $depot-pf-muted: #64748b;
 $depot-pf-radius: 12px;
 $depot-pf-radius-sm: 10px;
-$depot-pf-exam-date-width: 220px;
-$depot-pf-accouchement-field-width: 380px;
-$depot-pf-accouchement-date-width: 400px;
+$depot-pf-exam-date-width: 300px;
+$depot-pf-accouchement-field-width: 440px;
+$depot-pf-accouchement-date-width: 440px;
+$depot-pf-required: #d32f2f;
+
+/* Libellé obligatoire : texte puis astérisque rouge */
+.depot-pf-field--required .q-field__label::after,
+.depot-pf-field--required.q-field .q-field__label::after {
+  content: ' *';
+  color: $depot-pf-required;
+  font-weight: 700;
+}
+
+.depot-pf-field--required .q-checkbox__label::after {
+  content: ' *';
+  color: $depot-pf-required;
+  font-weight: 700;
+}
 
 .depot-pf-page {
   width: 100%;
@@ -99,6 +115,41 @@ $depot-pf-accouchement-date-width: 400px;
 
 .depot-pf-form-stack--active {
   padding-top: 0.25rem;
+  max-width: min(100%, $depot-pf-stack-width-active);
+  align-items: center;
+}
+
+/* Libellés visibles en entier */
+.depot-pf-form-stack .q-field__label,
+.depot-pf-form-stack .q-field--stacked .q-field__label,
+.depot-pf-form-stack .q-file .q-field__label {
+  white-space: normal;
+  line-height: 1.35;
+  overflow: visible;
+  text-overflow: unset;
+  max-width: 100%;
+}
+
+.depot-pf-checkbox-field {
+  width: 100%;
+  gap: 0.35rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  background: #f8fafc;
+  box-sizing: border-box;
+}
+
+.depot-pf-checkbox-field__icon {
+  flex-shrink: 0;
+}
+
+.depot-pf-checkbox-field__control {
+  min-width: 0;
+}
+
+.depot-pf-checkbox-field__control .q-checkbox__label {
+  line-height: 1.35;
+  white-space: normal;
 }
 
 /* Champs Quasar */
@@ -148,8 +199,12 @@ $depot-pf-accouchement-date-width: 400px;
 .depot-pf-form-section {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.85rem;
   width: 100%;
+  max-width: min(100%, $depot-pf-stack-width-active);
+  margin-left: auto;
+  margin-right: auto;
   padding: 1.1rem 1.15rem;
   border-radius: $depot-pf-radius-sm;
   border: 1px solid $depot-pf-border;
@@ -179,6 +234,17 @@ $depot-pf-accouchement-date-width: 400px;
   border-radius: 8px;
   background: $depot-pf-primary-soft;
   border-left: 3px solid $depot-pf-primary;
+}
+
+.depot-pf-section-heading--center {
+  text-align: center;
+  border-left: none;
+  border-top: 3px solid $depot-pf-primary;
+}
+
+.depot-pf-field-full {
+  width: 100%;
+  max-width: min(100%, $depot-pf-stack-width-active);
 }
 
 .depot-pf-form-section > .text-subtitle1,
@@ -248,13 +314,13 @@ $depot-pf-accouchement-date-width: 400px;
 
 .depot-pf-centre-cnps-select-wrap {
   width: 100%;
-  max-width: min(100%, 520px);
+  max-width: min(100%, 620px);
   margin-left: auto;
   margin-right: auto;
 }
 
 .depot-pf-centre-cnps--centered .depot-pf-centre-cnps-select-wrap {
-  max-width: min(100%, 520px);
+  max-width: min(100%, 620px);
 }
 
 .depot-pf-form-section.depot-pf-examens-form {
@@ -335,6 +401,9 @@ $depot-pf-accouchement-date-width: 400px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: $depot-pf-gap;
   width: 100%;
+  max-width: min(100%, $depot-pf-stack-width-active);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .depot-pf-form-grid-3 {
@@ -342,6 +411,9 @@ $depot-pf-accouchement-date-width: 400px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: $depot-pf-gap;
   width: 100%;
+  max-width: min(100%, $depot-pf-stack-width-active);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .depot-pf-form-grid-1-2 {
@@ -349,6 +421,9 @@ $depot-pf-accouchement-date-width: 400px;
   grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   gap: $depot-pf-gap;
   width: 100%;
+  max-width: min(100%, $depot-pf-stack-width-active);
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .depot-pf-row-examen-premier,
@@ -582,8 +657,8 @@ $depot-pf-accouchement-date-width: 400px;
 }
 
 .depot-pf-accouchement-champ--date .q-field__label {
-  white-space: nowrap;
-  font-size: 0.78rem;
+  white-space: normal;
+  font-size: 0.82rem;
 }
 
 .depot-pf-accouchement-champ.depot-pf-accouchement-remboursement {
@@ -717,7 +792,7 @@ $depot-pf-accouchement-date-width: 400px;
   display: flex;
   justify-content: center;
   width: 100%;
-  max-width: min(100%, $depot-pf-accouchement-date-width);
+  max-width: 100%;
   padding: 0.45rem 0.5rem;
   border-radius: 8px;
   background: #f8fafc;
@@ -731,6 +806,73 @@ $depot-pf-accouchement-date-width: 400px;
   .q-checkbox__label {
     line-height: 1.35;
     white-space: normal;
+  }
+}
+
+.depot-pf-maternite-form .depot-pf-accouchement-groupe {
+  width: 100%;
+  max-width: 100%;
+}
+
+.depot-pf-maternite-section {
+  width: 100%;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed #cbd5e1;
+
+  &:first-of-type {
+    margin-top: 0.35rem;
+    padding-top: 0;
+    border-top: none;
+  }
+}
+
+.depot-pf-maternite-section__title {
+  margin-bottom: 0.75rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: $depot-pf-primary;
+  text-align: center;
+}
+
+.depot-pf-maternite-grid {
+  align-items: start;
+
+  .q-field,
+  .q-file,
+  .depot-pf-maternite-option,
+  .depot-pf-maternite-indemnites {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
+.depot-pf-maternite-grid--accouchement {
+  margin-bottom: 0.5rem;
+}
+
+.depot-pf-maternite-form .depot-pf-accouchement-actes {
+  max-width: 100%;
+}
+
+.depot-pf-maternite-form .depot-pf-accouchement-actes__grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 1100px) {
+  .depot-pf-maternite-form .depot-pf-accouchement-actes__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .depot-pf-maternite-grid.depot-pf-form-grid-3 {
+    grid-template-columns: 1fr;
+  }
+
+  .depot-pf-maternite-form .depot-pf-accouchement-actes__grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -850,5 +992,110 @@ $depot-pf-accouchement-date-width: 400px;
   .depot-pf-accouchement-remboursement__checks {
     flex-direction: row;
     justify-content: center;
+  }
+}
+
+/* Quasar : .q-dialog__inner--minimized > div { max-width: 560px } bloque toute largeur carte */
+.q-dialog.depot-pf-form-dialog--wide .q-dialog__inner--minimized > div {
+  width: min(2480px, 99vw) !important;
+  max-width: min(2480px, 99vw) !important;
+  max-height: 88vh !important;
+}
+
+.q-dialog.depot-pf-form-dialog--wide .depot-pf-form-dialog__card {
+  width: 100% !important;
+  max-width: 100% !important;
+  max-height: 88vh !important;
+}
+
+/* Formulaire compact dans le dialogue élargi */
+.q-dialog.depot-pf-form-dialog--wide {
+  .depot-pf-form-stack,
+  .depot-pf-form-stack--active {
+    gap: 0.4rem;
+  }
+
+  .depot-pf-form-section {
+    gap: 0.4rem;
+    padding: 0.5rem 0.6rem;
+  }
+
+  .depot-pf-accouchement-groupe {
+    padding: 0.4rem 0.5rem 0.45rem;
+
+    .depot-pf-examens-groupe__title {
+      margin-bottom: 0.35rem;
+      padding-bottom: 0.25rem;
+      font-size: 0.8125rem;
+    }
+  }
+
+  .depot-pf-maternite-section {
+    margin-top: 0.35rem;
+    padding-top: 0.35rem;
+
+    &:first-of-type {
+      margin-top: 0.1rem;
+      padding-top: 0;
+    }
+  }
+
+  .depot-pf-maternite-section__title {
+    margin-bottom: 0.35rem;
+    font-size: 0.8125rem;
+  }
+
+  .depot-pf-form-grid-2,
+  .depot-pf-form-grid-3,
+  .depot-pf-form-grid-1-2,
+  .depot-pf-maternite-grid {
+    gap: 0.45rem 0.55rem;
+  }
+
+  .depot-pf-maternite-indemnites,
+  .depot-pf-maternite-option {
+    padding: 0.2rem 0.35rem;
+  }
+
+  .depot-pf-accouchement-champ .q-field__control,
+  .depot-pf-accouchement-actes__cell .q-field__control,
+  .depot-pf-fichier-piece .q-field__control {
+    min-height: 40px;
+  }
+
+  .depot-pf-accouchement-form .depot-pf-field-compact.q-field--dense .q-field__control,
+  .depot-pf-field-date-compact.q-field--dense .q-field__control {
+    min-height: 38px;
+  }
+
+  .depot-pf-accouchement-champs {
+    gap: 0.35rem;
+  }
+
+  .depot-pf-accouchement-actes {
+    margin-top: 0.35rem;
+    padding-top: 0.35rem;
+  }
+
+  .depot-pf-accouchement-actes__title {
+    margin-bottom: 0.35rem;
+  }
+
+  .depot-pf-accouchement-actes__grid {
+    gap: 0.45rem;
+    max-height: min(50vh, 360px);
+  }
+
+  .depot-pf-accouchement-zone-centre {
+    margin-top: 0.35rem;
+    padding-top: 0.35rem;
+  }
+
+  .depot-pf-separator {
+    margin: 0.25rem 0;
+  }
+
+  .depot-pf-form-actions {
+    margin-top: 0.35rem !important;
   }
 }

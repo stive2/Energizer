@@ -15,10 +15,7 @@
         @click="selectedPrestation = null"
         class="cursor-pointer text-primary"
       />
-      <q-breadcrumbs-el
-        v-if="selectedPrestation"
-        :label="selectedPrestation.title"
-      />
+      <q-breadcrumbs-el v-if="selectedPrestation" :label="selectedPrestation.title" />
     </q-breadcrumbs>
 
     <!-- Formulaire de prestation -->
@@ -29,9 +26,7 @@
             <q-icon name="description" class="q-mr-sm" />
             {{ selectedPrestation.title }}
           </div>
-          <div class="text-subtitle2 q-mt-xs text-white">
-
-          </div>
+          <div class="text-subtitle2 q-mt-xs text-white"></div>
         </q-card-section>
 
         <q-card-section>
@@ -51,11 +46,7 @@
             </template>
 
             <!-- Champs communs (autres prestations) -->
-            <div
-              v-else
-              class="justify-center row"
-              :class="{ column: !$q.screen.gt.sm }"
-            >
+            <div v-else class="justify-center row" :class="{ column: !$q.screen.gt.sm }">
               <q-input
                 v-model="formData.mat_employeur"
                 :label="$t('inputassu.employer_cnps_registration_number')"
@@ -119,8 +110,8 @@
                 :style="$q.screen.gt.sm ? 'width: 500px' : 'width: 100%'"
                 class="q-mr-sm q-mb-sm"
                 @update:model-value="(val) => (formData.mat_interne = val.toUpperCase())"
-               >
-               <template v-slot:label>
+              >
+                <template v-slot:label>
                   {{ $t('inputassu.matricule_interne_assure') }}
                   <span
                     class="q-px-sm bg-red text-white text-italic rounded-borders"
@@ -160,10 +151,10 @@
                 dense
                 :style="$q.screen.gt.sm ? 'width: 500px' : 'width: 100%'"
                 type="tel"
-                mask="+237 ### ### ###"
-                unmasked-value
+                prefix="+237"
+                maxlength="9"
                 class="q-mr-sm q-mb-sm"
-                :rules="[required]"
+                :rules="phoneRules"
               >
                 <template v-slot:label>
                   {{ $t('inputassu.phone') }}
@@ -264,13 +255,16 @@
             <div class="row justify-center q-gutter-md">
               <q-btn
                 type="submit"
-                :label="formData.typeSubmission === 'temporaire' ? t('inputassu.sauvegarde') : t('inputassu.soumission')"
+                :label="
+                  formData.typeSubmission === 'temporaire'
+                    ? t('inputassu.sauvegarde')
+                    : t('inputassu.soumission')
+                "
                 :color="formData.typeSubmission === 'temporaire' ? 'orange' : 'primary'"
                 :icon="formData.typeSubmission === 'temporaire' ? 'save' : 'send'"
                 size="lg"
                 class="q-px-xs"
                 :loading="loading"
-
               />
               <q-btn
                 :label="t('inputassu.annuler')"
@@ -278,7 +272,7 @@
                 icon="cancel"
                 size="lg"
                 class="q-px-xl"
-                @click="resetForm,selectedPrestation =''"
+                @click="(resetForm, (selectedPrestation = ''))"
               />
             </div>
           </q-form>
@@ -329,7 +323,9 @@
                 <q-icon :name="prestation.icon" size="2.5rem" color="primary" />
               </div>
               <div class="flex-5">
-                <div class="text-h6 q-mb-xs text-weight-bold text-primary">{{ prestation.title }}</div>
+                <div class="text-h6 q-mb-xs text-weight-bold text-primary">
+                  {{ prestation.title }}
+                </div>
               </div>
             </q-card-section>
             <q-card-actions align="right" class="q-pa-lg q-pt-none">
@@ -361,7 +357,7 @@
             dense
             class="search-input-center"
             clearable
-            style="width: 400px;"
+            style="width: 400px"
           >
             <template v-slot:prepend>
               <q-icon name="search" color="primary" />
@@ -372,17 +368,14 @@
           {{ t('inputassu.selectionnez_type_prestation') }}
         </div>
       </div>
-      <div class="row q-gutter-md" style="width: 100%;">
+      <div class="row q-gutter-md" style="width: 100%">
         <span
           v-for="type in filteredTypes"
           :key="type.id"
           class="col-12 col-sm-12 col-md-4 col-lg-4"
-          style="width: 30%;"
+          style="width: 30%"
         >
-          <q-card
-            class="type-card enhanced-card cursor-pointer"
-            @click="selectType(type)"
-          >
+          <q-card class="type-card enhanced-card cursor-pointer" @click="selectType(type)">
             <q-card-section class="text-center q-pa-xl">
               <div class="type-icon q-mb-md">
                 <q-icon :name="type.icon" size="3rem" color="primary" />
@@ -400,50 +393,47 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, watch, onMounted } from 'vue';
-import { useQuasar } from 'quasar';
-import { useI18n } from 'vue-i18n';
-import { centres as rawCentres } from 'src/modules/shared/data/Centres.js';
-import { useNotify } from 'src/modules/shared/components/useNotify.js';
-import DepotPrestationPF_ChampsCommuns from 'src/modules/assure/components/depotPrestationPF/DepotPrestationPF_ChampsCommuns.vue';
-import DepotPrestationPF_ExamensPrenataux from 'src/modules/assure/components/depotPrestationPF/DepotPrestationPF_ExamensPrenataux.vue';
-import DepotPrestationPF_Accouchement from 'src/modules/assure/components/depotPrestationPF/DepotPrestationPF_Accouchement.vue';
-import DepotPrestationPF_CongesMaternite from 'src/modules/assure/components/depotPrestationPF/DepotPrestationPF_CongesMaternite.vue';
-import DepotPrestationPF_AllocationsFamiliales from 'src/modules/assure/components/depotPrestationPF/DepotPrestationPF_AllocationsFamiliales.vue';
-import {
-  useDepotPrestationPfStore,
-} from 'src/modules/assure/stores/depotPrestationPfStore.js';
-import { LEGACY_PRESTATION_ID_TO_CODE } from 'src/modules/assure/data/depotPrestationPfTypes.js';
-import { fetchEmployeurDepotPf } from 'src/modules/assure/api/depotPrestationPfApi.js';
-import { normalizeMatriculeEmployeur } from 'src/modules/assure/api/depotPrestationPfUtils.js';
+import { ref, computed, reactive, watch, onMounted } from 'vue'
+import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
+import { centres as rawCentres } from 'src/modules/shared/data/Centres.js'
+import { useNotify } from 'src/modules/shared/components/useNotify.js'
+import DepotPrestationPF_ChampsCommuns from 'src/modules/assure/components/depotPrestationPF/DepotPrestationPF_ChampsCommuns.vue'
+import DepotPrestationPF_ExamensPrenataux from 'src/modules/assure/components/depotPrestationPF/DepotPrestationPF_ExamensPrenataux.vue'
+import DepotPrestationPF_Accouchement from 'src/modules/assure/components/depotPrestationPF/DepotPrestationPF_Accouchement.vue'
+import DepotPrestationPF_CongesMaternite from 'src/modules/assure/components/depotPrestationPF/DepotPrestationPF_CongesMaternite.vue'
+import DepotPrestationPF_AllocationsFamiliales from 'src/modules/assure/components/depotPrestationPF/DepotPrestationPF_AllocationsFamiliales.vue'
+import { useDepotPrestationPfStore } from 'src/modules/assure/stores/depotPrestationPfStore.js'
+import { LEGACY_PRESTATION_ID_TO_CODE } from 'src/modules/assure/data/depotPrestationPfTypes.js'
+import { fetchEmployeurDepotPf } from 'src/modules/assure/api/depotPrestationPfApi.js'
+import { normalizeMatriculeEmployeur } from 'src/modules/assure/api/depotPrestationPfUtils.js'
 import {
   acteNaissanceKey,
   clearAccouchementActesNaissance,
   parseNombreEnfantsSousControleAccouchement,
-} from 'src/modules/assure/utils/depotPrestationPfAccouchement.js';
-import { regexPatterns } from 'src/js/regex.js';
-import Prestation21 from 'src/modules/assure/components/Prestations/Prestation21.vue';
-import Prestation31 from 'src/modules/assure/components/Prestations/Prestation31.vue';
+} from 'src/modules/assure/utils/depotPrestationPfAccouchement.js'
+import { regexPatterns } from 'src/js/regex.js'
+import { buildLegacyTelephoneRules } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
+import Prestation21 from 'src/modules/assure/components/Prestations/Prestation21.vue'
+import Prestation31 from 'src/modules/assure/components/Prestations/Prestation31.vue'
 
 // Declarations
-const $q = useQuasar();
-const { t, locale } = useI18n();
-const { notifyError, notifySuccess } = useNotify();
-const depotPfStore = useDepotPrestationPfStore();
+const $q = useQuasar()
+const { t, locale } = useI18n()
+const { notifyError, notifySuccess } = useNotify()
+const depotPfStore = useDepotPrestationPfStore()
 
 // Reactive states
-const searchQuery = ref('');
-const selectedType = ref(null);
-const selectedPrestation = ref(null);
+const searchQuery = ref('')
+const selectedType = ref(null)
+const selectedPrestation = ref(null)
 
-const isDepotPfPrestation = computed(() =>
-  [11, 12, 13, 14].includes(selectedPrestation.value?.id),
-);
-const isSubmitting = ref(false);
-const loading = ref(false);
-const prestationForm = ref(null);
-const centres = ref([...rawCentres]);
-const fichierJoint = ref(null);
+const isDepotPfPrestation = computed(() => [11, 12, 13, 14].includes(selectedPrestation.value?.id))
+const isSubmitting = ref(false)
+const loading = ref(false)
+const prestationForm = ref(null)
+const centres = ref([...rawCentres])
+const fichierJoint = ref(null)
 
 // Form data
 const formData = reactive({
@@ -490,27 +480,27 @@ const formData = reactive({
   attestationCessation: null,
   demandePremierExamen: false,
   demandeDeuxiemeExamen: false,
-});
+})
 
 function applyCoordonneesFormDataFromProfil() {
-  if (typeof localStorage === 'undefined') return;
+  if (typeof localStorage === 'undefined') return
   try {
-    const raw = localStorage.getItem('user_info');
-    if (!raw) return;
-    const user = JSON.parse(raw);
-    if (user.email) formData.EMAIL_PERS = user.email;
-    if (user.telephone || user.tel) formData.TEL_PERS = user.telephone || user.tel;
-    if (user.adresse) formData.Adresse = String(user.adresse).toUpperCase();
+    const raw = localStorage.getItem('user_info')
+    if (!raw) return
+    const user = JSON.parse(raw)
+    if (user.email) formData.EMAIL_PERS = user.email
+    if (user.telephone || user.tel) formData.TEL_PERS = user.telephone || user.tel
+    if (user.adresse) formData.Adresse = String(user.adresse).toUpperCase()
   } catch {
     /* ignore */
   }
 }
 
 onMounted(() => {
-  applyCoordonneesFormDataFromProfil();
-});
+  applyCoordonneesFormDataFromProfil()
+})
 
-const dynamicForm = reactive({});
+const dynamicForm = reactive({})
 
 const accouchementForm = reactive({
   dateAccoEffe: '',
@@ -519,7 +509,7 @@ const accouchementForm = reactive({
   FMAChBo: false,
   63: null,
   nombEnfaContMedi: null,
-});
+})
 
 const allocationsForm = reactive({
   dateSignEmpl: '',
@@ -531,7 +521,7 @@ const allocationsForm = reactive({
   210: null,
   16: null,
   113: null,
-});
+})
 
 const accidentForm = reactive({
   dateAccident: '',
@@ -546,7 +536,7 @@ const accidentForm = reactive({
   nombreJoursArret: 0,
   nombreCertificatsProlongation: 0,
   nombreBulletinsSalaire: 0,
-});
+})
 
 const revenus = reactive({
   expanded: false,
@@ -558,7 +548,7 @@ const revenus = reactive({
   validation: null,
   explications: '',
   data: [],
-});
+})
 
 const activite = reactive({
   expanded: false,
@@ -566,11 +556,11 @@ const activite = reactive({
   validation: null,
   explications: '',
   data: [],
-});
+})
 
 // Computed properties
 const filteredTypes = computed(() => {
-  if (!searchQuery.value) return prestationTypes.value;
+  if (!searchQuery.value) return prestationTypes.value
 
   return prestationTypes.value.filter(
     (type) =>
@@ -579,22 +569,22 @@ const filteredTypes = computed(() => {
       type.prestations.some(
         (p) =>
           p.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-          p.description.toLowerCase().includes(searchQuery.value.toLowerCase())
-      )
-  );
-});
+          p.description.toLowerCase().includes(searchQuery.value.toLowerCase()),
+      ),
+  )
+})
 
 const filteredPrestations = computed(() => {
-  if (!selectedType.value) return [];
+  if (!selectedType.value) return []
 
-  if (!searchQuery.value) return selectedType.value.prestations;
+  if (!searchQuery.value) return selectedType.value.prestations
 
   return selectedType.value.prestations.filter(
     (prestation) =>
       prestation.title.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-      prestation.description.toLowerCase().includes(searchQuery.value.toLowerCase())
-  );
-});
+      prestation.description.toLowerCase().includes(searchQuery.value.toLowerCase()),
+  )
+})
 
 // Options
 const numberOptions = [
@@ -612,23 +602,23 @@ const numberOptions = [
   { label: '11', value: 11 },
   { label: '12', value: 12 },
   { label: '13', value: 13 },
-];
+]
 
 const submissionOptions = ref([
   { label: t('inputassu.soumission_definitive'), value: 'definitive', icon: 'send' },
   { label: t('inputassu.sauvegarde_temporaire'), value: 'temporaire', icon: 'save' },
-]);
+])
 
 const typePrestationOptions = [
   { label: 'AVA - Allocation Vieillesse Anticipée', value: 'AVA' },
   { label: 'PVN - Pension de Vieillesse Normale', value: 'PVN' },
-  { label: 'PIN - Pension d\'Invalidité', value: 'PIN' },
-];
+  { label: "PIN - Pension d'Invalidité", value: 'PIN' },
+]
 
 const validationOptions = [
   { label: 'OUI', value: 'OUI' },
   { label: 'NON', value: 'NON' },
-];
+]
 
 const prestationTypes = ref([
   {
@@ -641,11 +631,11 @@ const prestationTypes = ref([
       {
         id: 11,
         title: "Remboursement des frais d'examens prénataux",
-        description: 'Remboursement des frais d\'examens prénataux par la CNPS',
+        description: "Remboursement des frais d'examens prénataux par la CNPS",
         icon: 'pregnant_woman',
         requiresFiles: true,
         fields: [
-          { name: 'dateExamen', label: 'Date de l\'examen', type: 'date', required: true },
+          { name: 'dateExamen', label: "Date de l'examen", type: 'date', required: true },
           { name: 'montant', label: 'Montant des frais', type: 'text', required: true },
           { name: 'etablissement', label: 'Établissement médical', type: 'text', required: true },
         ],
@@ -658,7 +648,13 @@ const prestationTypes = ref([
         requiresFiles: true,
         fields: [
           { name: 'dateAccouchement', label: "Date d'accouchement", type: 'date', required: true },
-          { name: 'typeAccouchement', label: "Type d'accouchement", type: 'select', required: true, options: ['Normal', 'Césarienne'] },
+          {
+            name: 'typeAccouchement',
+            label: "Type d'accouchement",
+            type: 'select',
+            required: true,
+            options: ['Normal', 'Césarienne'],
+          },
           { name: 'hopital', label: 'Hôpital', type: 'text', required: true },
         ],
       },
@@ -682,8 +678,19 @@ const prestationTypes = ref([
         requiresFiles: true,
         fields: [
           { name: 'nombreEnfants', label: "Nombre d'enfants", type: 'text', required: true },
-          { name: 'ageEnfants', label: 'Âges des enfants (sé935parés par des virgules)', type: 'text', required: true },
-          { name: 'situationFamiliale', label: 'Situation familiale', type: 'select', required: true, options: ['Marié(e)', 'Célibataire', 'Divorcé(e)', 'Veuf/Veuve'] },
+          {
+            name: 'ageEnfants',
+            label: 'Âges des enfants (sé935parés par des virgules)',
+            type: 'text',
+            required: true,
+          },
+          {
+            name: 'situationFamiliale',
+            label: 'Situation familiale',
+            type: 'select',
+            required: true,
+            options: ['Marié(e)', 'Célibataire', 'Divorcé(e)', 'Veuf/Veuve'],
+          },
         ],
       },
     ],
@@ -703,7 +710,12 @@ const prestationTypes = ref([
         requiresFiles: true,
         fields: [
           { name: 'numeroPension', label: 'Numéro de pension', type: 'text', required: true },
-          { name: 'motifContestation', label: 'Motif de contestation', type: 'text', required: true },
+          {
+            name: 'motifContestation',
+            label: 'Motif de contestation',
+            type: 'text',
+            required: true,
+          },
           { name: 'dateContestation', label: 'Date de contestation', type: 'date', required: true },
         ],
       },
@@ -712,7 +724,8 @@ const prestationTypes = ref([
   {
     id: 3,
     title: 'Prise en charge',
-    description: 'Dépot des dossiers de prise en charge des accidents de travail et des maladies professionnelles',
+    description:
+      'Dépot des dossiers de prise en charge des accidents de travail et des maladies professionnelles',
     icon: 'more_horiz',
     color: 'blue',
     prestations: [
@@ -729,7 +742,7 @@ const prestationTypes = ref([
       },
     ],
   },
-]);
+])
 
 const revenusColumns = [
   {
@@ -775,7 +788,7 @@ const revenusColumns = [
     format: (val) => `${val.toLocaleString()} FCFA`,
     headerStyle: 'background-color: var(--q-primary); color: white; font-weight: bold;',
   },
-];
+]
 
 const activiteColumns = [
   {
@@ -806,7 +819,7 @@ const activiteColumns = [
     align: 'center',
     headerStyle: 'background-color: var(--q-primary); color: white; font-weight: bold;',
   },
-];
+]
 
 const simulatedRevenusData = [
   {
@@ -857,7 +870,7 @@ const simulatedRevenusData = [
     raisonSociale: 'CAMEROON TELECOMMUNICATIONS',
     salaireAnnuelle: 711938,
   },
-];
+]
 
 const simulatedActiviteData = [
   {
@@ -878,29 +891,29 @@ const simulatedActiviteData = [
     dateEmbauche: '01/05/2025',
     dateCessation: '',
   },
-];
+]
 // Functions
 const optionsDn = (date) => {
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = ('0' + (today.getMonth() + 1)).slice(-2);
-  const dd = ('0' + today.getDate()).slice(-2);
-  const todayStr = `${yyyy}/${mm}/${dd}`;
-  return date <= todayStr;
-};
+  const today = new Date()
+  const yyyy = today.getFullYear()
+  const mm = ('0' + (today.getMonth() + 1)).slice(-2)
+  const dd = ('0' + today.getDate()).slice(-2)
+  const todayStr = `${yyyy}/${mm}/${dd}`
+  return date <= todayStr
+}
 
 const filterCentreCNPS = (val, update) => {
   update(() => {
     centres.value = rawCentres.filter((centre) =>
-      centre.LIB_CENTRE.toLowerCase().includes(val.toLowerCase())
-    );
-  });
-};
+      centre.LIB_CENTRE.toLowerCase().includes(val.toLowerCase()),
+    )
+  })
+}
 
 const selectType = (type) => {
-  selectedType.value = type;
-  searchQuery.value = '';
-};
+  selectedType.value = type
+  searchQuery.value = ''
+}
 
 function syncLegacyFormsToDepotPfStore() {
   if (!isDepotPfPrestation.value) {
@@ -913,7 +926,7 @@ function syncLegacyFormsToDepotPfStore() {
       addrAssuText: formData.addrAssuText ?? formData.Adresse,
       CODE_CENTRECNPSC: formData.CODE_CENTRECNPSC,
       typeSubmission: formData.typeSubmission,
-    });
+    })
   } else {
     Object.assign(formData, {
       matEmployeur: depotPfStore.common.matEmployeur,
@@ -924,7 +937,7 @@ function syncLegacyFormsToDepotPfStore() {
       addrAssuText: depotPfStore.common.addrAssuText,
       CODE_CENTRECNPSC: depotPfStore.common.CODE_CENTRECNPSC,
       typeSubmission: depotPfStore.common.typeSubmission,
-    });
+    })
   }
   Object.assign(depotPfStore.examensPrenataux, {
     dateExam1Date: formData.dateExam1Date ?? formData.datePremierExamen,
@@ -938,388 +951,433 @@ function syncLegacyFormsToDepotPfStore() {
     65: formData['65'] ?? formData.fraisMedicauxPremier,
     62: formData['62'] ?? formData.certificatDeuxieme,
     66: formData['66'] ?? formData.fraisMedicauxDeuxieme,
-  });
-  Object.assign(depotPfStore.accouchement, accouchementForm);
-  Object.assign(depotPfStore.congesMaternite, {
-    ijcmChBo: formData.ijcmChBo ?? formData.showIndemnites,
-    accoPremChBo: formData.accoPremChBo ?? formData.accouchementPremature,
-    nombJourSupp: formData.nombJourSupp ?? formData.nombreJoursCouches,
-    dateDebuCongEffe: formData.dateDebuCongEffe ?? formData.debutConges,
-    dateFinCongEffe: formData.dateFinCongEffe ?? formData.finConges,
-    dateReprActi: formData.dateReprActi ?? formData.dateRepriseActivite,
-    dateDebuNonSala: formData.dateDebuNonSala ?? formData.debutPeriodeNonSalaire,
-    dateFinNonSala: formData.dateFinNonSala ?? formData.finPeriodeNonSalaire,
-    nombEnfaViab: formData.nombEnfaViab ?? formData.nombreEnfantsViables,
-    nombEnfaContMedi: formData.nombEnfaContMedi ?? formData.nombreEnfantsSousControle,
-    63: formData['63'] ?? formData.certificatMedical,
-    '92_1': formData['92_1'] ?? formData.bulletinPaie,
-    94: formData['94'] ?? formData.attestationCessation,
-  });
-  Object.assign(depotPfStore.allocations, allocationsForm);
+  })
+  Object.assign(depotPfStore.accouchement, accouchementForm)
+  // Le composant DepotPrestationPF_CongesMaternite écrit dans le store : ne pas écraser avec formData vide.
+  const cm = depotPfStore.congesMaternite
+  const pick = (primary, legacy, fallback = '') => {
+    if (primary !== null && primary !== undefined && primary !== '') return primary
+    if (legacy !== null && legacy !== undefined && legacy !== '') return legacy
+    return fallback
+  }
+  Object.assign(cm, {
+    ijcmChBo: formData.ijcmChBo ?? formData.showIndemnites ?? cm.ijcmChBo,
+    accoPremChBo: formData.accoPremChBo ?? formData.accouchementPremature ?? cm.accoPremChBo,
+    nombJourSupp: pick(formData.nombJourSupp, formData.nombreJoursCouches, cm.nombJourSupp),
+    dateAccoEffe: pick(formData.dateAccoEffe, formData.dateEffectiveAccouchement, cm.dateAccoEffe),
+    dateDebuCongEffe: pick(formData.dateDebuCongEffe, formData.debutConges, cm.dateDebuCongEffe),
+    dateFinCongEffe: pick(formData.dateFinCongEffe, formData.finConges, cm.dateFinCongEffe),
+    dateReprActi: pick(formData.dateReprActi, formData.dateRepriseActivite, cm.dateReprActi),
+    dateDebuNonSala: pick(
+      formData.dateDebuNonSala,
+      formData.debutPeriodeNonSalaire,
+      cm.dateDebuNonSala,
+    ),
+    dateFinNonSala: pick(formData.dateFinNonSala, formData.finPeriodeNonSalaire, cm.dateFinNonSala),
+    nombEnfaViab: pick(formData.nombEnfaViab, formData.nombreEnfantsViables, cm.nombEnfaViab),
+    nombEnfaContMedi: pick(
+      formData.nombEnfaContMedi,
+      formData.nombreEnfantsSousControle,
+      cm.nombEnfaContMedi,
+    ),
+    63: formData['63'] ?? formData.certificatMedical ?? cm[63],
+    '92_1': formData['92_1'] ?? formData.bulletinPaie ?? cm['92_1'],
+    94: formData['94'] ?? formData.attestationCessation ?? cm[94],
+  })
+  const acteCount = parseNombreEnfantsSousControleAccouchement(cm.nombEnfaContMedi)
+  for (let i = 1; i <= acteCount; i += 1) {
+    const key = acteNaissanceKey(i)
+    const fromForm = formData[key]
+    if (fromForm instanceof File) {
+      cm[key] = fromForm
+    }
+  }
+  Object.assign(depotPfStore.allocations, allocationsForm)
 }
 
 const selectPrestation = (prestation) => {
-  selectedPrestation.value = prestation;
+  selectedPrestation.value = prestation
   if ([11, 12, 13, 14].includes(prestation.id)) {
     depotPfStore.loadContexte().then(() => {
-      syncLegacyFormsToDepotPfStore();
-    });
+      syncLegacyFormsToDepotPfStore()
+    })
   }
-  Object.keys(dynamicForm).forEach((key) => delete dynamicForm[key]);
+  Object.keys(dynamicForm).forEach((key) => delete dynamicForm[key])
   if (prestation.fields) {
     prestation.fields.forEach((field) => {
-      dynamicForm[field.name] = '';
-    });
+      dynamicForm[field.name] = ''
+    })
   }
 
   // Initialisation spécifique pour la prestation 13 (congés de maternité)
   if (prestation.id === 13) {
-    formData.showIndemnites = true;
-    formData.accouchementPremature = false;
-    formData.nombreJoursCouches = 0;
-    formData.debutConges = '';
-    formData.finConges = '';
-    formData.dateRepriseActivite = '';
-    formData.debutPeriodeNonSalaire = '';
-    formData.finPeriodeNonSalaire = '';
-    formData.bulletinPaie = null;
-    formData.attestationCessation = null;
-    formData.nombreEnfantsViables = null;
-    formData.nombreEnfantsSousControle = null;
-    formData.certificatMedical = null;
-    formData.actesNaissance = [null];
+    formData.showIndemnites = true
+    formData.accouchementPremature = false
+    formData.nombreJoursCouches = 0
+    formData.debutConges = ''
+    formData.finConges = ''
+    formData.dateRepriseActivite = ''
+    formData.debutPeriodeNonSalaire = ''
+    formData.finPeriodeNonSalaire = ''
+    formData.bulletinPaie = null
+    formData.attestationCessation = null
+    formData.nombreEnfantsViables = null
+    formData.nombreEnfantsSousControle = null
+    formData.certificatMedical = null
+    formData.actesNaissance = [null]
   }
 
   if (prestation.id !== 12) {
-    accouchementForm.dateAccoEffe = '';
-    accouchementForm.nombEnfaViab = null;
-    accouchementForm.nombEnfaContMedi = null;
-    accouchementForm.FAChBo = false;
-    accouchementForm.FMAChBo = false;
-    accouchementForm['63'] = null;
-    clearAccouchementActesNaissance(accouchementForm);
-    clearAccouchementActesNaissance(depotPfStore.accouchement);
+    accouchementForm.dateAccoEffe = ''
+    accouchementForm.nombEnfaViab = null
+    accouchementForm.nombEnfaContMedi = null
+    accouchementForm.FAChBo = false
+    accouchementForm.FMAChBo = false
+    accouchementForm['63'] = null
+    clearAccouchementActesNaissance(accouchementForm)
+    clearAccouchementActesNaissance(depotPfStore.accouchement)
   }
-};
+}
 
 const goHome = () => {
-  selectedType.value = null;
-  selectedPrestation.value = null;
-  searchQuery.value = '';
-};
+  selectedType.value = null
+  selectedPrestation.value = null
+  searchQuery.value = ''
+}
 
 function onMatriculeEmployeurLegacyActivate() {
   if (formData.mat_employeur?.trim()) {
-    fetchEmployerExamen();
+    fetchEmployerExamen()
   }
 }
 
 const fetchEmployerExamen = async () => {
-  const matricule = normalizeMatriculeEmployeur(formData.mat_employeur);
-  formData.mat_employeur = matricule;
+  const matricule = normalizeMatriculeEmployeur(formData.mat_employeur)
+  formData.mat_employeur = matricule
   if (!matricule) {
-    notifyError('Veuillez saisir un matricule employeur');
-    return;
+    notifyError('Veuillez saisir un matricule employeur')
+    return
   }
-  const matriculeValide = validateMatriculeCNPS(matricule);
+  const matriculeValide = validateMatriculeCNPS(matricule)
   if (matriculeValide !== true) {
-    notifyError(matriculeValide);
-    return;
+    notifyError(matriculeValide)
+    return
   }
   try {
-    const employer = await fetchEmployeurDepotPf(matricule);
-    formData.raisonsociale = employer.raisonsociale;
-    formData.NOM_COMMERCIAL = employer.NOM_COMMERCIAL;
-    formData.ADRESSE_EMPLOYEUR = employer.ADRESSE_EMPLOYEUR;
-    formData.DATE_EMB_PREM_TRAV = employer.DATE_EMB_PREM_TRAV;
-    formData.EFFECTIF_APPROX = employer.EFFECTIF_APPROX;
-    notifySuccess(t('modules.assure.depotPf.employeurTrouve'));
+    const employer = await fetchEmployeurDepotPf(matricule)
+    formData.raisonsociale = employer.raisonsociale
+    formData.NOM_COMMERCIAL = employer.NOM_COMMERCIAL
+    formData.ADRESSE_EMPLOYEUR = employer.ADRESSE_EMPLOYEUR
+    formData.DATE_EMB_PREM_TRAV = employer.DATE_EMB_PREM_TRAV
+    formData.EFFECTIF_APPROX = employer.EFFECTIF_APPROX
+    notifySuccess(t('modules.assure.depotPf.employeurTrouve'))
   } catch {
-    formData.raisonsociale = '';
-    formData.NOM_COMMERCIAL = '';
-    formData.ADRESSE_EMPLOYEUR = '';
-    formData.DATE_EMB_PREM_TRAV = '';
-    formData.EFFECTIF_APPROX = '';
-    notifyError(t('modules.assure.depotPf.employeurIntrouvable'));
+    formData.raisonsociale = ''
+    formData.NOM_COMMERCIAL = ''
+    formData.ADRESSE_EMPLOYEUR = ''
+    formData.DATE_EMB_PREM_TRAV = ''
+    formData.EFFECTIF_APPROX = ''
+    notifyError(t('modules.assure.depotPf.employeurIntrouvable'))
   }
-};
+}
 
-const required = (val) => !!val || t('input.requis');
+const required = (val) => !!val || t('input.requis')
+const phoneRules = buildLegacyTelephoneRules(t, { required: true })
 
 const validateEmail = (val) => {
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  return emailRegex.test(val) || 'Email invalide';
-};
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(val) || 'Email invalide'
+}
 
 const validateMatriculeCNPS = (val) => {
-  if (!val) return true;
-  const v = normalizeMatriculeEmployeur(val);
+  if (!val) return true
+  const v = normalizeMatriculeEmployeur(val)
   return (
     regexPatterns.numEmpl1.test(v) ||
     regexPatterns.numEmpl2.test(v) ||
     t('errors.invalid_cnps_format')
-  );
-};
+  )
+}
 
 const validateFirstExamCheckboxes = () => {
-  return formData.allocations1 || formData.fraisMedicaux1;
-};
+  return formData.allocations1 || formData.fraisMedicaux1
+}
 
 const validateSecondExamCheckboxes = () => {
-  return formData.allocations2 || formData.fraisMedicaux2;
-};
+  return formData.allocations2 || formData.fraisMedicaux2
+}
 
 const validateAccouchement = () => {
-  const errors = [];
+  const errors = []
   if (!accouchementForm.FAChBo && !accouchementForm.FMAChBo) {
-    errors.push("Vous devez sélectionner au moins une option (Frais Accouchement ou Frais médicaux).");
+    errors.push(
+      'Vous devez sélectionner au moins une option (Frais Accouchement ou Frais médicaux).',
+    )
   } else {
-
-    const actesCount = parseNombreEnfantsSousControleAccouchement(
-      accouchementForm.nombEnfaContMedi,
-    );
+    const actesCount = parseNombreEnfantsSousControleAccouchement(accouchementForm.nombEnfaContMedi)
     for (let i = 1; i <= actesCount; i += 1) {
       if (!accouchementForm[acteNaissanceKey(i)]) {
-        errors.push(`L'acte de naissance de l'enfant ${i} est requis.`);
+        errors.push(`L'acte de naissance de l'enfant ${i} est requis.`)
       }
     }
   }
-  return errors;
-};
+  return errors
+}
 
 const validateAllocations = () => {
-  const errors = [];
+  const errors = []
   if (
     parseInt(allocationsForm.nombEnfaMoin6 || 0) === 0 &&
     parseInt(allocationsForm.nombEnfaPlus6 || 0) === 0 &&
     parseInt(allocationsForm.nombEnfaReco || 0) === 0
   ) {
-    errors.push("Vous devez sélectionner au moins un type d'enfant (moins de 6 ans, plus de 6 ans, ou reconnu).");
+    errors.push(
+      "Vous devez sélectionner au moins un type d'enfant (moins de 6 ans, plus de 6 ans, ou reconnu).",
+    )
   }
-  return errors;
-};
+  return errors
+}
 
 const submitForm = async () => {
-  loading.value = true;
-  isSubmitting.value = true;
+  loading.value = true
+  isSubmitting.value = true
   try {
-    const pfLegacyId = selectedPrestation.value?.id;
+    const pfLegacyId = selectedPrestation.value?.id
     if ([11, 12, 13, 14].includes(pfLegacyId)) {
-      syncLegacyFormsToDepotPfStore();
-      const typeCode = LEGACY_PRESTATION_ID_TO_CODE[pfLegacyId];
-      const valid = await prestationForm.value.validate();
+      syncLegacyFormsToDepotPfStore()
+      const typeCode = LEGACY_PRESTATION_ID_TO_CODE[pfLegacyId]
+      const valid = await prestationForm.value.validate()
       if (!valid) {
-        notifyError(t('errors.required'));
-        throw new Error('form_invalid');
+        notifyError(t('errors.required'))
+        throw new Error('form_invalid')
       }
-      const result = await depotPfStore.submitDossier(typeCode);
+      const result = await depotPfStore.submitDossier(typeCode)
       if (result.errors?.length) {
-        result.errors.forEach((code) => notifyError(code));
-        throw new Error('pf_validation');
+        result.errors.forEach((code) => notifyError(code))
+        throw new Error('pf_validation')
+      }
+      if (result.error) {
+        notifyError(result.error)
+        throw new Error('pf_submit')
       }
       if (result.success) {
         const message =
           formData.typeSubmission === 'temporaire'
             ? t('form.temporarySubmissionDescription')
-            : t('form.definitiveSubmissionDescription');
-        notifySuccess(result.result?.Msg || message);
-        selectedPrestation.value = null;
+            : t('form.definitiveSubmissionDescription')
+        notifySuccess(result.result?.Msg || message)
+        selectedPrestation.value = null
       }
-      return;
+      return
     }
 
     // Validations spécifiques
     if (selectedPrestation.value?.id === 11) {
       if (!formData.demandeDeuxiemeExamen) {
-        notifyError('Veuillez fournir des informations sur le Deuxième examen prénatal au 8ème mois.');
-        throw new Error('no_exam_selected');
+        notifyError(
+          'Veuillez fournir des informations sur le Deuxième examen prénatal au 8ème mois.',
+        )
+        throw new Error('no_exam_selected')
       }
       if (formData.demandePremierExamen && !validateFirstExamCheckboxes()) {
-        notifyError(t('errors.checkbox_required_first_exam'));
-        throw new Error('checkbox_required_first_exam');
+        notifyError(t('errors.checkbox_required_first_exam'))
+        throw new Error('checkbox_required_first_exam')
       }
       if (formData.demandeDeuxiemeExamen && !validateSecondExamCheckboxes()) {
-        notifyError(t('errors.checkbox_required_second_exam'));
-        throw new Error('checkbox_required_second_exam');
+        notifyError(t('errors.checkbox_required_second_exam'))
+        throw new Error('checkbox_required_second_exam')
       }
     }
     if (selectedPrestation.value?.id === 12) {
-      const accouchementErrors = validateAccouchement();
+      const accouchementErrors = validateAccouchement()
       if (accouchementErrors.length > 0) {
-        accouchementErrors.forEach((error) => notifyError(error));
-        throw new Error('accouchement_invalid');
+        accouchementErrors.forEach((error) => notifyError(error))
+        throw new Error('accouchement_invalid')
       }
     }
     if (selectedPrestation.value?.id === 14) {
-      const allocationsErrors = validateAllocations();
+      const allocationsErrors = validateAllocations()
       if (allocationsErrors.length > 0) {
-        allocationsErrors.forEach((error) => notifyError(error));
-        throw new Error('allocations_invalid');
+        allocationsErrors.forEach((error) => notifyError(error))
+        throw new Error('allocations_invalid')
       }
     }
-    const isValid = await prestationForm.value.validate();
+    const isValid = await prestationForm.value.validate()
     if (!isValid) {
-      notifyError(t('errors.required'));
-      throw new Error('form_invalid');
+      notifyError(t('errors.required'))
+      throw new Error('form_invalid')
     }
     // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000))
     const message =
       formData.typeSubmission === 'temporaire'
         ? t('form.temporarySubmissionDescription')
-        : t('form.definitiveSubmissionDescription');
-    notifySuccess(message);
+        : t('form.definitiveSubmissionDescription')
+    notifySuccess(message)
     //resetForm();
     // Fermer le formulaire après soumission
 
-    selectedPrestation.value = null;
-     formData.value = null;
+    selectedPrestation.value = null
+    formData.value = null
   } catch (error) {
-    if (error && error.message && [
-      'checkbox_required_first_exam',
-      'checkbox_required_second_exam',
-      'accouchement_invalid',
-      'allocations_invalid',
-      'form_invalid'
-    ].includes(error.message)) {
+    if (
+      error &&
+      error.message &&
+      [
+        'checkbox_required_first_exam',
+        'checkbox_required_second_exam',
+        'accouchement_invalid',
+        'allocations_invalid',
+        'form_invalid',
+      ].includes(error.message)
+    ) {
       // Validation error already notified, just stop
     } else {
-      console.error(error);
-      notifyError(t('form.submit_error'));
+      console.error(error)
+      notifyError(t('form.submit_error'))
     }
     // Fermer le formulaire même en cas d'erreur de soumission
     //selectedPrestation.value = null;
   } finally {
-    loading.value = false;
-    isSubmitting.value = false;
+    loading.value = false
+    isSubmitting.value = false
   }
-};
+}
 
 const resetForm = () => {
-
   selectedPrestation.value = null
   Object.keys(formData).forEach((key) => {
     if (key === 'specific') {
-      formData[key] = {};
+      formData[key] = {}
     } else if (key === 'files') {
-      formData[key] = null;
+      formData[key] = null
     } else if (key === 'showIndemnites') {
-      formData[key] = true; // Garder la valeur booléenne
-    } else if (key === 'allocations1' || key === 'allocations2' || key === 'fraisMedicaux1' || key === 'fraisMedicaux2' || key === 'fraisAccouchement' || key === 'fraisMedicaux' || key === 'accouchementPremature') {
-      formData[key] = false; // Réinitialiser les booléens à false
-    } else if (key === 'nombreEnfantsViables' || key === 'nombreEnfantsSousControle' || key === 'nombreJoursCouches') {
-      formData[key] = key === 'nombreEnfantsViables' || key === 'nombreEnfantsSousControle' ? 1 : 0; // Réinitialiser les nombres
+      formData[key] = true // Garder la valeur booléenne
+    } else if (
+      key === 'allocations1' ||
+      key === 'allocations2' ||
+      key === 'fraisMedicaux1' ||
+      key === 'fraisMedicaux2' ||
+      key === 'fraisAccouchement' ||
+      key === 'fraisMedicaux' ||
+      key === 'accouchementPremature'
+    ) {
+      formData[key] = false // Réinitialiser les booléens à false
+    } else if (
+      key === 'nombreEnfantsViables' ||
+      key === 'nombreEnfantsSousControle' ||
+      key === 'nombreJoursCouches'
+    ) {
+      formData[key] = key === 'nombreEnfantsViables' || key === 'nombreEnfantsSousControle' ? 1 : 0 // Réinitialiser les nombres
     } else {
-      formData[key] = '';
+      formData[key] = ''
     }
-  });
+  })
 
-  Object.keys(dynamicForm).forEach((key) => delete dynamicForm[key]);
+  Object.keys(dynamicForm).forEach((key) => delete dynamicForm[key])
 
-  accouchementForm.dateAccoEffe = '';
-  accouchementForm.nombEnfaViab = null;
-  accouchementForm.nombEnfaContMedi = null;
-  accouchementForm.FAChBo = false;
-  accouchementForm.FMAChBo = false;
-  accouchementForm['63'] = null;
-  clearAccouchementActesNaissance(accouchementForm);
-  clearAccouchementActesNaissance(depotPfStore.accouchement);
+  accouchementForm.dateAccoEffe = ''
+  accouchementForm.nombEnfaViab = null
+  accouchementForm.nombEnfaContMedi = null
+  accouchementForm.FAChBo = false
+  accouchementForm.FMAChBo = false
+  accouchementForm['63'] = null
+  clearAccouchementActesNaissance(accouchementForm)
+  clearAccouchementActesNaissance(depotPfStore.accouchement)
 
-  formData.typeSubmission = 'definitive';
-  selectedPrestation.value = null;
+  formData.typeSubmission = 'definitive'
+  selectedPrestation.value = null
 
   if (prestationForm.value) {
-    prestationForm.value.resetValidation();
+    prestationForm.value.resetValidation()
   }
-  revenus.data = [];
-  revenus.validation = null;
-  revenus.explications = '';
-  revenus.expanded = false;
+  revenus.data = []
+  revenus.validation = null
+  revenus.explications = ''
+  revenus.expanded = false
 
-  activite.data = [];
-  activite.validation = null;
-  activite.explications = '';
-  activite.expanded = false;
+  activite.data = []
+  activite.validation = null
+  activite.explications = ''
+  activite.expanded = false
 
-  fichierJoint.value = null;
+  fichierJoint.value = null
 
-  formData.demandePremierExamen = false;
-  formData.demandeDeuxiemeExamen = false;
-
-};
+  formData.demandePremierExamen = false
+  formData.demandeDeuxiemeExamen = false
+}
 
 const consulterRevenus = async () => {
-  revenus.loading = true;
+  revenus.loading = true
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    revenus.data = [...simulatedRevenusData];
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+    revenus.data = [...simulatedRevenusData]
     $q.notify({
       type: 'positive',
       message: 'Données des revenus chargées avec succès',
       position: 'top',
-    });
+    })
   } catch (error) {
     console.log(error)
     $q.notify({
-
       type: 'negative',
       message: 'Erreur lors du chargement des revenus',
       position: 'top',
-    });
+    })
   } finally {
-    revenus.loading = false;
+    revenus.loading = false
   }
-};
+}
 
 const consulterActivite = async () => {
-  activite.loading = true;
+  activite.loading = true
   try {
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    activite.data = [...simulatedActiviteData];
+    await new Promise((resolve) => setTimeout(resolve, 1200))
+    activite.data = [...simulatedActiviteData]
     $q.notify({
       type: 'positive',
       message: 'Données des activités chargées avec succès',
       position: 'top',
-    });
+    })
   } catch (error) {
     console.log(error)
     $q.notify({
       type: 'negative',
       message: 'Erreur lors du chargement des activités',
       position: 'top',
-    });
+    })
   } finally {
-    activite.loading = false;
+    activite.loading = false
   }
-};
+}
 
 const onRejected = (rejectedEntries) => {
   $q.notify({
     type: 'negative',
     message: `Fichier rejeté: ${rejectedEntries[0].failedPropValidation}`,
     position: 'top',
-  });
-};
+  })
+}
 
 const updateNaissanceFields = (newValue) => {
-  const count = Math.max(1, newValue || 1);
+  const count = Math.max(1, newValue || 1)
   if (formData.actesNaissance.length < count) {
     while (formData.actesNaissance.length < count) {
-      formData.actesNaissance.push(null);
+      formData.actesNaissance.push(null)
     }
   } else if (formData.actesNaissance.length > count) {
-    formData.actesNaissance = formData.actesNaissance.slice(0, count);
+    formData.actesNaissance = formData.actesNaissance.slice(0, count)
   }
-};
+}
 
 // Watchers
 watch(
   () => formData.nombreEnfantsSousControle,
   (newValue) => {
-    updateNaissanceFields(newValue);
+    updateNaissanceFields(newValue)
   },
-  { immediate: true }
-);
+  { immediate: true },
+)
 </script>
 <style scoped>
 .prestations-container {
@@ -1520,7 +1578,7 @@ watch(
 .q-field--filled .q-field__control {
   border-radius: 12px;
 }
- .pension-form-card {
+.pension-form-card {
   max-width: 1200px;
   margin: 0 auto;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -1553,7 +1611,9 @@ watch(
   letter-spacing: 0.5px;
 }
 
-.q-input, .q-select, .q-file {
+.q-input,
+.q-select,
+.q-file {
   border-radius: 8px;
 }
 
@@ -1587,7 +1647,7 @@ watch(
     margin: 8px;
   }
 }
-  .q-card {
+.q-card {
   border-radius: 12px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }

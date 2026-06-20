@@ -203,3 +203,29 @@ export function buildNouveauDossierPiecesApiPayload(context, pieceRows, options 
 
   return payload
 }
+
+/**
+ * Payload POST showAjout.jsp — ajout de pièces en réception (addpieceRecep.jsp).
+ * @param {Record<string, unknown>} context
+ * @param {Array<{ person?: string, titulaire?: string, dateDep?: string, dateVal?: string, observ?: string, nbre?: string }>} pieceRows
+ * @param {{ username?: string }} [options]
+ */
+export function buildNouveauDossierReceptionPiecesApiPayload(context, pieceRows, options = {}) {
+  const payload = buildNouveauDossierPiecesApiPayload(context, pieceRows, {
+    ...options,
+    username: options.username ?? context.username ?? '',
+  })
+  const nom = String(
+    context.nom_complet ?? context.nomcomplet ?? context.myname ?? '',
+  ).trim()
+  payload.myname = nom
+  payload.datedemande = String(context.datedemande ?? '')
+  payload.username = String(options.username ?? context.username ?? payload.username ?? '')
+  payload.code_centre_user = String(
+    context.code_centre_user ?? payload.code_centre_user ?? '',
+  )
+  for (let i = 1; i <= pieceRows.length; i += 1) {
+    payload[`observ${i}`] = String(payload[`observ${i}`] ?? '')
+  }
+  return payload
+}

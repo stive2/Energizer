@@ -4,6 +4,7 @@
 import {
   formatLegacyDate,
   toLegacyString,
+  toLegacyUppercase,
   buildLegacySearchParams,
 } from 'src/modules/energizer/utils/liquidationLegacyUtils.js'
 
@@ -177,24 +178,27 @@ export const RP_CERTIFICAT_INIT_SUBMIT_FIELDS = [
   'datefinrappel',
 ]
 
+import { normalizeCertificatTypeValue } from '../utils/liquidationRpCertificatInitLegacy.js'
+import { RP_CERTIFICAT_DECES_TYPE } from '../utils/liquidationRpCertificatDecesLegacy.js'
+
 /**
  * @param {Record<string, unknown>} form
  */
 export function buildRpCertificatInitApiPayload(form) {
   return {
     numdossier: toLegacyString(form.numdossier),
-    datecertificat: formatLegacyDate(form.datecertificat),
-    dateaccident: formatLegacyDate(form.dateaccident),
+    datecertificat: toLegacyString(form.datecertificat),
+    dateaccident: toLegacyString(form.dateaccident),
     numcertificat: toLegacyString(form.numcertificat),
-    type: toLegacyString(form.type),
-    nommedecin: toLegacyString(form.nommedecin),
-    structure: toLegacyString(form.structure),
-    naturelesion: toLegacyString(form.naturelesion),
-    siegelesion: toLegacyString(form.siegelesion),
+    type: normalizeCertificatTypeValue(form.type),
+    nommedecin: toLegacyUppercase(form.nommedecin),
+    structure: toLegacyUppercase(form.structure),
+    naturelesion: toLegacyUppercase(form.naturelesion),
+    siegelesion: toLegacyUppercase(form.siegelesion),
     numordre: toLegacyString(form.numordre),
     nbrejours: toLegacyString(form.nbrejours),
     txipp: toLegacyString(form.txipp),
-    datefinrappel: formatLegacyDate(form.datefinrappel),
+    datefinrappel: toLegacyString(form.datefinrappel),
   }
 }
 
@@ -220,17 +224,17 @@ export const RP_CERTIFICAT_DECES_SUBMIT_FIELDS = [
 export function buildRpCertificatDecesApiPayload(form) {
   return {
     numdossier: toLegacyString(form.numdossier),
-    datecertificat: formatLegacyDate(form.datecertificat),
-    dateaccident: formatLegacyDate(form.dateaccident),
+    datecertificat: toLegacyString(form.datecertificat),
+    dateaccident: toLegacyString(form.dateaccident),
     numcertificat: toLegacyString(form.numcertificat),
-    type: toLegacyString(form.type || 'CD'),
-    nommedecin: toLegacyString(form.nommedecin),
-    structure: toLegacyString(form.structure),
-    naturelesion: toLegacyString(form.naturelesion),
-    siegelesion: toLegacyString(form.siegelesion),
+    type: toLegacyString(form.type || RP_CERTIFICAT_DECES_TYPE),
+    nommedecin: toLegacyUppercase(form.nommedecin),
+    structure: toLegacyUppercase(form.structure),
+    naturelesion: toLegacyUppercase(form.naturelesion),
+    siegelesion: toLegacyUppercase(form.siegelesion),
     numordre: toLegacyString(form.numordre),
-    Observations: toLegacyString(form.observation ?? form.Observations),
-    datedeces: formatLegacyDate(form.datedeces),
+    Observations: toLegacyUppercase(form.observation ?? form.Observations),
+    datedeces: toLegacyString(form.datedeces),
   }
 }
 
@@ -259,13 +263,43 @@ export function buildRpNoteFraisApiPayload(form) {
     numassu: toLegacyString(form.numassu),
     numnote: toLegacyString(form.numnote),
     telephone: toLegacyString(form.telephone),
-    fournisseur: toLegacyString(form.fournisseur),
+    fournisseur: toLegacyUppercase(form.fournisseur),
     numemployeur: toLegacyString(form.numemployeur),
-    nomemployeur: toLegacyString(form.nomemployeur),
-    adresse: toLegacyString(form.adresse),
+    nomemployeur: toLegacyUppercase(form.nomemployeur),
+    adresse: toLegacyUppercase(form.adresse),
     objet: toLegacyString(form.objet),
     tiersbeneficiaire: toLegacyString(form.tiersbeneficiaire),
-    datedemande: formatLegacyDate(form.datedemande),
+    datedemande: toLegacyString(form.datedemande),
     flag: toLegacyString(form.flag),
+  }
+}
+
+/** POST /saisietiersbeneficiaire — saisietiersbeneficiaire.java */
+export const RP_TIERS_BENEFICIAIRE_SUBMIT_FIELDS = [
+  'numdossier',
+  'numassure',
+  'numbenef',
+  'nombenef',
+  'prenombenef',
+  'naissbenef',
+  'adresse',
+  'tel',
+  'numpiece',
+]
+
+/**
+ * @param {Record<string, unknown>} form
+ */
+export function buildRpTiersBeneficiaireApiPayload(form) {
+  return {
+    numdossier: toLegacyString(form.numdossier),
+    numassure: toLegacyString(form.numassure),
+    numbenef: toLegacyString(form.numbenef),
+    nombenef: toLegacyUppercase(form.nombenef),
+    prenombenef: toLegacyUppercase(form.prenombenef),
+    naissbenef: toLegacyString(form.naissbenef),
+    adresse: toLegacyUppercase(form.adresse),
+    tel: toLegacyString(form.tel),
+    numpiece: toLegacyUppercase(form.numpiece),
   }
 }

@@ -14,18 +14,40 @@
 }
 .pf-legacy-cell {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
-  gap: 8px 12px;
-  min-height: 42px;
+  gap: 6px 8px;
+  min-height: 38px;
+  width: 100%;
+}
+.pf-legacy-cell--check {
+  align-items: center;
+}
+.pf-legacy-cell--base {
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+.pf-legacy-cell--question {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: auto;
+  padding: 4px 8px;
 }
 .pf-legacy-label {
-  flex: 0 0 auto;
-  font-size: 0.875rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 58%;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: #333;
-  line-height: 1.3;
-  max-width: 44%;
+  line-height: 1.25;
+  white-space: normal;
+  word-break: break-word;
+}
+.pf-legacy-cell--check .pf-legacy-label {
+  max-width: 70%;
 }
 .pf-legacy-input {
   flex: 1 1 140px;
@@ -36,7 +58,75 @@
   max-width: 104px;
 }
 .pf-legacy-input--date {
-  flex: 1 1 200px;
+  flex: 0 1 auto;
+  width: 100%;
+  max-width: 300px;
+}
+.pf-legacy-input--date-demande {
+  flex: 0 0 auto;
+  width: 100%;
+  min-width: 7.25rem;
+  max-width: 9.5rem;
+}
+.pf-legacy-input--natupres {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: none;
+}
+.pf-natupres-col {
+  display: flex;
+  justify-content: flex-end;
+}
+.pf-legacy-cell--natupres-end {
+  justify-content: flex-end;
+  width: auto;
+  max-width: 100%;
+  margin-left: auto;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+.pf-legacy-cell--natupres-end .pf-legacy-label {
+  flex: 0 0 auto;
+  max-width: none;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: unset;
+}
+.pf-dossier-info-row .pf-legacy-input--natupres,
+.pf-dossier-info-row .pf-legacy-input--natupres.q-field {
+  flex: 0 1 auto !important;
+  width: auto !important;
+  min-width: 11rem !important;
+  max-width: 100% !important;
+}
+.pf-dossier-info-row .pf-legacy-input--natupres .q-field__control,
+.pf-dossier-info-row .pf-legacy-input--natupres .q-field__native,
+.pf-dossier-info-row .pf-legacy-input--natupres .q-field__input {
+  overflow: visible;
+  text-overflow: unset;
+  white-space: nowrap;
+}
+.pf-legacy-cell:has(.pf-legacy-input--date-demande):not(.pf-legacy-cell--date-demande-end) .pf-legacy-label {
+  max-width: 52%;
+}
+.pf-date-demande-col {
+  display: flex;
+  justify-content: flex-end;
+}
+.pf-legacy-cell--date-demande-end {
+  justify-content: flex-end;
+  width: 100%;
+  max-width: 100%;
+  margin-left: auto;
+  gap: 8px;
+}
+.pf-legacy-cell--date-demande-end .pf-legacy-label {
+  flex: 0 0 auto;
+  max-width: none;
+}
+.pf-legacy-input--wide {
+  flex: 1 1 120px;
+  min-width: 0;
 }
 .pf-legacy-input--select {
   flex: 1 1 160px;
@@ -104,6 +194,35 @@
   .pf-legacy-input--select {
     flex: 1 1 100%;
     max-width: 100%;
+  }
+}
+@media (max-width: 767px) {
+  .pf-legacy-cell {
+    flex-wrap: wrap;
+  }
+  .pf-natupres-col,
+  .pf-date-demande-col {
+    justify-content: flex-start;
+  }
+  .pf-legacy-cell--natupres-end,
+  .pf-legacy-cell--date-demande-end {
+    justify-content: flex-start;
+    margin-left: 0;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .pf-legacy-cell--natupres-end .pf-legacy-label,
+  .pf-legacy-cell--date-demande-end .pf-legacy-label {
+    flex: 1 1 100%;
+    white-space: normal;
+  }
+  .pf-dossier-info-row .pf-legacy-input--natupres,
+  .pf-dossier-info-row .pf-legacy-input--natupres.q-field,
+  .pf-dossier-info-row .pf-legacy-input--date-demande,
+  .pf-dossier-info-row .pf-legacy-input--date-demande .q-field {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
   }
 }
 .dialog-form-card {

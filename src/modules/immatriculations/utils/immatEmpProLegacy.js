@@ -1,12 +1,6 @@
-import { activites as rawActivites } from 'src/modules/shared/data/Activites.js'
-import { arrondissements as rawArrondissements } from 'src/modules/shared/data/Arrondissements.js'
-import { centres } from 'src/modules/shared/data/Centres.js'
-import { formeJuridique as rawFormeJuridique } from 'src/modules/shared/data/FormeJuridique.js'
-import { impots as rawImpots } from 'src/modules/shared/data/Impots.js'
-import { pays as rawPays } from 'src/modules/shared/data/Pays.js'
-import { pieces as rawPieces } from 'src/modules/shared/data/Pieces.js'
 import { compareDates } from 'src/modules/immatriculations/utils/immatAssuTrvLegacy.js'
-import { toLegacySexe } from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
+import { toLegacySexe, appendLegacyFormField } from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
+import { createImmatEmpProReferentialContext } from 'src/modules/immatriculations/utils/immatEmpProReferentials.js'
 import {
   CAUSE_IMMA_OPTIONS,
   CIRCUIT_DOSSIER_OPTIONS,
@@ -16,53 +10,17 @@ import {
 } from 'src/modules/immatriculations/data/immatEmpProLegacyFields.js'
 
 function appendScalar(fd, key, value) {
-  if (value === null || value === undefined || value === '') return
-  fd.append(key, String(value))
-}
-
-function byCode(list, key, code) {
-  if (code === null || code === undefined || code === '') return null
-  return list.find((x) => String(x[key]) === String(code)) || null
-}
-
-function arrondLabel(code) {
-  const a = byCode(rawArrondissements, 'CODE_ARROND', code)
-  return a?.NOM_ARROND ?? code
-}
-
-function natJurLabel(code) {
-  const n = byCode(rawFormeJuridique, 'CODE_NATUREJUR', code)
-  return n?.LIBELLE_NATUREJUR ?? code
-}
-
-function activiteLabel(code) {
-  const a = byCode(rawActivites, 'CODE_SECT_ACTIVITE', code)
-  return a?.LIBELLE_SECT_ACTIVITE ?? code
-}
-
-function impotLabel(code) {
-  const i = byCode(rawImpots, 'CODE_CENTREIMPOT', code)
-  return i?.ABREVIATION ?? code
-}
-
-function cnpsLabel(value) {
-  const byCodeCentre = byCode(centres, 'CODE_CENTRE', value)
-  if (byCodeCentre) return byCodeCentre.LIB_CENTRE
-  const byLib = centres.find((c) => String(c.LIB_CENTRE) === String(value))
-  return byLib?.LIB_CENTRE ?? value
-}
-
-function paysNationaliteLabel(codeOrLabel) {
-  const p = byCode(rawPays, 'code_pays', codeOrLabel)
-  if (p) return p.nationalite
-  const byNat = rawPays.find((x) => x.nationalite === codeOrLabel)
-  return byNat?.nationalite ?? codeOrLabel
+  appendLegacyFormField(fd, key, value)
 }
 
 /**
  * Remplit les champs cachés (codes) ; les combos UI gardent des codes en v-model.
+ * @param {object} form
+ * @param {object} [referentials] — listes JSP (arrondissements, activites, …)
  */
-export function syncImmatEmpProHiddenFields(form) {
+export function syncImmatEmpProHiddenFields(form, referentials) {
+  const ctx = createImmatEmpProReferentialContext(referentials)
+
   form.TYPE_EMPLOYEUR = IMMAT_EMP_PRO_TYPE_EMPLOYEUR
   form.objet = IMMAT_EMP_PRO_OBJET
   form.laction = form.laction || 'Creer'
@@ -70,10 +28,10 @@ export function syncImmatEmpProHiddenFields(form) {
   form.CAUSEIMMA = form.CAUSE_IMMA || '0'
   form.CIRCUITDOSSIER = form.CIRCUIT_DOSSIER || '3'
 
-  const natJur = byCode(rawFormeJuridique, 'CODE_NATUREJUR', form.NATURE_JURC)
+  const natJur = ctx.byCode(ctx.formeJuridique, 'CODE_NATUREJUR', form.NATURE_JURC)
   if (natJur) form.CODE_NATUREJUR = natJur.CODE_NATUREJUR
 
-  const act = byCode(rawActivites, 'CODE_SECT_ACTIVITE', form.CODE_SECT_ACTIVITEC)
+  const act = ctx.byCode(ctx.activites, 'CODE_SECT_ACTIVITE', form.CODE_SECT_ACTIVITEC)
   if (act) {
     form.CODE_SECT_ACTIVITE = act.CODE_SECT_ACTIVITE
     form.CODE_REGIME = act.CODE_REGIME_CNPS
@@ -81,7 +39,7 @@ export function syncImmatEmpProHiddenFields(form) {
     form.A_VERIFIER = act.A_VERIFIER ?? ''
   }
 
-  const ci = byCode(rawImpots, 'CODE_CENTREIMPOT', form.CODE_CENTREIMPOTC)
+  const ci = ctx.byCode(ctx.impots, 'CODE_CENTREIMPOT', form.CODE_CENTREIMPOTC)
   if (ci) {
     form.CODE_CENTREIMPOT = ci.CODE_CENTREIMPOT
     if (!form._cnpsManual && ci.CODE_CENTRECNPS) {
@@ -89,12 +47,12 @@ export function syncImmatEmpProHiddenFields(form) {
     }
   }
 
-  const cnps = byCode(centres, 'CODE_CENTRE', form.CODE_CENTRECNPSC)
+  const cnps = ctx.byCode(ctx.centres, 'CODE_CENTRE', form.CODE_CENTRECNPSC)
   if (cnps) {
     form.CODE_CENTRECNPS = cnps.CODE_CENTRE
   }
 
-  const arr = byCode(rawArrondissements, 'CODE_ARROND', form.CODE_ARRONDC)
+  const arr = ctx.byCode(ctx.arrondissements, 'CODE_ARROND', form.CODE_ARRONDC)
   if (arr) {
     form.CODE_ARROND = arr.CODE_ARROND
     form.CODE_DEPA = arr.CODE_DEPA
@@ -102,7 +60,7 @@ export function syncImmatEmpProHiddenFields(form) {
     form.CODE_PAYS = arr.CODE_PAYS
   }
 
-  const arrNaiss = byCode(rawArrondissements, 'CODE_ARROND', form.LieuNaissPe)
+  const arrNaiss = ctx.byCode(ctx.arrondissements, 'CODE_ARROND', form.LieuNaissPe)
   if (arrNaiss) {
     form.LIEU_NAISS_PERSEMPL = arrNaiss.CODE_ARROND
     form.CODE_DEPA_NAISSEMPL = arrNaiss.CODE_DEPA
@@ -110,7 +68,7 @@ export function syncImmatEmpProHiddenFields(form) {
     form.CODE_PAYS_NAISSEMPL = arrNaiss.CODE_PAYS
   }
 
-  const arrPiece = byCode(rawArrondissements, 'CODE_ARROND', form.LIEU_PIECEC)
+  const arrPiece = ctx.byCode(ctx.arrondissements, 'CODE_ARROND', form.LIEU_PIECEC)
   if (arrPiece) {
     form.LIEU_PIECE = arrPiece.CODE_ARROND
     form.CODE_DEPA_PIECE = arrPiece.CODE_DEPA
@@ -118,15 +76,33 @@ export function syncImmatEmpProHiddenFields(form) {
     form.CODE_PAYS_PIECE = arrPiece.CODE_PAYS
   }
 
-  const p = byCode(rawPays, 'code_pays', form.NATIONALITEC)
+  const p = ctx.byCode(ctx.pays, 'code_pays', form.NATIONALITEC)
   if (p) form.NATIONALITE = p.code_pays
 
-  const tp = byCode(rawPieces, 'NUM_TYPEPIECE', form.NUM_TYPEPIECE)
+  const tp = ctx.byCode(ctx.pieces, 'NUM_TYPEPIECE', form.NUM_TYPEPIECE)
   if (tp) form.typepiece = tp.LIBELLE
 }
 
+export function hasRegistreCommerceDocument(files = {}) {
+  return Boolean(files?.IDREGICOMM)
+}
+
+export function hasAutorisationOuvertureDocument(files = {}) {
+  return Boolean(files?.IDAUTORISATION)
+}
+
+/** Au moins un des deux justificatifs (registre de commerce ou autorisation d'ouverture). */
+export function hasRegistreOuAutorisationDocument(files = {}) {
+  return hasRegistreCommerceDocument(files) || hasAutorisationOuvertureDocument(files)
+}
+
+/** Parcours sans registre de commerce : seule l'autorisation d'ouverture est fournie. */
+export function usesAutorisationOuvertureOnly(files = {}) {
+  return hasAutorisationOuvertureDocument(files) && !hasRegistreCommerceDocument(files)
+}
+
 /** Validations métier legacy (avant POST) — messages alignés imma_employeur1.js */
-export function validateImmatEmpProBusinessRules(form) {
+export function validateImmatEmpProBusinessRules(form, files = {}) {
   const today = new Date()
 
   if (form.DATE_EFFET && compareDates(form.DATE_DEB_SERVICE, form.DATE_EFFET) > 0) {
@@ -147,13 +123,24 @@ export function validateImmatEmpProBusinessRules(form) {
   if (form.DATE_PIECE && compareDates(today, form.DATE_PIECE) < 0) {
     return "Erreur : La date de delivrance de la piece d'identite est posterieure a la du jour"
   }
-  if (String(form.A_VERIFIER ?? '') !== '0' && !form.num_registre) {
+  if (!hasRegistreOuAutorisationDocument(files)) {
+    return "Registre de commerce ou autorisation d'ouverture : fournissez l'un de ces documents"
+  }
+  if (!String(form.CAUSE_IMMA ?? '').trim()) {
+    return "Origine de l'immatriculation non renseignee"
+  }
+  if (!String(form.CIRCUIT_DOSSIER ?? '').trim()) {
+    return 'Origine du dossier non renseignee'
+  }
+  const autorisationOnly = usesAutorisationOuvertureOnly(files)
+  const numRegistre = String(form.num_registre ?? '').trim()
+  if (!autorisationOnly && String(form.A_VERIFIER ?? '') !== '0' && !numRegistre) {
     return "Numero registre de commerce non renseigne (exige pour votre activite)"
   }
-  if (!form.date_creation_empl && form.num_registre) {
+  if (!form.date_creation_empl && numRegistre) {
     return 'Date de creation au registre de commerce non renseignee'
   }
-  if (String(form.A_VERIFIER ?? '') === '0' && !form.num_contr) {
+  if (String(form.A_VERIFIER ?? '') === '0' && !String(form.num_contr ?? '').trim()) {
     return 'Numero contribuable non renseigne'
   }
   return null
@@ -161,10 +148,13 @@ export function validateImmatEmpProBusinessRules(form) {
 
 /**
  * FormData — noms de champs identiques au formulaire ExtJS (name= / id=).
- * Les combos affichés envoient le libellé ; les codes vont dans les champs cachés associés.
+ * @param {object} form
+ * @param {object} files
+ * @param {{ dest?: string, codeTele?: string, codeSecret?: string, referentials?: object }} [options]
  */
 export function buildImmatEmpProLegacyFormData(form, files, options = {}) {
-  syncImmatEmpProHiddenFields(form)
+  const ctx = createImmatEmpProReferentialContext(options.referentials)
+  syncImmatEmpProHiddenFields(form, options.referentials)
   const fd = new FormData()
 
   appendScalar(fd, 'TYPE_EMPLOYEUR', form.TYPE_EMPLOYEUR)
@@ -182,7 +172,7 @@ export function buildImmatEmpProLegacyFormData(form, files, options = {}) {
   appendScalar(fd, 'NOM_COMMERCIAL', form.NOM_COMMERCIAL)
   appendScalar(fd, 'Sigle', form.Sigle)
   appendScalar(fd, 'CODE_ARROND', form.CODE_ARROND)
-  appendScalar(fd, 'CODE_ARRONDC', arrondLabel(form.CODE_ARRONDC))
+  appendScalar(fd, 'CODE_ARRONDC', ctx.arrondLabel(form.CODE_ARRONDC))
   appendScalar(fd, 'CODE_DEPA', form.CODE_DEPA)
   appendScalar(fd, 'CODE_REGION', form.CODE_REGION)
   appendScalar(fd, 'CODE_PAYS', form.CODE_PAYS)
@@ -204,24 +194,24 @@ export function buildImmatEmpProLegacyFormData(form, files, options = {}) {
   appendScalar(fd, 'NOM_COMMERCIAL_SIEGE', form.NOM_COMMERCIAL_SIEGE)
 
   appendScalar(fd, 'CODE_NATUREJUR', form.CODE_NATUREJUR)
-  appendScalar(fd, 'NATURE_JURC', natJurLabel(form.NATURE_JURC))
+  appendScalar(fd, 'NATURE_JURC', ctx.natJurLabel(form.NATURE_JURC))
   appendScalar(fd, 'CODE_SECT_ACTIVITE', form.CODE_SECT_ACTIVITE)
-  appendScalar(fd, 'CODE_SECT_ACTIVITEC', activiteLabel(form.CODE_SECT_ACTIVITEC))
+  appendScalar(fd, 'CODE_SECT_ACTIVITEC', ctx.activiteLabel(form.CODE_SECT_ACTIVITEC))
   appendScalar(fd, 'CODE_REGIME', form.CODE_REGIME)
   appendScalar(fd, 'CODE_GPE_RISQUE', form.CODE_GPE_RISQUE)
   appendScalar(fd, 'A_VERIFIER', form.A_VERIFIER)
   appendScalar(fd, 'NBRE_EMPL', form.NBRE_EMPL)
   appendScalar(fd, 'CODE_CENTREIMPOT', form.CODE_CENTREIMPOT)
-  appendScalar(fd, 'CODE_CENTREIMPOTC', impotLabel(form.CODE_CENTREIMPOTC))
+  appendScalar(fd, 'CODE_CENTREIMPOTC', ctx.impotLabel(form.CODE_CENTREIMPOTC))
   appendScalar(fd, 'CODE_CENTRECNPS', form.CODE_CENTRECNPS)
-  appendScalar(fd, 'CODE_CENTRECNPSC', cnpsLabel(form.CODE_CENTRECNPSC))
+  appendScalar(fd, 'CODE_CENTRECNPSC', ctx.cnpsLabel(form.CODE_CENTRECNPSC))
 
   appendScalar(fd, 'NOM_PERSEMPL', form.NOM_PERSEMPL)
   appendScalar(fd, 'PRENOM_PERSEMPL', form.PRENOM_PERSEMPL)
   appendScalar(fd, 'DATE_NAISS_PERSEMPL', form.DATE_NAISS_PERSEMPL)
   appendScalar(fd, 'LOCALITE_NAISS_PERSEMPL', form.LOCALITE_NAISS_PERSEMPL)
   appendScalar(fd, 'LIEU_NAISS_PERSEMPL', form.LIEU_NAISS_PERSEMPL)
-  appendScalar(fd, 'LieuNaissPe', arrondLabel(form.LieuNaissPe))
+  appendScalar(fd, 'LieuNaissPe', ctx.arrondLabel(form.LieuNaissPe))
   appendScalar(fd, 'CODE_PAYS_NAISSEMPL', form.CODE_PAYS_NAISSEMPL)
   appendScalar(fd, 'CODE_REGION_NAISSEMPL', form.CODE_REGION_NAISSEMPL)
   appendScalar(fd, 'CODE_DEPA_NAISSEMPL', form.CODE_DEPA_NAISSEMPL)
@@ -231,19 +221,31 @@ export function buildImmatEmpProLegacyFormData(form, files, options = {}) {
   appendScalar(fd, 'ADR_PERSEMPL', form.ADR_PERSEMPL)
   appendScalar(fd, 'EMAIL_PERSEMPL', form.EMAIL_PERSEMPL)
   appendScalar(fd, 'NATIONALITE', form.NATIONALITE)
-  appendScalar(fd, 'NATIONALITEC', paysNationaliteLabel(form.NATIONALITEC))
+  appendScalar(fd, 'NATIONALITEC', ctx.paysNationaliteLabel(form.NATIONALITEC))
   appendScalar(fd, 'NUM_TYPEPIECE', form.NUM_TYPEPIECE)
   appendScalar(fd, 'typepiece', form.typepiece)
   appendScalar(fd, 'NUM_PIECE', form.NUM_PIECE)
   appendScalar(fd, 'DATE_PIECE', form.DATE_PIECE)
-  appendScalar(fd, 'LIEU_PIECEC', arrondLabel(form.LIEU_PIECEC))
+  appendScalar(fd, 'LIEU_PIECEC', ctx.arrondLabel(form.LIEU_PIECEC))
   appendScalar(fd, 'LIEU_PIECE', form.LIEU_PIECE)
   appendScalar(fd, 'CODE_PAYS_PIECE', form.CODE_PAYS_PIECE)
   appendScalar(fd, 'CODE_REGION_PIECE', form.CODE_REGION_PIECE)
   appendScalar(fd, 'CODE_DEPA_PIECE', form.CODE_DEPA_PIECE)
 
-  appendScalar(fd, 'valider', form.validation === true || form.validation === '1' ? '1' : '0')
-  appendScalar(fd, 'etatValid', form.validation === true || form.validation === '1' ? '1' : '0')
+  const submissionType = options.submissionType
+  const confirmed = form.validation === true || form.validation === '1'
+  let valider = confirmed ? '1' : '0'
+  let etatValid = confirmed ? '1' : '0'
+  if (submissionType === 'definitive') {
+    valider = '1'
+    etatValid = '1'
+  } else if (submissionType === 'temporary') {
+    // Phase contrôle : aligné tele_imma_employeur1.js (valider=1 pour accepter l'enregistrement).
+    valider = '1'
+    etatValid = '1'
+  }
+  appendScalar(fd, 'valider', valider)
+  appendScalar(fd, 'etatValid', etatValid)
 
   if (files.IDREGICOMM) {
     fd.append(IMMAT_EMP_PRO_PIECES.REGISTRE_COMMERCE, files.IDREGICOMM, files.IDREGICOMM.name)

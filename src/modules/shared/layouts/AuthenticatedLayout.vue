@@ -12,7 +12,7 @@
             aria-label="Menu"
             color="white"
             class="q-mr-sm"
-            @click="leftDrawerOpen = !leftDrawerOpen"
+            @click="toggleLeftDrawer"
           />
 
           <div v-if="$q.screen.gt.xs" class="q-mr-sm">
@@ -20,8 +20,36 @@
           </div>
         </div>
 
-        <div class="authenticated-toolbar__title text-bold">
-          {{ toolbarTitle }}
+        <div class="authenticated-toolbar__title column justify-center">
+          <div v-if="toolbarTitle" class="text-bold">{{ toolbarTitle }}</div>
+          <div
+            v-if="toolbarSubtitle"
+            class="text-caption text-white authenticated-toolbar__subtitle"
+          >
+            {{ toolbarSubtitle }}
+          </div>
+        </div>
+
+        <div
+          v-if="toolbarQuickLinks.length && $q.screen.gt.sm"
+          class="authenticated-toolbar__quick-links row items-center q-gutter-xs q-ml-md"
+        >
+          <q-btn
+            v-for="(link, idx) in toolbarQuickLinks"
+            :key="link.href || idx"
+            flat
+            dense
+            no-caps
+            color="white"
+            size="sm"
+            class="authenticated-toolbar__quick-btn"
+            :href="link.href"
+            target="_blank"
+            rel="noopener noreferrer"
+            tag="a"
+          >
+            {{ link.label }}
+          </q-btn>
         </div>
 
         <div class="authenticated-toolbar__side authenticated-toolbar__side--right">
@@ -61,6 +89,7 @@
             :user-profile="userProfile"
             :persist-user-profile="persistUserProfile"
             :change-sim-password="changeSimPassword"
+            :login-history-link="loginHistoryLink"
             class="q-mr-sm"
           />
 
@@ -91,7 +120,6 @@
       :mini-width="auraSidebar ? 64 : undefined"
       :breakpoint="drawerBreakpoint"
       :mini="drawerComputedMini"
-      :overlay="!isDrawerDesktop"
       :class="drawerComputedClass"
       :content-class="auraSidebar ? '' : drawerContentClass"
       @mouseover="onDrawerMouseOver"
@@ -116,9 +144,17 @@
           v-else-if="menuItems.length"
           :items="menuItems"
           :mini-mode="miniMode"
-          :nav-section-label="t('layout.sidebar.navSectionPrincipal')"
+          :nav-section-label="sidebarNavSectionLabelResolved"
           @navigate="closeDrawerOnMobile"
         />
+        <template v-if="sidebarFooterMenuItems.length" #footer>
+          <AppSidebarNav
+            :items="sidebarFooterMenuItems"
+            :mini-mode="miniMode"
+            nav-section-label=""
+            @navigate="closeDrawerOnMobile"
+          />
+        </template>
       </AuraSidebarShell>
 
       <q-scroll-area v-else class="fit authenticated-drawer__scroll">
@@ -135,6 +171,18 @@
     </q-drawer>
 
     <q-page-container class="app-page-shell">
+      <div v-if="showPageChrome" class="authenticated-page-chrome">
+        <AppBreadcrumbs
+          v-if="showRouteBreadcrumbs && menuItems.length"
+          :menu-items="menuItems"
+          :prepend-home="breadcrumbPrependHome"
+          :home-route="breadcrumbHomeRoute || { name: 'energizer-home' }"
+          class="authenticated-page-breadcrumbs"
+        />
+        <div v-if="pageBannerText" class="authenticated-page-banner">
+          {{ pageBannerText }}
+        </div>
+      </div>
       <slot />
     </q-page-container>
 
@@ -155,11 +203,12 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, provide } from 'vue'
+import { computed, ref, watch, onMounted, provide, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import AppSidebarNav from 'src/modules/shared/components/layout/AppSidebarNav.vue'
+import AppBreadcrumbs from 'src/modules/shared/components/layout/AppBreadcrumbs.vue'
 import AuraSidebarShell from 'src/modules/shared/components/layout/AuraSidebarShell.vue'
 import UserProfileMenu from 'src/modules/shared/components/layout/UserProfileMenu.vue'
 import LogoutMenuButton from 'src/modules/shared/components/layout/LogoutMenuButton.vue'
@@ -170,6 +219,10 @@ const AURA_DRAWER_WIDTH = 260
 
 const props = defineProps({
   menuItems: {
+    type: Array,
+    default: () => [],
+  },
+  sidebarFooterMenuItems: {
     type: Array,
     default: () => [],
   },
@@ -249,6 +302,42 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  sidebarNavSectionLabel: {
+    type: String,
+    default: undefined,
+  },
+  toolbarSubtitle: {
+    type: String,
+    default: '',
+  },
+  toolbarQuickLinks: {
+    type: Array,
+    default: () => [],
+  },
+  auraBrandCaptionText: {
+    type: String,
+    default: '',
+  },
+  pageBannerText: {
+    type: String,
+    default: '',
+  },
+  loginHistoryLink: {
+    type: Object,
+    default: null,
+  },
+  showRouteBreadcrumbs: {
+    type: Boolean,
+    default: false,
+  },
+  breadcrumbPrependHome: {
+    type: Boolean,
+    default: true,
+  },
+  breadcrumbHomeRoute: {
+    type: Object,
+    default: null,
+  },
 })
 
 const $q = useQuasar()
@@ -261,14 +350,28 @@ const miniMode = ref(false)
 
 const isDrawerDesktop = computed(() => $q.screen.width >= props.drawerBreakpoint)
 
+const showPageChrome = computed(
+  () =>
+    (props.showRouteBreadcrumbs && props.menuItems.length > 0) || Boolean(props.pageBannerText),
+)
+
 const authSession = useAuthenticatedSession(props.sessionConfig)
 
 const displayName = authSession.displayName
 const userInitials = authSession.userInitials
 const userProfile = authSession.userProfile
+const refreshUserProfile = authSession.refreshUserProfile
 const persistUserProfile = authSession.persistUserProfile
 const changeSimPassword = authSession.changeSimPassword
 const performLogout = authSession.performLogout
+
+watch(
+  () => props.pageBannerText,
+  () => {
+    if (!props.showProfileMenu) return
+    refreshUserProfile()
+  },
+)
 
 const effectiveDrawerWidth = computed(() => {
   const max = props.drawerWidth
@@ -302,6 +405,7 @@ const auraBrandTitle = computed(() => {
 })
 
 const auraBrandCaption = computed(() => {
+  if (props.auraBrandCaptionText) return props.auraBrandCaptionText
   const translated = t(props.auraBrandCaptionKey)
   return translated === props.auraBrandCaptionKey ? props.auraBrandCaptionKey : translated
 })
@@ -310,6 +414,12 @@ const sidebarTitle = computed(() => {
   if (!props.sidebarTitleKey) return ''
   const translated = t(props.sidebarTitleKey)
   return translated === props.sidebarTitleKey ? props.sidebarTitleKey : translated
+})
+
+const sidebarNavSectionLabelResolved = computed(() => {
+  if (props.sidebarNavSectionLabel === '') return ''
+  if (props.sidebarNavSectionLabel != null) return props.sidebarNavSectionLabel
+  return t('layout.sidebar.navSectionPrincipal')
 })
 
 const sidebarUserName = computed(() =>
@@ -332,8 +442,33 @@ function onDrawerMouseOut() {
   }
 }
 
+function refreshLayout() {
+  nextTick(() => {
+    window.dispatchEvent(new Event('resize'))
+  })
+}
+
 function syncDrawerForViewport() {
-  leftDrawerOpen.value = isDrawerDesktop.value
+  if (isDrawerDesktop.value) {
+    leftDrawerOpen.value = true
+  } else {
+    leftDrawerOpen.value = false
+    miniMode.value = false
+  }
+  refreshLayout()
+}
+
+function toggleLeftDrawer() {
+  if (isDrawerDesktop.value) {
+    leftDrawerOpen.value = true
+    if (props.auraSidebar) {
+      miniMode.value = !miniMode.value
+    } else if (props.drawerMini) {
+      miniState.value = !miniState.value
+    }
+    return
+  }
+  leftDrawerOpen.value = !leftDrawerOpen.value
 }
 
 function closeDrawerOnMobile() {
@@ -352,6 +487,7 @@ provide('auraSidebarMiniMode', miniMode)
 const toolbarTitle = computed(() => {
   const useMobile = props.toolbarTitleMobileKey && $q.screen.lt.sm
   const key = useMobile ? props.toolbarTitleMobileKey : props.toolbarTitleKey
+  if (!key) return ''
   const translated = t(key)
   return translated === key ? key : translated
 })
@@ -360,15 +496,9 @@ const drawerTitle = computed(() => t(props.drawerTitleKey))
 
 const currentLangLabel = computed(() => (locale.value === 'fr' ? 'FR' : 'EN'))
 
-watch(
-  () => $q.screen.width,
-  () => {
-    syncDrawerForViewport()
-    if (!isDrawerDesktop.value) {
-      miniMode.value = false
-    }
-  },
-)
+watch(isDrawerDesktop, () => {
+  syncDrawerForViewport()
+})
 
 watch(
   () => route.fullPath,
@@ -427,9 +557,48 @@ function changeLang(lang) {
   font-size: 1.05rem;
   letter-spacing: 0.06em;
   text-align: center;
-  white-space: nowrap;
   pointer-events: none;
   max-width: min(52vw, 420px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.authenticated-toolbar__subtitle {
+  opacity: 0.92;
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.authenticated-toolbar__quick-links {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  z-index: 1;
+}
+
+.authenticated-page-chrome {
+  padding: 12px 16px 0;
+}
+
+.authenticated-page-breadcrumbs {
+  margin-bottom: 4px;
+}
+
+.authenticated-page-banner {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 4px 0 8px;
+  color: var(--q-primary);
+}
+
+.authenticated-toolbar__quick-btn {
+  background: rgba(255, 255, 255, 0.12);
+  max-width: 180px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
