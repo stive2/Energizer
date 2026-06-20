@@ -3,7 +3,7 @@
     <q-card-section class="controle-toolbar q-py-xs q-px-md">
       <div class="row items-center no-wrap">
         <div v-if="!showPreview" class="text-subtitle2 text-weight-medium text-primary">
-          {{ $t('immat.controle.subtitle') }}
+          {{ controleSubtitle }}
         </div>
         <div v-else class="text-subtitle2 text-weight-medium text-positive">
           {{ $t('immat.controle.validatedTitle') }}
@@ -113,13 +113,16 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, ref, watch } from 'vue'
+import { onBeforeUnmount, ref, watch, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import html2pdf from 'html2pdf.js'
 import { buildEtatControleAssureUrl } from 'src/modules/immatriculations/api/teleImmatAssureApi.js'
+import { buildEtatControleEmployeurUrl } from 'src/modules/immatriculations/api/teleImmatEmployeurApi.js'
 import { useNotify } from 'src/modules/shared/components/useNotify.js'
 
 const props = defineProps({
+  /** assure | employeur — JSP et liens legacy associés */
+  kind: { type: String, default: 'assure' },
   codeTele: { type: String, required: true },
   codeSecret: { type: String, default: '' },
   /** true = validation définitive : bouton Aperçu uniquement */
@@ -134,6 +137,29 @@ const emit = defineEmits(['close', 'edit', 'modify', 'validate', 'validated'])
 const { t } = useI18n()
 const { notifyError } = useNotify()
 
+const isEmployeur = computed(() => props.kind === 'employeur')
+const controleSubtitle = computed(() =>
+  isEmployeur.value ? t('immat.controle.subtitleEmployeur') : t('immat.controle.subtitle'),
+)
+const controleJspLabel = computed(() =>
+  isEmployeur.value ? 'etat_controle_employeur.jsp' : 'etat_controle_assure.jsp',
+)
+
+/** Styles injectés dans l’iframe (même origine via proxy Vite). */
+const LEGACY_HIDE_CSS = computed(() => {
+  const formLink = isEmployeur.value ? 'tele_imma_employeur1.jsp' : 'tele_imma_assure.jsp'
+  return `
+  a[href*="index.jsp"],
+  a[href="../index.jsp"],
+  a[href*="index.jsp?Page"],
+  a[href*="${formLink}"] {
+    display: none !important;
+  }
+`
+})
+
+let iframeClickHandler = null
+
 const error = ref(null)
 const controleUrl = ref('')
 const iframeKey = ref(0)
@@ -145,17 +171,11 @@ const previewIframe = ref(null)
 const previewReady = ref(false)
 const pdfLoading = ref(false)
 
-/** Styles injectés dans l’iframe (même origine via proxy Vite). */
-const LEGACY_HIDE_CSS = `
-  a[href*="index.jsp"],
-  a[href="../index.jsp"],
-  a[href*="index.jsp?Page"],
-  a[href*="tele_imma_assure.jsp"] {
-    display: none !important;
-  }
-`
-
-let iframeClickHandler = null
+function buildControleUrl(codeTele, codeSecret) {
+  return isEmployeur.value
+    ? buildEtatControleEmployeurUrl(codeTele, codeSecret)
+    : buildEtatControleAssureUrl(codeTele, codeSecret)
+}
 
 function parseTeleImmatLink(href, baseUrl) {
   try {
@@ -165,14 +185,18 @@ function parseTeleImmatLink(href, baseUrl) {
   }
 }
 
-function isTeleImmaAssureLink(url) {
+function isTeleImmaFormLink(url) {
+  if (isEmployeur.value) {
+    return /tele_imma_employeur1\.jsp/i.test(url.pathname)
+  }
   return /tele_imma_assure\.jsp/i.test(url.pathname)
 }
 
 function isLegacyNavigationToBlock(url) {
   if (/index\.jsp/i.test(url.pathname)) return true
-  if (/tele_imma_assure\.jsp/i.test(url.pathname)) return false
-  if (/etat_controle_assure\.jsp/i.test(url.pathname)) return false
+  if (isTeleImmaFormLink(url)) return false
+  if (isEmployeur.value && /etat_controle_employeur\.jsp/i.test(url.pathname)) return false
+  if (!isEmployeur.value && /etat_controle_assure\.jsp/i.test(url.pathname)) return false
   return false
 }
 
@@ -190,7 +214,7 @@ function patchIframeDocument(doc) {
 
   const style = doc.createElement('style')
   style.id = 'energizer-controle-patch'
-  style.textContent = LEGACY_HIDE_CSS
+  style.textContent = LEGACY_HIDE_CSS.value
   doc.head.appendChild(style)
 
   if (iframeClickHandler) {
@@ -204,11 +228,15 @@ function patchIframeDocument(doc) {
     const url = parseTeleImmatLink(anchor.href, doc.location?.href || window.location.href)
     if (!url) return
 
-    if (isTeleImmaAssureLink(url)) {
+    if (isTeleImmaFormLink(url)) {
       event.preventDefault()
       event.stopPropagation()
       emit('edit', {
-        codeTele: url.searchParams.get('codeTele') || props.codeTele,
+        codeTele:
+          url.searchParams.get('codeTele') ||
+          url.searchParams.get('numEmpl') ||
+          url.searchParams.get('numAssu') ||
+          props.codeTele,
         codeSecret: url.searchParams.get('codeSecret') || props.codeSecret,
       })
       return
@@ -240,7 +268,7 @@ function reloadControle() {
   iframeReady.value = false
   previewReady.value = false
   try {
-    controleUrl.value = buildEtatControleAssureUrl(props.codeTele, props.codeSecret)
+    controleUrl.value = buildControleUrl(props.codeTele, props.codeSecret)
     iframeKey.value += 1
   } catch (e) {
     error.value = e?.message || String(e)
@@ -279,7 +307,7 @@ function onIframeError() {
   iframeLoading.value = false
   iframeReady.value = false
   error.value =
-    'Impossible d’afficher la fiche de contrôle (etat_controle_assure.jsp). Vérifiez la connexion au serveur teleImmat_0.1.'
+    `Impossible d’afficher la fiche de contrôle (${controleJspLabel.value}). Vérifiez la connexion au serveur teleImmat_0.1.`
 }
 
 function printControle() {

@@ -21,7 +21,7 @@
         </div>
 
         <div class="authenticated-toolbar__title column justify-center">
-          <div class="text-bold">{{ toolbarTitle }}</div>
+          <div v-if="toolbarTitle" class="text-bold">{{ toolbarTitle }}</div>
           <div
             v-if="toolbarSubtitle"
             class="text-caption text-white authenticated-toolbar__subtitle"
@@ -176,6 +176,7 @@
           v-if="showRouteBreadcrumbs && menuItems.length"
           :menu-items="menuItems"
           :prepend-home="breadcrumbPrependHome"
+          :home-route="breadcrumbHomeRoute || { name: 'energizer-home' }"
           class="authenticated-page-breadcrumbs"
         />
         <div v-if="pageBannerText" class="authenticated-page-banner">
@@ -333,6 +334,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  breadcrumbHomeRoute: {
+    type: Object,
+    default: null,
+  },
 })
 
 const $q = useQuasar()
@@ -482,6 +487,7 @@ provide('auraSidebarMiniMode', miniMode)
 const toolbarTitle = computed(() => {
   const useMobile = props.toolbarTitleMobileKey && $q.screen.lt.sm
   const key = useMobile ? props.toolbarTitleMobileKey : props.toolbarTitleKey
+  if (!key) return ''
   const translated = t(key)
   return translated === key ? key : translated
 })

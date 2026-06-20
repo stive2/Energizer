@@ -16,14 +16,30 @@ export function isValidMatriculeEmployeur(val) {
   return v ? REGEX_MAT_EMPL.test(v) : false
 }
 
+function isFilled(val) {
+  if (val === 0) return true
+  if (val === null || val === undefined) return false
+  return String(val).trim() !== ''
+}
+
 export function useNouveauDossierRules() {
   const { t } = useI18n()
 
-  const required = (val) => !!val || val === 0 || t('input.requis')
+  const fieldMessage = (fieldKey) =>
+    t(`reception.nouveauDossier.fieldMessages.${fieldKey}`)
+
+  /** Règle obligatoire avec message spécifique au champ. */
+  const requiredField = (fieldKey) => (val) =>
+    isFilled(val) || fieldMessage(fieldKey)
+
+  const required = (val) => isFilled(val) || t('input.requis')
 
   const validateEmail = (val) => {
     if (!val) return true
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) || t('reception.nouveauDossier.validationError')
+    return (
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val) ||
+      t('reception.nouveauDossier.fieldMessages.emailInvalid')
+    )
   }
 
   const validateMatriculeAssure = (val) => {
@@ -40,7 +56,7 @@ export function useNouveauDossierRules() {
   const dateNotAfterToday = (val) => {
     if (!val) return true
     const parsed = parseFrDate(val)
-    if (!parsed) return t('reception.nouveauDossier.dateFuture')
+    if (!parsed) return t('reception.nouveauDossier.fieldMessages.invalidDate')
     const today = new Date()
     today.setHours(23, 59, 59, 999)
     return parsed <= today || t('reception.nouveauDossier.dateFuture')
@@ -51,11 +67,16 @@ export function useNouveauDossierRules() {
     const start = parseFrDate(startVal)
     const end = parseFrDate(endVal)
     if (!start || !end) return true
-    return end >= start || t('input.requis')
+    return (
+      end >= start ||
+      t('reception.nouveauDossier.fieldMessages.datedeclarationAfterAccident')
+    )
   }
 
   return {
     required,
+    requiredField,
+    fieldMessage,
     validateEmail,
     validateMatriculeAssure,
     validateMatriculeEmployeur,

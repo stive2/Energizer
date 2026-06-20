@@ -13,6 +13,7 @@ export const energizerAxios = axios.create({
   baseURL: getEnergizerBaseUrl(),
   timeout: getEnergizerTimeout(),
   withCredentials: true,
+  maxRedirects: 0,
   headers: {
     Accept: 'text/html,application/json,text/plain,*/*',
   },

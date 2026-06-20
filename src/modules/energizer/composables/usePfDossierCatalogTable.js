@@ -46,7 +46,7 @@ export function usePfDossierCatalogTable({
   scope = 'pf',
   mode = 'dossiers',
   $q,
-  withEndFilter = false,
+  withEndFilter = true,
   defaultCritere,
   defaultStart,
 }) {

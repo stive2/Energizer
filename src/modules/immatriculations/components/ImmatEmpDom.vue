@@ -393,6 +393,7 @@
                       outlined
                       :label="$t('input.fichierIdentiteResponsable')"
                       dense
+                      clearable
                       class="full-width"
                       accept=".gif,.jpg,.jpeg,.png,.pdf"
                       :max-total-size="maxSize"
@@ -607,6 +608,7 @@
                       v-model="formFile.IDPLANLOCAL"
                       outlined
                       dense
+                      clearable
                       :label="$t('input.planLocalisation')"
                       class="full-width"
                       accept=".gif,.jpg,.jpeg,.png,.doc,.docx,.pdf"
@@ -798,6 +800,7 @@
                       :label="$t('input.listeTravailleurs')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       accept=".xls,.xlsx,.doc,.docx,.pdf"
                       :max-total-size="maxSize"

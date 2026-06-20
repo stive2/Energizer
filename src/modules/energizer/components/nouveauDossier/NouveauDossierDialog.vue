@@ -37,6 +37,7 @@
 
 
       <q-card-section class="scroll nouveau-dossier-dialog__body">
+        <q-inner-loading :showing="store.isPiecesBusy && isPiecesStep" color="primary" />
 
         <template v-if="store.step === 'pick'">
 
@@ -56,34 +57,25 @@
           </p>
 
           <q-select
-
             v-model="pickedObjet"
-
+            v-bind="legacyFieldAttrs"
             name="objet"
-
             :label="t('reception.nouveauDossier.selectType')"
-
             outlined
-
             dense
-
             required
-
             emit-value
-
             map-options
-
             :options="store.objetOptions"
-
             option-value="value"
-
             option-label="label"
-
-            :rules="[required]"
-
+            :rules="[requiredField('objet')]"
             class="q-mb-md nouveau-dossier-dialog__pick-select"
-
-          />
+          >
+            <template #prepend>
+              <q-icon :name="fieldIcon('objet')" color="primary" />
+            </template>
+          </q-select>
 
           <div class="row justify-end q-gutter-sm">
 
@@ -204,6 +196,10 @@ import { useI18n } from 'vue-i18n'
 import { useNouveauDossierStore } from 'src/modules/energizer/stores/nouveauDossierStore.js'
 
 import { useNouveauDossierRules } from 'src/modules/energizer/composables/useNouveauDossierRules.js'
+import {
+  LEGACY_QFIELD_VALIDATE_ATTRS,
+  fieldIcon,
+} from 'src/modules/energizer/utils/nouveauDossierFormFields.js'
 
 import NouveauDossierForm from './NouveauDossierForm.vue'
 
@@ -221,7 +217,8 @@ const { t } = useI18n()
 
 const store = useNouveauDossierStore()
 
-const { required } = useNouveauDossierRules()
+const { requiredField } = useNouveauDossierRules()
+const legacyFieldAttrs = LEGACY_QFIELD_VALIDATE_ATTRS
 
 const pickedObjet = ref(null)
 

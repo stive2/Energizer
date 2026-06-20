@@ -95,14 +95,23 @@ export function parseImmatAssureSubmitResponse(data, rawText = '') {
       payload.success === 'true' ||
       payload.Success === 'true'
     let message =
-      payload.Msg ||
-      payload.message ||
-      payload.msg ||
+      payload.Msg ??
+      payload.message ??
+      payload.msg ??
       (ok ? 'Enregistrement réussi.' : '')
 
+    if (message == null || message === 'null') {
+      message = ''
+    } else {
+      message = String(message)
+    }
+
     if (!ok && !message) {
-      message =
-        'Échec de l’enregistrement : le serveur n’a pas fourni de détail (vérifiez les pièces jointes obligatoires).'
+      const extra =
+        payload.Exec != null || payload.exec != null
+          ? ` (exec=${payload.Exec ?? payload.exec})`
+          : ''
+      message = `Échec de l'enregistrement employeur${extra} : le serveur n'a pas fourni de détail (vérifiez les champs obligatoires et les pièces jointes).`
     }
 
     if (!ok && typeof message === 'string' && message.includes('ORA-01722')) {
@@ -141,6 +150,7 @@ export function parseImmatAssureSubmitResponse(data, rawText = '') {
         payload.codeTele ||
         payload.code_tele ||
         payload.numAssu ||
+        payload.numEmpl ||
         payload.CODE_TELE_ASSU ||
         null,
       codeSecret: payload.codeSecret || payload.code_secret || payload.CODE_SECRET || null,

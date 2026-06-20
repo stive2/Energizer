@@ -38,3 +38,6 @@ teleImmat_0.1/deploy/deploy-config.ps1
 
 # Laragon deploy — chemins serveur locaux
 deploy/laragon/deploy-config.ps1
+
+# Backend assuré — secrets Oracle (serveur uniquement)
+backend-assure/config/config.php

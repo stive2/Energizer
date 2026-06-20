@@ -73,6 +73,8 @@ function comparePieceDates(depStr, valStr) {
   return dep.getTime() - val.getTime()
 }
 
+export { comparePieceDates }
+
 /**
  * Validation addpiece.jsp (mode initial).
  * @returns {{ ok: boolean, message?: string, field?: string }}
@@ -185,5 +187,45 @@ export function splitPersonValue(person) {
   return {
     num_typepiece: person.slice(0, idx),
     libelle: person.slice(idx + 1),
+  }
+}
+
+/** Code prestation pour addpieceRecep.jsp?variable= (aligné get_dossier.jsp / jAccueil.jsp). */
+export function resolveObjCodeFromNumDossier(num_dossier) {
+  const num = String(num_dossier ?? '').trim()
+  if (!num) return ''
+  if (num.charAt(0) === 'I') return num.substring(0, 3)
+  return num.charAt(0)
+}
+
+/** Natu_prestation (PVID, PF, …) à partir du code Obj legacy. */
+export function resolveNatuPrestationFromObjCode(Obj, num_dossier) {
+  const code = String(Obj ?? '').trim() || resolveObjCodeFromNumDossier(num_dossier)
+  if (code === 'IMM') return 'IMMEM'
+  return resolveObjetFromCodePres(code.charAt(0))
+}
+
+/**
+ * Ligne addpieceRecep.jsp — paramètre variable (jAccueil / corbeille).
+ * @param {Record<string, unknown>} row
+ */
+export function toReceptionPiecesRow(row) {
+  const num_dossier = String(row?.num_dossier ?? row?.id ?? '').trim()
+  const Obj =
+    String(row?.Obj ?? '').trim() || resolveObjCodeFromNumDossier(num_dossier)
+  const myobjet = String(
+    row?.myobjet ?? row?.myObjet ?? row?.objet ?? '',
+  ).trim()
+  return {
+    num_dossier,
+    Obj,
+    num_assu: row?.num_assu ?? row?.numassu ?? '',
+    nom_requerant: row?.nom_requerant ?? row?.nomcomplet ?? '',
+    adresse: row?.adresse ?? '',
+    tel: row?.tel ?? row?.telephone ?? '',
+    myobjet,
+    myObjet: myobjet,
+    date_demande: row?.date_demande ?? row?.datedemande ?? '',
+    datedemande: row?.datedemande ?? row?.date_demande ?? '',
   }
 }

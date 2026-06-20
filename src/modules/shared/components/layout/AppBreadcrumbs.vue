@@ -16,7 +16,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { buildMenuBreadcrumbs } from 'src/modules/shared/utils/menuBreadcrumbs.js'
 
@@ -48,6 +48,7 @@ const props = defineProps({
 })
 
 const route = useRoute()
+const router = useRouter()
 const { t } = useI18n()
 
 const resolvedItems = computed(() => {
@@ -57,11 +58,19 @@ const resolvedItems = computed(() => {
   if (!props.menuItems?.length) {
     return []
   }
-  const name = props.routeName || route.name
-  return buildMenuBreadcrumbs(props.menuItems, name, {
+  if (props.routeName) {
+    return buildMenuBreadcrumbs(props.menuItems, props.routeName, {
+      homeLabelKey: props.homeLabelKey,
+      homeRoute: props.homeRoute,
+      prependHome: props.prependHome,
+      router,
+    })
+  }
+  return buildMenuBreadcrumbs(props.menuItems, route, {
     homeLabelKey: props.homeLabelKey,
     homeRoute: props.homeRoute,
     prependHome: props.prependHome,
+    router,
   })
 })
 

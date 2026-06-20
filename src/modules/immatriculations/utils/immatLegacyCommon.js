@@ -20,6 +20,11 @@ export const LEGACY_IMMAT_ASSURE_FILE_ACCEPT =
 export const LEGACY_FORM_DOCUMENT_FILE_ACCEPT =
   '.gif,.jpg,.jpeg,.png,.pdf,.doc,.docx,.xls,.xlsx,image/gif,image/jpeg,image/png,application/pdf'
 
+/** Liste des travailleurs — Excel, Word, PDF (imma_employeur1.js). */
+export const LEGACY_LISTE_TRAVAILLEURS_FILE_ACCEPT = '.xls,.xlsx,.doc,.docx,.pdf'
+
+const LEGACY_LISTE_TRAVAILLEURS_FILE_EXT = /\.(xls|xlsx|docx?|pdf)$/i
+
 const LEGACY_IMAGE_PDF_FILE_EXT = /\.(gif|jpe?g|png|pdf)$/i
 
 export function normalizeLegacyUploadFile(val) {
@@ -30,6 +35,11 @@ export function normalizeLegacyUploadFile(val) {
 export function isLegacyImageOrPdfFile(file) {
   const f = normalizeLegacyUploadFile(file)
   return f && LEGACY_IMAGE_PDF_FILE_EXT.test(f.name || '')
+}
+
+export function isLegacyListeTravailleursFile(file) {
+  const f = normalizeLegacyUploadFile(file)
+  return f && LEGACY_LISTE_TRAVAILLEURS_FILE_EXT.test(f.name || '')
 }
 
 export function isLegacyImmatAssureUploadFile(file) {

@@ -14,7 +14,7 @@
  *
  * Accouchement : dateAccoEffe, nombEnfaViab, nombEnfaContMedi, FAChBo, FMAChBo, 63, 33_N
  *
- * Congés maternité : ijcmChBo, accoPremChBo, nombJourSupp, dateDebuCongEffe, dateFinCongEffe,
+ * Congés maternité : ijcmChBo, accoPremChBo, nombJourSupp, dateAccoEffe, dateDebuCongEffe,
  * dateDebuNonSala, dateFinNonSala, dateReprActi, 92_1, 94 (+ champs accouchement si besoin)
  *
  * Allocations familiales : dateSignEmpl, dateEmba, nbreHeurEmba, nombEnfaMoin6, nombEnfaPlus6,

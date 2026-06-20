@@ -81,6 +81,8 @@ export function parseLegacyNextPage(nextPage) {
     const codeTele =
       params.get('numAssu') ||
       params.get('num_assu') ||
+      params.get('numEmpl') ||
+      params.get('num_empl') ||
       params.get('codeTele') ||
       undefined
     const codeSecret = params.get('codeSecret') || undefined

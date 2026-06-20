@@ -17,7 +17,9 @@ export const ENERGIZER_LEGACY_JSP = {
   teleimportation: 'teleimportation.jsp',
   nouvdossierServlet: 'nouvdossier',
   showPieces: 'show.jsp',
+  showAjoutPieces: 'showAjout.jsp',
   endDossier: 'end.jsp',
+  endRecepDossier: 'endRecep.jsp',
   jAccueil: 'jAccueil.jsp',
   getDossier: 'get/get_dossier.jsp',
   addpieceRecep: 'addpieceRecep.jsp',
@@ -70,6 +72,11 @@ function legacyRefererUrl() {
 export function legacyNouveauDossierRefererUrl() {
   const base = getEnergizerBaseUrl().replace(/\/$/, '')
   return `${base}/nouveauDossier.jsp`
+}
+
+function legacyPostHeaders(contentType = 'application/x-www-form-urlencoded') {
+  // Referer est un en-tête protégé du navigateur : il ne peut pas être défini via XHR.
+  return { 'Content-Type': contentType }
 }
 
 function assertLegacyJsonPayload(data, label) {
@@ -144,6 +151,7 @@ export async function postEnergizerLegacyServlet(path, params = {}, options = {}
   })
 
   const referer = options.referer ?? legacyRefererUrl()
+  void referer
 
   const resolveRedirectPayload = (response) => {
     const location = String(response.headers?.location ?? '')
@@ -161,10 +169,7 @@ export async function postEnergizerLegacyServlet(path, params = {}, options = {}
 
   try {
     const response = await energizerAxios.post(path, body, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Referer: referer,
-      },
+      headers: legacyPostHeaders(),
       responseType: 'text',
       maxRedirects: 0,
       validateStatus: (status) => status >= 200 && status < 400,
@@ -187,8 +192,20 @@ export async function postEnergizerLegacyServlet(path, params = {}, options = {}
     if (response?.status >= 300 && response.status < 400) {
       return guardLegacyServletPayload(resolveRedirectPayload(response))
     }
-    if (isEnergizerSessionExpiredResponse({ data: response?.data, finalUrl: response?.request?.responseURL })) {
-      assertEnergizerLegacySessionActive({ data: response?.data, finalUrl: response?.request?.responseURL })
+    if (isEnergizerSessionExpiredResponse({
+      data: response?.data,
+      finalUrl: response?.request?.responseURL,
+      redirectUrl: String(response?.headers?.location ?? ''),
+    })) {
+      assertEnergizerLegacySessionActive({
+        data: response?.data,
+        finalUrl: response?.request?.responseURL,
+        redirectUrl: String(response?.headers?.location ?? ''),
+      })
+    }
+    const serverHint = String(response?.data ?? '').trim().slice(0, 240)
+    if (response?.status >= 500 && serverHint) {
+      throw new Error(serverHint)
     }
     throw error
   }
@@ -201,6 +218,7 @@ export async function postEnergizerLegacyHtml(path, params = {}, options = {}) {
   })
 
   const referer = options.referer ?? legacyRefererUrl()
+  void referer
 
   const resolveRedirectPayload = (response) => {
     const location = String(response.headers?.location ?? '')
@@ -218,10 +236,7 @@ export async function postEnergizerLegacyHtml(path, params = {}, options = {}) {
 
   try {
     const response = await energizerAxios.post(path, body, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        Referer: referer,
-      },
+      headers: legacyPostHeaders(),
       responseType: 'text',
       maxRedirects: 0,
       validateStatus: (status) => status >= 200 && status < 400,
@@ -244,8 +259,20 @@ export async function postEnergizerLegacyHtml(path, params = {}, options = {}) {
     if (response?.status >= 300 && response.status < 400) {
       return guardLegacyServletPayload(resolveRedirectPayload(response))
     }
-    if (isEnergizerSessionExpiredResponse({ data: response?.data, finalUrl: response?.request?.responseURL })) {
-      assertEnergizerLegacySessionActive({ data: response?.data, finalUrl: response?.request?.responseURL })
+    if (isEnergizerSessionExpiredResponse({
+      data: response?.data,
+      finalUrl: response?.request?.responseURL,
+      redirectUrl: String(response?.headers?.location ?? ''),
+    })) {
+      assertEnergizerLegacySessionActive({
+        data: response?.data,
+        finalUrl: response?.request?.responseURL,
+        redirectUrl: String(response?.headers?.location ?? ''),
+      })
+    }
+    const serverHint = String(response?.data ?? '').trim().slice(0, 240)
+    if (response?.status >= 500 && serverHint) {
+      throw new Error(serverHint)
     }
     throw error
   }
@@ -257,15 +284,40 @@ export async function postEnergizerLegacyHtml(path, params = {}, options = {}) {
  * @param {Record<string, string | number>} [params]
  */
 export async function getEnergizerLegacyHtml(path, params = {}) {
-  const { data } = await energizerAxios.get(path, {
-    params: { _dc: Date.now(), ...params },
-    responseType: 'text',
-    headers: { Referer: legacyRefererUrl() },
-    skipErrorNotify: true,
-  })
-  const html = String(data ?? '')
-  assertEnergizerLegacySessionActive({ html })
-  return html
+  try {
+    const response = await energizerAxios.get(path, {
+      params: { _dc: Date.now(), ...params },
+      responseType: 'text',
+      validateStatus: (status) => status >= 200 && status < 400,
+      skipErrorNotify: true,
+    })
+
+    if (response.status >= 300 && response.status < 400) {
+      const location = String(response.headers?.location ?? '')
+      assertEnergizerLegacySessionActive({
+        redirectUrl: location,
+        finalUrl: String(response.request?.responseURL ?? location),
+      })
+      throw new Error(`Réponse inattendue du serveur (${path}).`)
+    }
+
+    const html = String(response.data ?? '')
+    assertEnergizerLegacySessionActive({ html })
+    return html
+  } catch (error) {
+    const response = error?.response
+    if (response?.status >= 300 && response.status < 400) {
+      assertEnergizerLegacySessionActive({
+        redirectUrl: String(response.headers?.location ?? ''),
+        finalUrl: String(response.request?.responseURL ?? ''),
+      })
+    }
+    const serverHint = String(response?.data ?? '').trim().slice(0, 240)
+    if (response?.status >= 500 && serverHint) {
+      throw new Error(serverHint)
+    }
+    throw error
+  }
 }
 
 /**

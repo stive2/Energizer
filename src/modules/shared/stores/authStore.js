@@ -14,7 +14,7 @@ import {
   logout as apiLogout,
   AuthError,
 } from 'src/modules/shared/api/auth/authApi.js'
-import { persistAgentSession } from 'src/modules/shared/utils/portalSimAuthSession.js'
+import { persistAgentSession, persistInsuredSession, clearPortalSimSession } from 'src/modules/shared/utils/portalSimAuthSession.js'
 
 const TOKEN_KEY = 'auth_token'
 const USER_KEY = 'user_info'
@@ -91,6 +91,26 @@ export const useAuthStore = defineStore('auth', {
           }
         }
 
+        if (payload.variant === 'insured') {
+          const insuredUser = {
+            ...result.user,
+            profile: 'external',
+            num_assu: result.user?.num_assu || payload.login,
+            login: result.user?.login || result.user?.num_assu || payload.login,
+          }
+          this.user = insuredUser
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem(USER_KEY, JSON.stringify(insuredUser))
+          }
+          persistInsuredSession({
+            login: insuredUser.login,
+            num_assu: insuredUser.num_assu,
+            displayName: insuredUser.displayName,
+            token: result.token,
+            user: insuredUser,
+          })
+        }
+
         return result
       } catch (err) {
         const message =
@@ -117,9 +137,12 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async logout() {
+    async logout(options = {}) {
+      const variant =
+        options.variant ||
+        (this.user?.profile === 'external' ? 'insured' : 'agent')
       try {
-        await apiLogout()
+        await apiLogout({ variant })
       } catch {
         /* ignore — déconnexion locale prioritaire */
       }
@@ -134,10 +157,7 @@ export const useAuthStore = defineStore('auth', {
       this.token = null
       this.user = null
       this.error = null
-      if (typeof localStorage !== 'undefined') {
-        localStorage.removeItem(TOKEN_KEY)
-        localStorage.removeItem(USER_KEY)
-      }
+      clearPortalSimSession()
     },
 
     /** Recharge la session depuis le stockage local (utile au boot). */

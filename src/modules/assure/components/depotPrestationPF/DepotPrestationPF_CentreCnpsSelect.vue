@@ -1,7 +1,8 @@
 <template>
   <q-select
     v-model="store.common.CODE_CENTRECNPSC"
-    :label="t('inputassu.centreCNPS')"
+    :label="fieldLabel(t('inputassu.centreCNPS'))"
+    :class="['depot-pf-centre-cnps-select', requiredFieldClass(true)]"
     :options="centresFiltered"
     option-label="LIB_CENTRE"
     option-value="CODE_CENTRE"
@@ -11,9 +12,14 @@
     dense
     use-input
     input-debounce="0"
+    class="depot-pf-centre-cnps-select"
     :rules="[required]"
     @filter="filterCentres"
-  />
+  >
+    <template #prepend>
+      <q-icon name="location_city" color="primary" />
+    </template>
+  </q-select>
 </template>
 
 <script setup>
@@ -25,7 +31,7 @@ import { useDepotPrestationPfRules } from 'src/modules/assure/composables/useDep
 
 const { t } = useI18n()
 const store = useDepotPrestationPfStore()
-const { required } = useDepotPrestationPfRules()
+const { required, fieldLabel, requiredFieldClass } = useDepotPrestationPfRules()
 
 const centresFiltered = ref([...rawCentres])
 

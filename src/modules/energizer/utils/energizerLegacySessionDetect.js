@@ -24,7 +24,24 @@ export function isEnergizerLegacyModulePageHtml(html) {
     || /periodeactivite/i.test(raw)
     || /elementsliquidationpf/i.test(raw)
     || /statsituationsdossiersparbranche/i.test(raw)
+    || /addpieceRecep/i.test(raw)
+    || /addpiece\.jsp/i.test(raw)
+    || /name=["']person\d/i.test(raw)
+    || /Liste des Pi[eèè]ces Jointes/i.test(raw)
+    || /showAjout\.jsp/i.test(raw)
+    || /name=["']Insert-/i.test(raw)
   )
+}
+
+/**
+ * @param {string} url
+ * @returns {boolean}
+ */
+export function isEnergizerLegacySuccessRedirectUrl(url) {
+  const raw = String(url ?? '').trim()
+  if (!raw) return false
+  if (isEnergizerLegacyLoginUrl(raw)) return false
+  return /jAccueil\.jsp|pagePrincipale\.jsp|blank\.jsp|nouveauDossier\.jsp/i.test(raw)
 }
 
 /**
@@ -43,7 +60,7 @@ export function isEnergizerLegacyLoginUrl(url) {
  */
 export function isEnergizerLegacyLoginPageHtml(html) {
   const raw = String(html ?? '').trim()
-  if (!raw) return true
+  if (!raw) return false
   if (isEnergizerLegacyModulePageHtml(raw)) return false
 
   if (/userloginmid\.jsp/i.test(raw)) return true

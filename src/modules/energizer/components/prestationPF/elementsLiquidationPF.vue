@@ -59,10 +59,10 @@
             </template>
           </q-select>
 
-          <!-- Valeur -->
+          <!-- Valeur début -->
           <q-input
             v-model="txtvaleurdeb"
-            label="Valeur recherchée"
+            label="Valeur de début"
             outlined
             dense
             clearable
@@ -76,6 +76,26 @@
           >
             <template v-slot:prepend>
               <q-icon name="search" color="primary" size="18px" />
+            </template>
+          </q-input>
+
+          <!-- Valeur fin -->
+          <q-input
+            v-model="txtvaleurfin"
+            label="Valeur de fin"
+            outlined
+            dense
+            clearable
+            hide-bottom-space
+            color="primary"
+            label-color="primary"
+            class="search-bar__value"
+            input-class="search-input-text"
+            @update:model-value="val => (txtvaleurfin = (val || '').toUpperCase())"
+            @keyup.enter="searchDossiers"
+          >
+            <template v-slot:prepend>
+              <q-icon name="last_page" color="primary" size="18px" />
             </template>
           </q-input>
 
@@ -723,8 +743,8 @@ function upper(field, val) {
 }
 
 const {
-  loading, errorMsg, cbxcritere, txtvaleurdeb, dossiers, searchDossiers, resetSearch,
-} = usePfDossierCatalogTable({ pfStore, scope: 'pf', $q, withEndFilter: false })
+  loading, errorMsg, cbxcritere, txtvaleurdeb, txtvaleurfin, dossiers, searchDossiers, resetSearch,
+} = usePfDossierCatalogTable({ pfStore, scope: 'pf', $q, withEndFilter: true })
 
 const ALL_TABLE_COLUMNS = [
   { name: 'index',       label: 'N°',               field: 'index',       align: 'center', style: 'width:50px' },

@@ -38,7 +38,7 @@
           <q-input
             v-model="txtvaleurdeb"
             name="txtvaleurdeb"
-            :label="cbxcritere === 'fdatepmd' ? 'Date début' : 'Valeur recherchée'"
+            label="Valeur de début"
             outlined dense clearable hide-bottom-space
             color="primary" label-color="primary" class="search-bar__value"
             @update:model-value="val => { if (cbxcritere !== 'fdatepmd') txtvaleurdeb = (val || '').toUpperCase() }"
@@ -58,7 +58,7 @@
             v-if="cbxcritere === 'fdatepmd'"
             v-model="txtvaleurfin"
             name="txtvaleurfin"
-            label="Date fin"
+            label="Valeur de fin"
             outlined dense clearable hide-bottom-space
             color="primary" label-color="primary" class="search-bar__value"
           >
@@ -72,6 +72,16 @@
               </q-icon>
             </template>
           </q-input>
+          <q-input
+            v-else
+            v-model="txtvaleurfin"
+            name="txtvaleurfin"
+            label="Valeur de fin"
+            outlined dense clearable hide-bottom-space
+            color="primary" label-color="primary" class="search-bar__value"
+            @update:model-value="val => (txtvaleurfin = (val || '').toUpperCase())"
+            @keyup.enter="searchPmd"
+          />
           <q-btn type="submit" color="primary" icon="search" label="Rechercher" unelevated :loading="loading" class="search-bar__btn" no-caps />
           <q-btn type="reset" flat round dense color="primary" icon="restart_alt" :disable="loading" />
         </q-form>

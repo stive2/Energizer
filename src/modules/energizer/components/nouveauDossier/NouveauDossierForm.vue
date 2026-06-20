@@ -1,5 +1,5 @@
 <template>
-  <q-form ref="formRef" class="nouveau-dossier-form" @submit.prevent="onSubmit">
+  <q-form ref="formRef" class="nouveau-dossier-form" greedy @submit.prevent="onSubmit">
     <div class="text-subtitle1 text-primary text-weight-medium text-center q-mb-sm">
       {{ store.formTitle }}
     </div>
@@ -8,8 +8,9 @@
       <div v-if="visible('numassu')" class="col-12 col-md-6">
         <q-input
           v-model="form.numassu"
+          v-bind="legacyFieldAttrs"
           name="numassu"
-          label="Numero Assure"
+          :label="fieldLabel('numassu')"
           outlined
           dense
           :disable="!enabled('numassu')"
@@ -22,6 +23,10 @@
           @keyup.enter="onNumassuLookup"
           @keydown.enter.prevent
         >
+          <template #prepend>
+            <q-spinner v-if="store.loadingAssure" color="primary" size="20px" />
+            <q-icon v-else :name="fieldIcon('numassu')" color="primary" />
+          </template>
           <template #append>
             <q-btn
               flat
@@ -40,82 +45,113 @@
       <div v-if="visible('nomcompletass')" class="col-12 col-md-6">
         <q-input
           v-model="form.nomcompletass"
+          v-bind="legacyFieldAttrs"
           name="nomcompletass"
-          label="Nom Complet Assure"
+          :label="fieldLabel('nomcompletass')"
           outlined
           dense
           readonly
           :disable="!enabled('nomcompletass')"
-        />
+        >
+          <template #prepend>
+            <q-icon :name="fieldIcon('nomcompletass')" color="primary" />
+          </template>
+        </q-input>
       </div>
 
       <div v-if="visible('today')" class="col-12 col-md-6">
         <q-input
           v-model="form.today"
+          v-bind="legacyFieldAttrs"
           name="today"
-          label="Date du jour"
+          :label="fieldLabel('today')"
           outlined
           dense
           readonly
           disable
-        />
+        >
+          <template #prepend>
+            <q-icon :name="fieldIcon('today')" color="primary" />
+          </template>
+        </q-input>
       </div>
 
       <div v-if="visible('date_naiss')" class="col-12 col-md-6">
         <q-input
           v-model="form.date_naiss"
+          v-bind="legacyFieldAttrs"
           name="date_naiss"
-          label="Date Naissance Assure"
+          :label="fieldLabel('date_naiss')"
           outlined
           dense
           readonly
           :disable="!enabled('date_naiss')"
-        />
+        >
+          <template #prepend>
+            <q-icon :name="fieldIcon('date_naiss')" color="primary" />
+          </template>
+        </q-input>
       </div>
 
       <div v-if="visible('centre_ges')" class="col-12 col-md-6">
         <q-input
           v-model="form.centre_ges"
+          v-bind="legacyFieldAttrs"
           name="centre_ges"
-          label="Centre de Gestion Assure"
+          :label="fieldLabel('centre_ges')"
           outlined
           dense
           readonly
           :disable="!enabled('centre_ges')"
-        />
+        >
+          <template #prepend>
+            <q-icon :name="fieldIcon('centre_ges')" color="primary" />
+          </template>
+        </q-input>
       </div>
 
       <div v-if="visible('nomcomplet')" class="col-12 col-md-6">
         <q-input
           v-model="form.nomcomplet"
+          v-bind="legacyFieldAttrs"
           name="nomcomplet"
-          label="Nom Deposant"
+          :label="fieldLabel('nomcomplet')"
           outlined
           dense
           :disable="!enabled('nomcomplet')"
           :required="fieldRequired('nomcomplet')"
           :rules="nomcompletRules"
           @update:model-value="(val) => upper('nomcomplet', val)"
-        />
+        >
+          <template #prepend>
+            <q-icon :name="fieldIcon('nomcomplet')" color="primary" />
+          </template>
+        </q-input>
       </div>
 
       <div v-if="visible('nomtiers')" class="col-12 col-md-6">
         <q-input
           v-model="form.nomtiers"
+          v-bind="legacyFieldAttrs"
           name="nomtiers"
-          label="Nom Tierce"
+          :label="fieldLabel('nomtiers')"
           outlined
           dense
           :disable="!enabled('nomtiers')"
           @update:model-value="(val) => upper('nomtiers', val)"
-        />
+        >
+          <template #prepend>
+            <q-icon :name="fieldIcon('nomtiers')" color="primary" />
+          </template>
+        </q-input>
       </div>
 
       <div v-if="visible('datedemande')" class="col-12 col-md-6">
         <q-input
           v-model="form.datedemande"
+          v-bind="legacyFieldAttrs"
           name="datedemande"
-          label="Date Depot"
+          :label="fieldLabel('datedemande')"
           outlined
           dense
           mask="##/##/####"
@@ -123,6 +159,9 @@
           :required="fieldRequired('datedemande')"
           :rules="datedemandeRules"
         >
+          <template #prepend>
+            <q-icon :name="fieldIcon('datedemande')" color="primary" />
+          </template>
           <template #append>
             <q-icon name="event" color="primary" class="cursor-pointer">
               <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -140,8 +179,9 @@
       <div v-if="visible('datecessation')" class="col-12 col-md-6">
           <q-input
             v-model="form.datecessation"
+            v-bind="legacyFieldAttrs"
             name="datecessation"
-            label="Date Cessation Cotisation Assure"
+            :label="fieldLabel('datecessation')"
             outlined
             dense
             mask="##/##/####"
@@ -149,6 +189,9 @@
             :required="fieldRequired('datecessation')"
             :rules="datecessationRules"
           >
+            <template #prepend>
+              <q-icon :name="fieldIcon('datecessation')" color="primary" />
+            </template>
             <template #append>
               <q-icon name="event" color="primary" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -162,8 +205,9 @@
       <div v-if="visible('datedeces')" class="col-12 col-md-6">
           <q-input
             v-model="form.datedeces"
+            v-bind="legacyFieldAttrs"
             name="datedeces"
-            label="Date de Décés Assure"
+            :label="fieldLabel('datedeces')"
             outlined
             dense
             mask="##/##/####"
@@ -171,6 +215,9 @@
             :required="fieldRequired('datedeces')"
             :rules="datedecesRules"
           >
+            <template #prepend>
+              <q-icon :name="fieldIcon('datedeces')" color="primary" />
+            </template>
             <template #append>
               <q-icon name="event" color="primary" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -184,8 +231,9 @@
       <div v-if="visible('dateconstatinvalid')" class="col-12 col-md-6">
           <q-input
             v-model="form.dateconstatinvalid"
+            v-bind="legacyFieldAttrs"
             name="dateconstatinvalid"
-            label="Date d Invalidité Assure"
+            :label="fieldLabel('dateconstatinvalid')"
             outlined
             dense
             mask="##/##/####"
@@ -193,6 +241,9 @@
             :required="fieldRequired('dateconstatinvalid')"
             :rules="dateconstatinvalidRules"
           >
+            <template #prepend>
+              <q-icon :name="fieldIcon('dateconstatinvalid')" color="primary" />
+            </template>
             <template #append>
               <q-icon name="event" color="primary" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -206,8 +257,9 @@
       <div v-if="visible('dateconstatincapacite')" class="col-12 col-md-6">
           <q-input
             v-model="form.dateconstatincapacite"
+            v-bind="legacyFieldAttrs"
             name="dateconstatincapacite"
-            label="Date de Constation de l Incapacité Assure"
+            :label="fieldLabel('dateconstatincapacite')"
             outlined
             dense
             mask="##/##/####"
@@ -215,6 +267,9 @@
             :required="fieldRequired('dateconstatincapacite')"
             :rules="dateconstatincapaciteRules"
           >
+            <template #prepend>
+              <q-icon :name="fieldIcon('dateconstatincapacite')" color="primary" />
+            </template>
             <template #append>
               <q-icon name="event" color="primary" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -228,15 +283,19 @@
       <div v-if="visible('datedemandeassuredecede')" class="col-12 col-md-6">
           <q-input
             v-model="form.datedemandeassuredecede"
+            v-bind="legacyFieldAttrs"
             name="datedemandeassuredecede"
-            label="Date Demande Assuré Décédé"
+            :label="fieldLabel('datedemandeassuredecede')"
             outlined
             dense
             mask="##/##/####"
             :disable="!enabled('datedemandeassuredecede')"
             :required="fieldRequired('datedemandeassuredecede')"
-            :rules="[required, dateNotAfterToday]"
+            :rules="datedemandeassuredecedeRules"
           >
+            <template #prepend>
+              <q-icon :name="fieldIcon('datedemandeassuredecede')" color="primary" />
+            </template>
             <template #append>
               <q-icon name="event" color="primary" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -250,8 +309,9 @@
       <div v-if="visible('natureprestation')" class="col-12 col-md-6">
           <q-select
             v-model="form.natureprestation"
+            v-bind="legacyFieldAttrs"
             name="natureprestation"
-            label="Nature Prestation Assuré Décédé"
+            :label="fieldLabel('natureprestation')"
             outlined
             dense
             emit-value
@@ -263,28 +323,38 @@
             :required="fieldRequired('natureprestation')"
             :rules="natureprestationRules"
             @update:model-value="store.onNatureSelect"
-          />
+          >
+            <template #prepend>
+              <q-icon :name="fieldIcon('natureprestation')" color="primary" />
+            </template>
+          </q-select>
       </div>
 
       <div v-if="visible('tauxinvalide')" class="col-12 col-md-6">
           <q-input
             v-model.number="form.tauxinvalide"
+            v-bind="legacyFieldAttrs"
             name="tauxinvalide"
             type="number"
-            label="Taux Invalidité Assure"
+            :label="fieldLabel('tauxinvalide')"
             outlined
             dense
             :disable="!enabled('tauxinvalide')"
             :required="fieldRequired('tauxinvalide')"
             :rules="tauxinvalideRules"
-          />
+          >
+            <template #prepend>
+              <q-icon :name="fieldIcon('tauxinvalide')" color="primary" />
+            </template>
+          </q-input>
       </div>
 
       <div v-if="visible('dateaccident')" class="col-12 col-md-6">
           <q-input
             v-model="form.dateaccident"
+            v-bind="legacyFieldAttrs"
             name="dateaccident"
-            label="Date Accident/Maladie Assure"
+            :label="fieldLabel('dateaccident')"
             outlined
             dense
             mask="##/##/####"
@@ -292,6 +362,9 @@
             :required="fieldRequired('dateaccident')"
             :rules="dateaccidentRules"
           >
+            <template #prepend>
+              <q-icon :name="fieldIcon('dateaccident')" color="primary" />
+            </template>
             <template #append>
               <q-icon name="event" color="primary" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -305,8 +378,9 @@
       <div v-if="visible('datedeclaration')" class="col-12 col-md-6">
           <q-input
             v-model="form.datedeclaration"
+            v-bind="legacyFieldAttrs"
             name="datedeclaration"
-            label="Date Déclaration"
+            :label="fieldLabel('datedeclaration')"
             outlined
             dense
             mask="##/##/####"
@@ -314,6 +388,9 @@
             :required="fieldRequired('datedeclaration')"
             :rules="datedeclarationRules"
           >
+            <template #prepend>
+              <q-icon :name="fieldIcon('datedeclaration')" color="primary" />
+            </template>
             <template #append>
               <q-icon name="event" color="primary" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
@@ -327,34 +404,45 @@
       <div v-if="visible('email')" class="col-12 col-md-6">
           <q-input
             v-model="form.email"
+            v-bind="legacyFieldAttrs"
             name="email"
-            label="Email"
+            :label="fieldLabel('email')"
             outlined
             dense
             :disable="!enabled('email')"
             :rules="[validateEmail]"
-          />
+          >
+            <template #prepend>
+              <q-icon :name="fieldIcon('email')" color="primary" />
+            </template>
+          </q-input>
       </div>
 
       <div v-if="visible('adresse')" class="col-12 col-md-6">
           <q-input
             v-model="form.adresse"
+            v-bind="legacyFieldAttrs"
             name="adresse"
-            label="Adresse"
+            :label="fieldLabel('adresse')"
             outlined
             dense
             :disable="!enabled('adresse')"
             :required="fieldRequired('adresse')"
             :rules="adresseRules"
             @update:model-value="(val) => upper('adresse', val)"
-          />
+          >
+            <template #prepend>
+              <q-icon :name="fieldIcon('adresse')" color="primary" />
+            </template>
+          </q-input>
       </div>
 
       <div v-if="visible('telephone')" class="col-12 col-md-6">
           <q-input
             v-model="form.telephone"
+            v-bind="legacyFieldAttrs"
             name="telephone"
-            label="Telephone"
+            :label="fieldLabel('telephone')"
             outlined
             dense
             type="tel"
@@ -363,14 +451,19 @@
             :disable="!enabled('telephone')"
             :required="fieldRequired('telephone')"
             :rules="telephoneRules"
-          />
+          >
+            <template #prepend>
+              <q-icon :name="fieldIcon('telephone')" color="primary" />
+            </template>
+          </q-input>
       </div>
 
       <div v-if="visible('typeimmas')" class="col-12 col-md-6">
           <q-select
             v-model="form.typeimmas"
+            v-bind="legacyFieldAttrs"
             name="typeimmas"
-            label="TYPE IMMATRICULATION?"
+            :label="fieldLabel('typeimmas')"
             outlined
             dense
             emit-value
@@ -381,14 +474,19 @@
             :disable="!enabled('typeimmas')"
             :required="fieldRequired('typeimmas')"
             :rules="typeimmasRules"
-          />
+          >
+            <template #prepend>
+              <q-icon :name="fieldIcon('typeimmas')" color="primary" />
+            </template>
+          </q-select>
       </div>
 
       <div v-if="visible('revision')" class="col-12 col-md-6">
           <q-select
             v-model="form.revision"
+            v-bind="legacyFieldAttrs"
             name="revision"
-            label="VOULEZ VOUS ASSOCIER CE DOSSIER A UNE REVISION DE DROITS?"
+            :label="fieldLabel('revision')"
             outlined
             dense
             emit-value
@@ -400,12 +498,17 @@
             :required="fieldRequired('revision')"
             :rules="revisionRules"
             @update:model-value="store.onRevisionSelect"
-          />
+          >
+            <template #prepend>
+              <q-icon :name="fieldIcon('revision')" color="primary" />
+            </template>
+          </q-select>
       </div>
 
       <div v-if="visible('circuit')" class="col-12 col-md-6">
           <q-select
             v-model="form.circuit"
+            v-bind="legacyFieldAttrs"
             name="circuit"
             :label="t('reception.nouveauDossier.circuitLabel')"
             outlined
@@ -416,9 +519,13 @@
             option-value="value"
             option-label="label"
             :required="fieldRequired('circuit')"
-            :rules="[required]"
+            :rules="circuitRules"
             @update:model-value="store.onCircuitSelect"
-          />
+          >
+            <template #prepend>
+              <q-icon :name="fieldIcon('circuit')" color="primary" />
+            </template>
+          </q-select>
       </div>
     </div>
 
@@ -437,13 +544,14 @@
           <div class="col-12 col-md-6">
             <q-input
               v-model="form.mat_employeur"
+              v-bind="legacyFieldAttrs"
               name="mat_employeur"
               :label="t('reception.nouveauDossier.matEmployeur')"
               outlined
               dense
               :required="fieldRequired('mat_employeur')"
               :loading="store.loadingEmployeur"
-              :rules="[validateMatriculeEmployeur]"
+              :rules="matEmployeurRules"
               :hint="t('reception.nouveauDossier.matEmployeurHint')"
               @update:model-value="onMatEmployeurChange"
               @click="onMatEmployeurActivate"
@@ -451,6 +559,10 @@
               @keyup.enter="onMatEmployeurLookup"
               @keydown.enter.prevent
             >
+              <template #prepend>
+                <q-spinner v-if="store.loadingEmployeur" color="primary" size="20px" />
+                <q-icon v-else :name="fieldIcon('mat_employeur')" color="primary" />
+              </template>
               <template #append>
                 <q-btn
                   flat
@@ -467,62 +579,92 @@
           <div class="col-12 col-md-6">
             <q-input
               v-model="form.RAISON_SOCIALE"
+              v-bind="legacyFieldAttrs"
               name="raison_soc"
-              label="Raison sociale"
+              :label="fieldLabel('raison_soc')"
               outlined
               dense
               readonly
-            />
+            >
+              <template #prepend>
+                <q-icon :name="fieldIcon('raison_soc')" color="primary" />
+              </template>
+            </q-input>
           </div>
           <div class="col-12 col-md-6">
             <q-input
               v-model="form.CODE_CENTRE"
+              v-bind="legacyFieldAttrs"
               name="centre"
-              label="Centre de Gestion"
+              :label="fieldLabel('centre')"
               outlined
               dense
               readonly
-            />
+            >
+              <template #prepend>
+                <q-icon :name="fieldIcon('centre')" color="primary" />
+              </template>
+            </q-input>
           </div>
           <div class="col-12 col-md-6">
             <q-input
               v-model="form.BOITE_POSTALE"
+              v-bind="legacyFieldAttrs"
               name="boite_post"
-              label="Boite postale"
+              :label="fieldLabel('boite_post')"
               outlined
               dense
               readonly
-            />
+            >
+              <template #prepend>
+                <q-icon :name="fieldIcon('boite_post')" color="primary" />
+              </template>
+            </q-input>
           </div>
           <div class="col-12 col-md-6">
             <q-input
               v-model="form.REGIME_CNPS"
+              v-bind="legacyFieldAttrs"
               name="regime"
-              label="Regime CNPS"
+              :label="fieldLabel('regime')"
               outlined
               dense
               readonly
-            />
+            >
+              <template #prepend>
+                <q-icon :name="fieldIcon('regime')" color="primary" />
+              </template>
+            </q-input>
           </div>
           <div class="col-12 col-md-6">
             <q-input
               v-model="form.CODE_GPE_RISQUE"
+              v-bind="legacyFieldAttrs"
               name="risque"
-              label="Risque"
+              :label="fieldLabel('risque')"
               outlined
               dense
               readonly
-            />
+            >
+              <template #prepend>
+                <q-icon :name="fieldIcon('risque')" color="primary" />
+              </template>
+            </q-input>
           </div>
           <div class="col-12 col-md-6">
             <q-input
               v-model="form.ADRESSE_EMPLOYEUR"
+              v-bind="legacyFieldAttrs"
               name="adresse_employeur"
-              label="Adresse"
+              :label="fieldLabel('adresse_employeur')"
               outlined
               dense
               readonly
-            />
+            >
+              <template #prepend>
+                <q-icon :name="fieldIcon('adresse_employeur')" color="primary" />
+              </template>
+            </q-input>
           </div>
         </div>
       </q-card>
@@ -543,26 +685,34 @@
           <div class="col-12 col-md-6">
             <q-input
               v-model="form.code_tele_enreg"
+              v-bind="legacyFieldAttrs"
               name="code_tele_enreg"
               :label="t('reception.nouveauDossier.codeTele')"
               outlined
               dense
               :required="fieldRequired('code_tele_enreg')"
+              :rules="codeTeleRules"
               @update:model-value="(val) => upper('code_tele_enreg', val)"
               @click="onTeleBlur"
               @blur="onTeleBlur"
               @keyup.enter="onTeleBlur"
               @keydown.enter.prevent
-            />
+            >
+              <template #prepend>
+                <q-icon :name="fieldIcon('code_tele_enreg')" color="primary" />
+              </template>
+            </q-input>
           </div>
           <div class="col-12 col-md-6">
             <q-input
               v-model="form.code_secret"
+              v-bind="legacyFieldAttrs"
               name="code_secret"
               :label="t('reception.nouveauDossier.codeSecret')"
               outlined
               dense
               :required="fieldRequired('code_secret')"
+              :rules="codeSecretRules"
               type="password"
               autocapitalize="off"
               autocorrect="off"
@@ -572,7 +722,11 @@
               @blur="onTeleBlur"
               @keyup.enter="onTeleBlur"
               @keydown.enter.prevent
-            />
+            >
+              <template #prepend>
+                <q-icon :name="fieldIcon('code_secret')" color="primary" />
+              </template>
+            </q-input>
           </div>
         </div>
         <q-banner v-if="t('reception.nouveauDossier.teleHint')" dense class="bg-blue-1 q-mt-sm">
@@ -596,12 +750,17 @@
             >
               <q-input
                 :model-value="f.value"
+                v-bind="legacyFieldAttrs"
                 :name="f.name"
                 :label="t(f.labelKey)"
                 outlined
                 dense
                 readonly
-              />
+              >
+                <template #prepend>
+                  <q-icon name="info" color="primary" />
+                </template>
+              </q-input>
             </div>
           </div>
         </q-expansion-item>
@@ -657,9 +816,15 @@ import {
 import { normalizeMatriculeEmployeur } from 'src/modules/assure/api/depotPrestationPfUtils.js'
 import { isNouveauDossierFieldRequired } from 'src/modules/energizer/utils/nouveauDossierFormUi.js'
 import {
+  LEGACY_QFIELD_VALIDATE_ATTRS,
+  fieldIcon,
+} from 'src/modules/energizer/utils/nouveauDossierFormFields.js'
+import {
   buildLegacyTelephoneRules,
   setLegacyUppercaseText,
 } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
+
+const legacyFieldAttrs = LEGACY_QFIELD_VALIDATE_ATTRS
 
 const { t } = useI18n()
 const store = useNouveauDossierStore()
@@ -667,13 +832,17 @@ const { form, fieldState } = storeToRefs(store)
 const formRef = ref(null)
 
 const {
-  required,
+  requiredField,
   validateEmail,
   validateMatriculeAssure,
   validateMatriculeEmployeur,
   dateNotAfterToday,
   dateRangeEndAfterStart,
 } = useNouveauDossierRules()
+
+function fieldLabel(key) {
+  return t(`reception.nouveauDossier.fieldLabels.${key}`)
+}
 
 defineExpose({ formRef })
 
@@ -701,7 +870,7 @@ function fieldRequired(key) {
 function reqRule(key) {
   if (!active(key)) return []
   return isFieldRequired(key, fieldState.value)
-    ? [required, dateNotAfterToday]
+    ? [requiredField(key), dateNotAfterToday]
     : [dateNotAfterToday]
 }
 
@@ -709,46 +878,73 @@ const numassuRules = computed(() =>
   active('numassu') ? [validateMatriculeAssure] : [],
 )
 const nomcompletRules = computed(() =>
-  isFieldRequired('nomcomplet', fieldState.value) ? [required] : [],
+  isFieldRequired('nomcomplet', fieldState.value) ? [requiredField('nomcomplet')] : [],
 )
 const datedemandeRules = computed(() => reqRule('datedemande'))
 const datecessationRules = computed(() =>
-  active('datecessation') ? [required, dateNotAfterToday] : [],
+  active('datecessation') ? [requiredField('datecessation'), dateNotAfterToday] : [],
 )
 const datedecesRules = computed(() =>
-  active('datedeces') ? [required, dateNotAfterToday] : [],
+  active('datedeces') ? [requiredField('datedeces'), dateNotAfterToday] : [],
 )
 const dateconstatinvalidRules = computed(() =>
-  active('dateconstatinvalid') ? [required, dateNotAfterToday] : [],
+  active('dateconstatinvalid')
+    ? [requiredField('dateconstatinvalid'), dateNotAfterToday]
+    : [],
 )
 const dateconstatincapaciteRules = computed(() =>
-  active('dateconstatincapacite') ? [required, dateNotAfterToday] : [],
+  active('dateconstatincapacite')
+    ? [requiredField('dateconstatincapacite'), dateNotAfterToday]
+    : [],
+)
+const datedemandeassuredecedeRules = computed(() =>
+  active('datedemandeassuredecede')
+    ? [requiredField('datedemandeassuredecede'), dateNotAfterToday]
+    : [],
 )
 const natureprestationRules = computed(() =>
-  active('natureprestation') ? [required] : [],
+  active('natureprestation') ? [requiredField('natureprestation')] : [],
 )
 const tauxinvalideRules = computed(() =>
-  active('tauxinvalide') ? [required] : [],
+  active('tauxinvalide') ? [requiredField('tauxinvalide')] : [],
 )
 const dateaccidentRules = computed(() =>
-  active('dateaccident') ? [required, dateNotAfterToday] : [],
+  active('dateaccident') ? [requiredField('dateaccident'), dateNotAfterToday] : [],
 )
 const datedeclarationRules = computed(() =>
   active('datedeclaration')
-    ? [required, dateNotAfterToday, dateRangeEndAfterStart(form.value.dateaccident)]
+    ? [
+        requiredField('datedeclaration'),
+        dateNotAfterToday,
+        dateRangeEndAfterStart(form.value.dateaccident),
+      ]
     : [],
 )
 const adresseRules = computed(() =>
-  active('adresse') ? [required] : [],
+  active('adresse') ? [requiredField('adresse')] : [],
 )
 const telephoneRules = computed(() =>
-  buildLegacyTelephoneRules(t, { required: active('telephone') }),
+  buildLegacyTelephoneRules(t, {
+    required: active('telephone'),
+    requiredMessage: t('reception.nouveauDossier.fieldMessages.telephone'),
+  }),
 )
 const typeimmasRules = computed(() =>
-  active('typeimmas') ? [required] : [],
+  active('typeimmas') ? [requiredField('typeimmas')] : [],
 )
 const revisionRules = computed(() =>
-  active('revision') ? [required] : [],
+  active('revision') ? [requiredField('revision')] : [],
+)
+const circuitRules = computed(() => [requiredField('circuit')])
+const matEmployeurRules = computed(() => {
+  if (!formGroups().group00Visible) return [validateMatriculeEmployeur]
+  return [requiredField('mat_employeur'), validateMatriculeEmployeur]
+})
+const codeTeleRules = computed(() =>
+  formGroups().group03Visible ? [requiredField('code_tele_enreg')] : [],
+)
+const codeSecretRules = computed(() =>
+  formGroups().group03Visible ? [requiredField('code_secret')] : [],
 )
 
 function upper(field, val) {

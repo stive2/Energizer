@@ -3,7 +3,7 @@ import {
   parseLegacyRoot,
 } from 'src/modules/immatriculations/adapters/legacyJsonAdapter.js'
 import { getLegacyJsp, postLegacyJsp } from './teleImmatClient.js'
-import { isTeleImmatLegacyEnabled } from 'src/modules/shared/config/teleImmat.js'
+import { getTeleImmatBaseUrl, isTeleImmatLegacyEnabled } from 'src/modules/shared/config/teleImmat.js'
 
 /** JSP alignés imma_employeur1.js (dossier teleImmat_0.1/immat/). */
 const JSP = {
@@ -114,6 +114,24 @@ export async function fetchEmployeurTele(codeTele, codeSecret) {
   const row = firstLegacyRow(data)
   if (!row) throw new Error('Enregistrement inexistant.')
   return row
+}
+
+/**
+ * URL fiche de pré-immatriculation employeur — etat_controle_employeur.jsp (teleImmat_0.1).
+ * @param {string} codeTele
+ * @param {string} [codeSecret]
+ */
+export function buildEtatControleEmployeurUrl(codeTele, codeSecret) {
+  assertLegacyEnabled()
+  const numEmpl = String(codeTele || '').trim()
+  if (!numEmpl) {
+    throw new Error('Code de pré-immatriculation requis pour l’état de contrôle.')
+  }
+  const params = new URLSearchParams({ numEmpl })
+  const secret = String(codeSecret || '').trim()
+  if (secret) params.set('codeSecret', secret)
+  const base = getTeleImmatBaseUrl().replace(/\/+$/, '')
+  return `${base}/immat/etat_controle_employeur.jsp?${params}`
 }
 
 /**

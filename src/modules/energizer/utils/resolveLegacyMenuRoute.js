@@ -11,6 +11,10 @@ function pfPanelRoute(panel) {
   return { name: 'prestation-pf-saisie-elements', query: { panel } }
 }
 
+function rpNouveauDossierRoute() {
+  return { name: 'prestation-rp-saisie-dossier', query: { panel: 'nouveauDossier' } }
+}
+
 /** Correspondance href servlet → id panel (ordre : plus spécifique en premier). */
 const PF_PANEL_BY_HREF = [
   ['elementsliquidationpf', 'aperiodique'],
@@ -49,6 +53,10 @@ export function resolveLegacyMenuRoute(entry = {}) {
   const norm = normalizeLabel(entry.label)
   const href = String(entry.href || '').toLowerCase()
 
+  if (/nlledeclaration/.test(href)) {
+    return rpNouveauDossierRoute()
+  }
+
   if (
     /nouveau\s*dossier/.test(norm) ||
     /reception.*nouveau.*dossier/.test(norm) ||
@@ -64,12 +72,8 @@ export function resolveLegacyMenuRoute(entry = {}) {
     return { name: 'gestion-liquidation-rp' }
   }
 
-  if (/nlledeclaration/.test(href)) {
-    return { name: 'prestation-rp-saisie-dossier' }
-  }
-
   if (/saisie.*dossier.*rp|saisiedossierrp|saisie-dossier-rp/.test(href + norm)) {
-    return { name: 'prestation-rp-saisie-dossier' }
+    return rpNouveauDossierRoute()
   }
 
   if (/saisie.*elements.*rp|elementsliquidationrp|saisie-elements-rp/.test(href + norm)) {

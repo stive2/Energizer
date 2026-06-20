@@ -50,7 +50,7 @@
           <q-input
             v-model="txtvaleurdeb"
             name="txtvaleurdeb"
-            label="Valeur recherchée"
+            label="Valeur de début"
             outlined
             dense
             clearable
@@ -64,6 +64,25 @@
           >
             <template v-slot:prepend>
               <q-icon name="search" color="primary" size="18px" />
+            </template>
+          </q-input>
+          <q-input
+            v-model="txtvaleurfin"
+            name="txtvaleurfin"
+            label="Valeur de fin"
+            outlined
+            dense
+            clearable
+            hide-bottom-space
+            color="primary"
+            label-color="primary"
+            class="search-bar__value"
+            input-class="search-input-text"
+            @update:model-value="val => (txtvaleurfin = (val || '').toUpperCase())"
+            @keyup.enter="searchDossiers"
+          >
+            <template v-slot:prepend>
+              <q-icon name="last_page" color="primary" size="18px" />
             </template>
           </q-input>
           <q-btn
@@ -499,11 +518,12 @@ const {
   errorMsg,
   cbxcritere,
   txtvaleurdeb,
+  txtvaleurfin,
   dossiers,
   searchDossiers,
   resetSearch,
   loadCatalog,
-} = usePfDossierCatalogTable({ pfStore, mode: 'reprises', $q, withEndFilter: false })
+} = usePfDossierCatalogTable({ pfStore, mode: 'reprises', $q, withEndFilter: true })
 
 const tableColumns = [
   { name: 'index',       label: 'N°',               field: 'index',       align: 'center', style: 'width:50px' },

@@ -354,6 +354,7 @@
                       :label="$t('inputassu.annual_income_declaration')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       :counter-label="counterLabelFn"
                       max-files="1"
@@ -386,6 +387,7 @@
                       :hint="fileHintWithSize($t('inputassu.honor_declaration_hint'))"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       :counter-label="counterLabelFn"
                       max-files="1"
@@ -747,6 +749,7 @@
                       :label="form.typepiece?.LIBELLE || $t('inputassu.identity_document_type')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       max-files="1"
                       :accept="LEGACY_IMMAT_FILE_ACCEPT"
@@ -773,6 +776,7 @@
                       :label="$t('inputassu.declaration_on_honor')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       max-files="1"
                       :accept="LEGACY_IMMAT_FILE_ACCEPT"
@@ -1321,6 +1325,7 @@
                         "
                         outlined
                         dense
+                        clearable
                         class="full-width"
                         :accept="LEGACY_IMMAT_FILE_ACCEPT"
                         :max-file-size="LEGACY_MAX_FILE_SIZE"
@@ -1372,6 +1377,7 @@
                         "
                         outlined
                         dense
+                        clearable
                         class="full-width"
                         :accept="LEGACY_IMMAT_FILE_ACCEPT"
                         :max-file-size="LEGACY_MAX_FILE_SIZE"
@@ -1431,6 +1437,7 @@
                         "
                         outlined
                         dense
+                        clearable
                         class="full-width"
                         :accept="LEGACY_IMMAT_FILE_ACCEPT"
                         :max-file-size="LEGACY_MAX_FILE_SIZE"

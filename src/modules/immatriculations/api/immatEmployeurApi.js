@@ -4,6 +4,7 @@ import { getCnpsApiTimeout } from 'src/modules/shared/config/api.js'
 import { getApiErrorMessage } from 'src/modules/shared/services/http/apiError.js'
 import { isTeleImmatLegacyEnabled } from 'src/modules/shared/config/teleImmat.js'
 import {
+  enrichSubmitCredentials,
   parseImmatAssureSubmitResponse,
   stripHtml,
 } from './immatAssureResponse.js'
@@ -20,13 +21,19 @@ async function postGererEmployeurLegacy(formData) {
     timeout: IMMAT_SUBMIT_TIMEOUT_MS,
     skipErrorNotify: true,
   })
-  const parsed = parseImmatAssureSubmitResponse(data)
+  if (import.meta.env.DEV) {
+    console.info('GererEmployeur response:', data)
+    console.info('GererEmployeur FormData:', [...formData.entries()])
+  }
+  const parsed = enrichSubmitCredentials(parseImmatAssureSubmitResponse(data))
   if (!parsed.success) {
     throw new Error(stripHtml(parsed.message) || 'Échec de l’enregistrement employeur.')
   }
   return {
     success: true,
-    Msg: stripHtml(parsed.message) || 'Enregistrement réussi.',
+    Msg: parsed.shortMessage || stripHtml(parsed.message) || 'Enregistrement réussi.',
+    message: parsed.message,
+    shortMessage: parsed.shortMessage,
     codeTele: parsed.codeTele,
     codeSecret: parsed.codeSecret,
   }

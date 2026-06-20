@@ -31,6 +31,12 @@ const routes = [
         meta: ROUTE_META_GUEST_INSURED,
         component: () => import('src/modules/assure/pages/AssureLoginPage.vue'),
       },
+      {
+        path: 'assure/register',
+        name: 'assure-register',
+        meta: ROUTE_META_GUEST_INSURED,
+        component: () => import('src/modules/assure/pages/AssureRegisterPage.vue'),
+      },
     ],
   },
 
@@ -73,6 +79,11 @@ const routes = [
         path: 'depot-dossier',
         name: 'depot-dossier',
         component: () => import('src/modules/assure/pages/prestations/dossiers.vue'),
+      },
+      {
+        path: 'mon-compte',
+        name: 'assure-account',
+        component: () => import('src/modules/assure/pages/AssureAccountPage.vue'),
       },
       {
         path: 'prestations-familiales',
@@ -127,6 +138,10 @@ const routes = [
         path: 'liquidationRP/saisie-dossier-rp',
         name: 'prestation-rp-saisie-dossier',
         component: () => import('src/modules/energizer/pages/liquidations/liquidationRP/saisieDossierRP.vue'),
+      },
+      {
+        path: 'liquidationRP/nlledeclaration',
+        redirect: { name: 'prestation-rp-saisie-dossier', query: { panel: 'nouveauDossier' } },
       },
       {
         path: 'liquidationRP/saisie-elements-rp',

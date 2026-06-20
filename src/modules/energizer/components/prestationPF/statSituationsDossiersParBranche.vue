@@ -14,10 +14,11 @@
     </transition>
 
     <!-- FILTRES -->
-    <q-card class="filter-panel q-mb-md" flat>
+    <q-card class="filter-panel q-mb-sm" flat>
       <div class="filter-panel__header">
         <q-icon name="tune" size="18px" color="primary" class="q-mr-xs" />
         <span class="filter-panel__header-title">Paramètres de recherche</span>
+        <span class="filter-panel__header-hint gt-xs">Branche et période (début ≤ fin)</span>
         <q-space />
         <q-chip
           v-if="hasActiveFilters"
@@ -28,9 +29,8 @@
       </div>
       <div class="filter-panel__body">
         <q-form ref="filterFormRef" @submit.prevent="searchStats">
-          <div class="row q-col-gutter-md items-end">
-
-            <div class="col-12 col-sm-auto filter-col-centre">
+          <div class="filter-grid">
+            <div class="filter-grid__field">
               <label class="filter-label">
                 <q-icon name="location_city" size="13px" class="q-mr-xs" />Centre
               </label>
@@ -39,7 +39,7 @@
                 :options="centreOptions"
                 outlined dense emit-value map-options
                 color="primary" clearable
-                class="filter-field filter-field--centre"
+                class="filter-field"
                 placeholder="Tous les centres"
               >
                 <template v-slot:prepend>
@@ -48,7 +48,7 @@
               </q-select>
             </div>
 
-            <div class="col-12 col-sm-6 col-md-2">
+            <div class="filter-grid__field">
               <label class="filter-label">
                 <q-icon name="account_tree" size="13px" class="q-mr-xs" />Branche
               </label>
@@ -67,9 +67,9 @@
               </q-select>
             </div>
 
-            <div class="col-12 col-sm-6 col-md-2">
+            <div class="filter-grid__field">
               <label class="filter-label">
-                <q-icon name="calendar_today" size="13px" class="q-mr-xs" />Début de période
+                <q-icon name="calendar_today" size="13px" class="q-mr-xs" />Début
               </label>
               <q-input
                 v-model="filters.txtvaleurdeb"
@@ -104,9 +104,9 @@
               </q-input>
             </div>
 
-            <div class="col-12 col-sm-6 col-md-2">
+            <div class="filter-grid__field">
               <label class="filter-label">
-                <q-icon name="calendar_today" size="13px" class="q-mr-xs" />Fin de période
+                <q-icon name="calendar_today" size="13px" class="q-mr-xs" />Fin
               </label>
               <q-input
                 v-model="filters.txtvaleurfin"
@@ -141,106 +141,18 @@
               </q-input>
             </div>
 
-            <div class="col-12 col-md-3">
-              <label class="filter-label" style="opacity:0">‌</label>
-              <div class="filter-actions">
-                <q-btn type="submit" color="primary" icon="search" label="Rechercher"
-                  unelevated no-caps class="btn-search" :loading="loading" />
-                <q-btn color="teal-7" icon="download" label="CSV" unelevated no-caps
-                  class="btn-export" :disable="dossiers.length === 0" @click="exportCsv">
-                  <q-tooltip>Exporter en CSV</q-tooltip>
-                </q-btn>
-              </div>
+            <div class="filter-grid__actions">
+              <q-btn type="submit" color="primary" icon="search" label="Rechercher"
+                unelevated no-caps class="btn-search" :loading="loading" />
+              <q-btn color="teal-7" icon="download" label="CSV" unelevated no-caps
+                class="btn-export" :disable="dossiers.length === 0" @click="exportCsv">
+                <q-tooltip>Exporter en CSV</q-tooltip>
+              </q-btn>
             </div>
-
-          </div>
-          <div class="filter-hint q-mt-sm">
-            <q-icon name="info" size="13px" color="primary" />
-            <span>Sélectionnez une branche et une période (début ≤ fin) puis cliquez sur <strong>Rechercher</strong></span>
           </div>
         </q-form>
       </div>
     </q-card>
-
-    <!-- KPI -->
-    <transition name="fade-up">
-      <div v-if="dossiers.length > 0" class="kpi-section q-mb-lg">
-        <div class="kpi-section__title">
-          <q-icon name="analytics" size="16px" color="primary" class="q-mr-xs" />
-          Vue d'ensemble
-          <span class="kpi-section__period q-ml-sm">{{ libellePeriode }}</span>
-        </div>
-        <div class="kpi-grid">
-          <div class="kpi-item kpi-total">
-            <div class="kpi-item__icon-wrap kpi-bg-total"><q-icon name="folder_open" size="22px" color="white" /></div>
-            <div class="kpi-item__body">
-              <div class="kpi-item__num">{{ dossiers.length }}</div>
-              <div class="kpi-item__label">Total dossiers</div>
-            </div>
-            <div class="kpi-item__bar kpi-bar-total" />
-          </div>
-          <div class="kpi-item kpi-encours">
-            <div class="kpi-item__icon-wrap kpi-bg-encours"><q-icon name="pending_actions" size="22px" color="white" /></div>
-            <div class="kpi-item__body">
-              <div class="kpi-item__num text-orange-8">{{ countBySitu('cours') }}</div>
-              <div class="kpi-item__label">En cours</div>
-            </div>
-            <div class="kpi-item__bar kpi-bar-encours" />
-            <div class="kpi-item__pct">{{ pct(countBySitu('cours')) }}%</div>
-          </div>
-          <div class="kpi-item kpi-attente">
-            <div class="kpi-item__icon-wrap kpi-bg-attente"><q-icon name="hourglass_top" size="22px" color="white" /></div>
-            <div class="kpi-item__body">
-              <div class="kpi-item__num text-blue-7">{{ countBySitu('attente') }}</div>
-              <div class="kpi-item__label">En attente</div>
-            </div>
-            <div class="kpi-item__bar kpi-bar-attente" />
-            <div class="kpi-item__pct">{{ pct(countBySitu('attente')) }}%</div>
-          </div>
-          <div class="kpi-item kpi-transmis">
-            <div class="kpi-item__icon-wrap kpi-bg-transmis"><q-icon name="send" size="22px" color="white" /></div>
-            <div class="kpi-item__body">
-              <div class="kpi-item__num text-teal-7">{{ countBySitu('transmi') }}</div>
-              <div class="kpi-item__label">Transmis</div>
-            </div>
-            <div class="kpi-item__bar kpi-bar-transmis" />
-            <div class="kpi-item__pct">{{ pct(countBySitu('transmi')) }}%</div>
-          </div>
-          <div class="kpi-item kpi-liquide">
-            <div class="kpi-item__icon-wrap kpi-bg-liquide"><q-icon name="verified" size="22px" color="white" /></div>
-            <div class="kpi-item__body">
-              <div class="kpi-item__num text-green-8">{{ countBySitu('liqui') }}</div>
-              <div class="kpi-item__label">Liquidés</div>
-            </div>
-            <div class="kpi-item__bar kpi-bar-liquide" />
-            <div class="kpi-item__pct">{{ pct(countBySitu('liqui')) }}%</div>
-          </div>
-          <div class="kpi-item kpi-annule">
-            <div class="kpi-item__icon-wrap kpi-bg-annule"><q-icon name="cancel" size="22px" color="white" /></div>
-            <div class="kpi-item__body">
-              <div class="kpi-item__num text-red-8">{{ countBySitu('annul') }}</div>
-              <div class="kpi-item__label">Annulés</div>
-            </div>
-            <div class="kpi-item__bar kpi-bar-annule" />
-            <div class="kpi-item__pct">{{ pct(countBySitu('annul')) }}%</div>
-          </div>
-        </div>
-        <div class="distrib-bar q-mt-sm">
-          <div class="distrib-bar__seg distrib-encours"  :style="{ width: pct(countBySitu('cours'))   + '%' }" />
-          <div class="distrib-bar__seg distrib-attente"  :style="{ width: pct(countBySitu('attente')) + '%' }" />
-          <div class="distrib-bar__seg distrib-transmis" :style="{ width: pct(countBySitu('transmi')) + '%' }" />
-          <div class="distrib-bar__seg distrib-liquide"  :style="{ width: pct(countBySitu('liqui'))   + '%' }" />
-          <div class="distrib-bar__seg distrib-annule"   :style="{ width: pct(countBySitu('annul'))   + '%' }" />
-        </div>
-        <div class="distrib-legend q-mt-xs">
-          <span class="legend-dot" style="background:#ef6c00" />En cours &nbsp;
-          <span class="legend-dot" style="background:#1976d2" />En attente &nbsp;
-          <span class="legend-dot" style="background:#00796b" />Transmis &nbsp;
-          <span class="legend-dot" style="background:#388e3c" />Liquidés &nbsp;
-          <span class="legend-dot" style="background:#c62828" />Annulés
-        </div>
-      </div>
-    </transition>
 
     <!-- TABLE -->
     <q-card class="table-card" flat>
@@ -252,9 +164,28 @@
             <div v-if="dossiers.length" class="table-toolbar__sub">
               {{ libelleBranche }} · {{ libellePeriode }}
             </div>
+            <button
+              v-if="dossiers.length"
+              type="button"
+              class="overview-trigger q-mt-xs"
+              @click="showOverviewDialog = true"
+            >
+              <q-icon name="analytics" size="16px" />
+              <span class="overview-trigger__label">Vue d'ensemble</span>
+              <span class="overview-trigger__dot" aria-hidden="true">·</span>
+              <span class="overview-trigger__period">{{ libellePeriode }}</span>
+              <q-icon name="north_east" size="14px" class="overview-trigger__arrow" />
+            </button>
           </div>
         </div>
         <div class="table-toolbar__right">
+          <q-badge
+            v-if="dossiers.length"
+            color="primary"
+            text-color="white"
+            class="table-count-badge q-mr-sm"
+            :label="`${dossiers.length} ligne${dossiers.length > 1 ? 's' : ''}`"
+          />
           <q-input
             v-model="tableFilter"
             placeholder="Rechercher dans le tableau…"
@@ -278,17 +209,20 @@
           row-key="numdossier"
           :grid="tableGrid"
           :loading="loading"
-          dense flat
+          dense
+          bordered
+          separator="cell"
           :rows-per-page-options="tableRowsPerPageOptions"
           :pagination="{ rowsPerPage: tableDefaultRowsPerPage }"
           :filter="tableFilter"
           no-data-label="Aucun dossier — renseignez les filtres et cliquez sur Rechercher"
           class="stat-table"
+          table-class="stat-table__grid"
         >
           <!-- En-têtes -->
           <template v-slot:header-cell="props">
             <q-th :props="props" class="table-header-cell">
-              {{ props.col.label }}
+              <span class="table-header-cell__label">{{ props.col.label }}</span>
             </q-th>
           </template>
 
@@ -462,6 +396,119 @@
       </div>
     </q-card>
 
+    <!-- Dialogue Vue d'ensemble (stats à la demande) -->
+    <q-dialog
+      v-model="showOverviewDialog"
+      transition-show="scale"
+      transition-hide="scale"
+    >
+      <q-card class="overview-dialog">
+        <div class="overview-dialog__hero">
+          <div class="overview-dialog__hero-icon">
+            <q-icon name="insights" size="28px" color="white" />
+          </div>
+          <div class="overview-dialog__hero-text">
+            <div class="overview-dialog__title">Vue d'ensemble</div>
+            <div class="overview-dialog__meta">
+              <q-badge :color="brancheColor(filters.cbxbranche)" :label="libelleBranche" class="q-mr-xs" />
+              <span class="overview-dialog__period">{{ libellePeriode }}</span>
+            </div>
+          </div>
+          <q-btn flat round dense icon="close" color="white" class="overview-dialog__close" v-close-popup>
+            <q-tooltip>Fermer</q-tooltip>
+          </q-btn>
+        </div>
+
+        <q-card-section class="overview-dialog__summary">
+          <div class="overview-dialog__total">
+            <div class="overview-dialog__total-num">{{ dossiers.length }}</div>
+            <div class="overview-dialog__total-label">dossiers au total</div>
+          </div>
+          <div class="overview-dialog__distrib">
+            <div class="overview-dialog__distrib-title">Répartition par situation</div>
+            <div class="distrib-bar distrib-bar--lg">
+              <div class="distrib-bar__seg distrib-encours"  :style="{ width: pct(countBySitu('cours'))   + '%' }" />
+              <div class="distrib-bar__seg distrib-attente"  :style="{ width: pct(countBySitu('attente')) + '%' }" />
+              <div class="distrib-bar__seg distrib-transmis" :style="{ width: pct(countBySitu('transmi')) + '%' }" />
+              <div class="distrib-bar__seg distrib-liquide"  :style="{ width: pct(countBySitu('liqui'))   + '%' }" />
+              <div class="distrib-bar__seg distrib-annule"   :style="{ width: pct(countBySitu('annul'))   + '%' }" />
+            </div>
+            <div class="distrib-legend distrib-legend--dialog q-mt-sm">
+              <span><span class="legend-dot" style="background:#ef6c00" />En cours</span>
+              <span><span class="legend-dot" style="background:#1976d2" />En attente</span>
+              <span><span class="legend-dot" style="background:#00796b" />Transmis</span>
+              <span><span class="legend-dot" style="background:#388e3c" />Liquidés</span>
+              <span><span class="legend-dot" style="background:#c62828" />Annulés</span>
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-card-section class="overview-dialog__kpi">
+          <div class="kpi-grid kpi-grid--dialog">
+            <div class="kpi-item kpi-total">
+              <div class="kpi-item__icon-wrap kpi-bg-total"><q-icon name="folder_open" size="20px" color="white" /></div>
+              <div class="kpi-item__body">
+                <div class="kpi-item__num">{{ dossiers.length }}</div>
+                <div class="kpi-item__label">Total</div>
+              </div>
+              <div class="kpi-item__bar kpi-bar-total" />
+            </div>
+            <div class="kpi-item kpi-encours">
+              <div class="kpi-item__icon-wrap kpi-bg-encours"><q-icon name="pending_actions" size="20px" color="white" /></div>
+              <div class="kpi-item__body">
+                <div class="kpi-item__num text-orange-8">{{ countBySitu('cours') }}</div>
+                <div class="kpi-item__label">En cours</div>
+              </div>
+              <div class="kpi-item__bar kpi-bar-encours" />
+              <div class="kpi-item__pct">{{ pct(countBySitu('cours')) }}%</div>
+            </div>
+            <div class="kpi-item kpi-attente">
+              <div class="kpi-item__icon-wrap kpi-bg-attente"><q-icon name="hourglass_top" size="20px" color="white" /></div>
+              <div class="kpi-item__body">
+                <div class="kpi-item__num text-blue-7">{{ countBySitu('attente') }}</div>
+                <div class="kpi-item__label">En attente</div>
+              </div>
+              <div class="kpi-item__bar kpi-bar-attente" />
+              <div class="kpi-item__pct">{{ pct(countBySitu('attente')) }}%</div>
+            </div>
+            <div class="kpi-item kpi-transmis">
+              <div class="kpi-item__icon-wrap kpi-bg-transmis"><q-icon name="send" size="20px" color="white" /></div>
+              <div class="kpi-item__body">
+                <div class="kpi-item__num text-teal-7">{{ countBySitu('transmi') }}</div>
+                <div class="kpi-item__label">Transmis</div>
+              </div>
+              <div class="kpi-item__bar kpi-bar-transmis" />
+              <div class="kpi-item__pct">{{ pct(countBySitu('transmi')) }}%</div>
+            </div>
+            <div class="kpi-item kpi-liquide">
+              <div class="kpi-item__icon-wrap kpi-bg-liquide"><q-icon name="verified" size="20px" color="white" /></div>
+              <div class="kpi-item__body">
+                <div class="kpi-item__num text-green-8">{{ countBySitu('liqui') }}</div>
+                <div class="kpi-item__label">Liquidés</div>
+              </div>
+              <div class="kpi-item__bar kpi-bar-liquide" />
+              <div class="kpi-item__pct">{{ pct(countBySitu('liqui')) }}%</div>
+            </div>
+            <div class="kpi-item kpi-annule">
+              <div class="kpi-item__icon-wrap kpi-bg-annule"><q-icon name="cancel" size="20px" color="white" /></div>
+              <div class="kpi-item__body">
+                <div class="kpi-item__num text-red-8">{{ countBySitu('annul') }}</div>
+                <div class="kpi-item__label">Annulés</div>
+              </div>
+              <div class="kpi-item__bar kpi-bar-annule" />
+              <div class="kpi-item__pct">{{ pct(countBySitu('annul')) }}%</div>
+            </div>
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="overview-dialog__actions">
+          <q-btn flat no-caps color="primary" label="Fermer" icon="check" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
   </div>
 </template>
 
@@ -483,6 +530,7 @@ const errorMsg    = ref('')
 const dossiers    = ref([])
 const tableFilter = ref('')
 const filterFormRef = ref(null)
+const showOverviewDialog = ref(false)
 
 const filters = reactive({
   cbxcentre:    '',
@@ -753,7 +801,7 @@ function exportCsv () {
 .stat-situations {
   max-width: 1600px;
   margin: 0 auto;
-  padding: 20px 16px 48px;
+  padding: 0 8px 24px;
 }
 
 /* ═══════════════════════════════════════════════
@@ -774,7 +822,8 @@ function exportCsv () {
   overflow:hidden;
 }
 .filter-panel__header {
-  display:flex; align-items:center; padding:12px 20px;
+  display:flex; align-items:center; flex-wrap:wrap; gap:8px;
+  padding:10px 16px;
   background:linear-gradient(90deg,rgba(25,118,210,.07),rgba(25,118,210,.02));
   border-bottom:1px solid rgba(25,118,210,0.1);
 }
@@ -782,40 +831,41 @@ function exportCsv () {
   font-size:.82rem; font-weight:700; color:#1565c0;
   text-transform:uppercase; letter-spacing:.6px;
 }
-.filter-panel__body { padding:18px 20px 14px; background:#fafbff; }
+.filter-panel__header-hint {
+  font-size: 0.72rem;
+  color: #78909c;
+  font-weight: 500;
+  margin-left: 4px;
+}
+.filter-panel__body { padding:12px 16px 14px; background:#fafbff; }
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) minmax(150px, 1.15fr) minmax(120px, 0.9fr) minmax(120px, 0.9fr) auto;
+  gap: 10px 14px;
+  align-items: end;
+}
+.filter-grid__field { min-width: 0; }
+.filter-grid__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 
 .filter-label {
-  display:flex; align-items:center; margin-bottom:5px;
-  font-size:.74rem; font-weight:700; color:#546e7a;
+  display:flex; align-items:center; margin-bottom:4px;
+  font-size:.72rem; font-weight:700; color:#546e7a;
   text-transform:uppercase; letter-spacing:.4px;
-}
-
-.filter-col-centre {
-  flex: 0 0 120px;
-  max-width: 120px;
-}
-
-.filter-field--centre {
-  width: 120px;
-  max-width: 120px;
-}
-
-.filter-field--centre :deep(.q-field__native),
-.filter-field--centre :deep(.q-field__input) {
-  font-size: 0.78rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .filter-field :deep(.q-field__control) { border-radius:10px; background:#fff; }
 .date-field   :deep(.q-field__control) { background:#fffde7; }
 
-.filter-actions { display:flex; align-items:center; gap:8px; }
-
 .btn-search {
   border-radius:10px; font-weight:700; font-size:.82rem;
-  min-height:40px; padding:0 20px;
+  min-height:36px; padding:0 16px;
   box-shadow:0 4px 12px rgba(25,118,210,.3);
   transition:box-shadow .2s,transform .15s;
 }
@@ -823,37 +873,158 @@ function exportCsv () {
 
 .btn-export {
   border-radius:10px; font-weight:700; font-size:.82rem;
-  min-height:40px; padding:0 14px;
+  min-height:36px; padding:0 12px;
   box-shadow:0 4px 12px rgba(0,121,107,.25);
   transition:box-shadow .2s,transform .15s;
 }
 .btn-export:hover { box-shadow:0 6px 18px rgba(0,121,107,.38); transform:translateY(-1px); }
 
-.filter-hint { display:flex; align-items:center; gap:5px; font-size:.75rem; color:#78909c; margin-top:6px; }
+/* ═══════════════════════════════════════════════
+   VUE D'ENSEMBLE — déclencheur + dialogue
+═══════════════════════════════════════════════ */
+.overview-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 8px;
+  border: 1px solid rgba(25, 118, 210, 0.22);
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(25, 118, 210, 0.06), rgba(25, 118, 210, 0.02));
+  color: #1565c0;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease, transform 0.15s ease;
+}
+.overview-trigger:hover {
+  background: rgba(25, 118, 210, 0.1);
+  border-color: rgba(25, 118, 210, 0.38);
+  box-shadow: 0 2px 10px rgba(25, 118, 210, 0.14);
+  transform: translateY(-1px);
+}
+.overview-trigger__label { font-weight: 700; }
+.overview-trigger__dot { color: #90a4ae; font-weight: 400; }
+.overview-trigger__period { color: #546e7a; font-weight: 500; }
+.overview-trigger__arrow { opacity: 0.65; margin-left: 2px; }
+
+.overview-dialog {
+  width: min(92vw, 860px);
+  max-width: 860px;
+  border-radius: 18px !important;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(13, 71, 161, 0.22), 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+}
+.overview-dialog__hero {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px 20px 18px;
+  background: linear-gradient(135deg, #1565c0 0%, #1976d2 48%, #42a5f5 100%);
+  color: #fff;
+  position: relative;
+}
+.overview-dialog__hero-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.16);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+.overview-dialog__hero-text { flex: 1; min-width: 0; padding-right: 36px; }
+.overview-dialog__title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: -0.2px;
+  line-height: 1.2;
+}
+.overview-dialog__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  opacity: 0.95;
+}
+.overview-dialog__period { font-weight: 500; }
+.overview-dialog__close { position: absolute; top: 12px; right: 12px; }
+
+.overview-dialog__summary {
+  display: flex;
+  align-items: stretch;
+  gap: 20px;
+  padding: 20px 22px !important;
+  background: #f8fafc;
+}
+.overview-dialog__total {
+  flex: 0 0 auto;
+  min-width: 120px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid rgba(21, 101, 192, 0.12);
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+.overview-dialog__total-num {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #1565c0;
+  line-height: 1;
+  letter-spacing: -0.5px;
+}
+.overview-dialog__total-label {
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #78909c;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.overview-dialog__distrib { flex: 1; min-width: 0; }
+.overview-dialog__distrib-title {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #546e7a;
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+  margin-bottom: 10px;
+}
+.overview-dialog__kpi { padding: 18px 22px 8px !important; }
+.overview-dialog__actions {
+  padding: 10px 16px 14px !important;
+  background: #fafbff;
+  border-top: 1px solid rgba(21, 101, 192, 0.08);
+}
+
+@media (max-width: 640px) {
+  .overview-dialog__summary {
+    flex-direction: column;
+    gap: 14px;
+  }
+  .overview-dialog__total { min-width: 0; }
+}
 
 /* ═══════════════════════════════════════════════
-   KPI
+   KPI (dialogue)
 ═══════════════════════════════════════════════ */
-.kpi-section__title {
-  display:flex; align-items:center; margin-bottom:12px;
-  font-size:.82rem; font-weight:700; color:#1565c0;
-  text-transform:uppercase; letter-spacing:.6px;
-}
-.kpi-section__period { font-weight:500; color:#78909c; text-transform:none; letter-spacing:0; font-size:.78rem; }
-
 .kpi-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:12px; }
-@media(max-width:960px){ .kpi-grid{ grid-template-columns:repeat(3,1fr); } }
-@media(max-width:600px){ .kpi-grid{ grid-template-columns:repeat(2,1fr); } }
+.kpi-grid--dialog { grid-template-columns: repeat(3, 1fr); gap: 10px; }
+@media(max-width:960px){ .kpi-grid--dialog{ grid-template-columns:repeat(2,1fr); } }
+@media(max-width:600px){ .kpi-grid--dialog{ grid-template-columns:repeat(2,1fr); } }
 
 .kpi-item {
   position:relative; background:#fff; border-radius:14px;
-  padding:14px 14px 10px; overflow:hidden;
+  padding:12px 12px 8px; overflow:hidden;
   display:flex; flex-direction:column; align-items:flex-start; gap:8px;
   box-shadow:0 2px 12px rgba(0,0,0,.06),0 1px 3px rgba(0,0,0,.04);
   border:1px solid rgba(0,0,0,.06);
-  transition:transform .22s cubic-bezier(.34,1.56,.64,1),box-shadow .22s;
 }
-.kpi-item:hover { transform:translateY(-4px) scale(1.02); box-shadow:0 10px 30px rgba(0,0,0,.12); }
+.kpi-grid--dialog .kpi-item { padding: 11px 11px 8px; }
 
 .kpi-item__icon-wrap {
   width:40px;height:40px;border-radius:11px;
@@ -868,7 +1039,8 @@ function exportCsv () {
 .kpi-bg-annule  { background:linear-gradient(135deg,#b71c1c,#ef9a9a); }
 
 .kpi-item__body  { flex:1; width:100%; }
-.kpi-item__num   { font-size:1.75rem; font-weight:900; line-height:1; letter-spacing:-.5px; }
+.kpi-item__num   { font-size:1.5rem; font-weight:900; line-height:1; letter-spacing:-.5px; }
+.kpi-grid--dialog .kpi-item__num { font-size: 1.35rem; }
 .kpi-total .kpi-item__num { color:#1565c0; }
 .kpi-item__label { font-size:.67rem; font-weight:700; color:#90a4ae; text-transform:uppercase; letter-spacing:.5px; margin-top:3px; }
 .kpi-item__pct   { position:absolute; top:10px; right:12px; font-size:.68rem; font-weight:800; color:rgba(0,0,0,.18); background:rgba(0,0,0,.04); border-radius:6px; padding:2px 6px; }
@@ -882,6 +1054,7 @@ function exportCsv () {
 .kpi-bar-annule  { background:#c62828; }
 
 .distrib-bar { display:flex; height:10px; border-radius:8px; overflow:hidden; background:#e8eaf6; gap:2px; }
+.distrib-bar--lg { height: 14px; border-radius: 10px; }
 .distrib-bar__seg { height:100%; transition:width .6s cubic-bezier(.4,0,.2,1); border-radius:4px; min-width:2px; }
 .distrib-encours  { background:#ef6c00; }
 .distrib-attente  { background:#1976d2; }
@@ -890,6 +1063,17 @@ function exportCsv () {
 .distrib-annule   { background:#c62828; }
 
 .distrib-legend { display:flex; align-items:center; flex-wrap:wrap; gap:4px; font-size:.72rem; color:#78909c; }
+.distrib-legend--dialog {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 6px 10px;
+  font-size: 0.74rem;
+}
+.distrib-legend--dialog span {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
 .legend-dot { display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:3px; vertical-align:middle; }
 
 /* ═══════════════════════════════════════════════
@@ -910,36 +1094,124 @@ function exportCsv () {
 .table-toolbar__left  { display:flex; align-items:center; }
 .table-toolbar__title { font-size:.9rem; font-weight:700; color:#1565c0; }
 .table-toolbar__sub   { font-size:.74rem; color:#90a4ae; margin-top:1px; }
+.table-count-badge    { font-size: 0.72rem; font-weight: 700; padding: 4px 10px; border-radius: 8px; }
 .table-search { min-width:240px; }
 .table-search :deep(.q-field__control) { border-radius:10px; }
 
 /* Scroll horizontal si besoin sur petits écrans */
-.table-scroll-wrap { overflow-x: auto; }
-
-/* ── En-têtes ── */
-.table-header-cell {
-  background: #1565c0 !important;
-  color: #fff !important;
-  font-size: 0.72rem !important;
-  font-weight: 700 !important;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  white-space: nowrap;          /* les en-têtes restent sur 1 ligne */
-  padding: 8px 10px !important;
-  border: none !important;
+.table-scroll-wrap {
+  overflow-x: auto;
+  padding: 0 12px 12px;
+  background: linear-gradient(180deg, #f8fafc 0%, #fff 48px);
 }
 
-/* ── Toutes les cellules — base commune ── */
+/* ── Grille tableau (lignes H + V comme legacy border:1px solid) ── */
+.stat-table {
+  background: #fff;
+  border-radius: 0 0 12px 12px;
+}
+
+.stat-table :deep(.q-table__container) {
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(21, 101, 192, 0.22);
+}
+
+.stat-table :deep(.q-table__middle) {
+  max-height: min(68vh, 720px);
+  overflow: auto;
+}
+
+.stat-table :deep(table.stat-table__grid) {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+}
+
+.stat-table :deep(thead) {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+}
+
+.stat-table :deep(thead tr) {
+  box-shadow: 0 2px 0 rgba(13, 71, 161, 0.35);
+}
+
+.table-header-cell {
+  background: linear-gradient(180deg, #1976d2 0%, #1565c0 100%) !important;
+  color: #fff !important;
+  font-size: 0.71rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.45px;
+  white-space: nowrap;
+  padding: 9px 10px !important;
+  border: 1px solid rgba(13, 71, 161, 0.55) !important;
+  border-bottom: 2px solid #0d47a1 !important;
+  vertical-align: middle;
+}
+
+.table-header-cell__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ── Cellules corps ── */
 .stat-table :deep(tbody td) {
   font-size: 0.78rem;
   color: #37474f;
-  padding: 7px 10px !important;
-  border-bottom: 1px solid rgba(0,0,0,0.04) !important;
-  vertical-align: top;          /* alignement haut quand le texte passe sur plusieurs lignes */
+  padding: 8px 10px !important;
+  border: 1px solid rgba(21, 101, 192, 0.16) !important;
+  vertical-align: top;
+  transition: background 0.14s ease, box-shadow 0.14s ease;
+}
+
+.stat-table :deep(tbody tr:nth-child(even) td) {
+  background: #f3f7fb;
+}
+
+.stat-table :deep(tbody tr:nth-child(odd) td) {
+  background: #fff;
 }
 
 .stat-table :deep(tbody tr:hover td) {
-  background: rgba(25,118,210,0.035);
+  background: rgba(25, 118, 210, 0.09) !important;
+  box-shadow: inset 0 0 0 1px rgba(25, 118, 210, 0.12);
+}
+
+.stat-table :deep(tbody tr:last-child td) {
+  border-bottom: 1px solid rgba(21, 101, 192, 0.22) !important;
+}
+
+/* Colonne N° : séparation visuelle */
+.stat-table :deep(tbody td.td-index) {
+  background: #e8eef5 !important;
+  border-right: 1px solid rgba(21, 101, 192, 0.28) !important;
+  font-weight: 800;
+}
+
+.stat-table :deep(thead th:first-child) {
+  border-left: 2px solid #0d47a1 !important;
+}
+
+.stat-table :deep(tbody td:first-child) {
+  border-left: 2px solid rgba(21, 101, 192, 0.2) !important;
+}
+
+/* Pagination */
+.stat-table :deep(.q-table__bottom) {
+  border-top: 2px solid rgba(21, 101, 192, 0.14);
+  background: linear-gradient(90deg, #f5f8fc, #fafbff);
+  padding: 8px 12px;
+  font-size: 0.78rem;
+  color: #546e7a;
+}
+
+.stat-table :deep(.q-table__sort-icon) {
+  color: rgba(255, 255, 255, 0.85) !important;
+  opacity: 1;
 }
 
 /* ── CELLULE WRAP (texte libre, retour à la ligne) ──
@@ -973,18 +1245,24 @@ function exportCsv () {
 /* ── Index ── */
 .td-index {
   font-size: 0.68rem !important;
-  color: #b0bec5 !important;
-  font-weight: 700;
+  color: #546e7a !important;
+  font-weight: 800;
   text-align: center;
   white-space: nowrap !important;
+  font-variant-numeric: tabular-nums;
 }
 
 /* ── N° dossier ── */
 .dossier-num {
+  display: inline-block;
   font-weight: 800;
-  color: #1565c0;
+  color: #0d47a1;
   font-size: 0.8rem;
   letter-spacing: 0.2px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: rgba(25, 118, 210, 0.08);
+  border: 1px solid rgba(25, 118, 210, 0.18);
 }
 
 /* ── Requérant : avatar + texte wrappé ── */
@@ -1008,6 +1286,8 @@ function exportCsv () {
   height: 22px !important;
   letter-spacing: 0.2px;
   white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 /* ═══════════════════════════════════════════════
@@ -1015,10 +1295,15 @@ function exportCsv () {
 ═══════════════════════════════════════════════ */
 .mobile-card { width:100%; }
 .mobile-card__inner {
-  background:#fff; border:1px solid rgba(25,118,210,0.12);
-  border-radius:12px; padding:12px 14px;
+  background:#fff;
+  border:1px solid rgba(21, 101, 192, 0.2);
+  border-radius:12px;
+  padding:12px 14px;
   box-shadow:0 2px 8px rgba(0,0,0,.05);
-  display:flex; flex-direction:column; gap:6px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  border-left: 4px solid #1976d2;
 }
 .mobile-card__top       { display:flex; align-items:center; justify-content:space-between; gap:6px; }
 .mobile-card__requerant {
@@ -1060,11 +1345,29 @@ function exportCsv () {
 .pop-enter-from   { opacity:0; transform:scale(.6); }
 
 @media(max-width:600px){
-  .stat-situations      { padding:12px 8px 32px; }
-  .filter-col-centre    { flex:1 1 100%; max-width:100%; }
-  .filter-field--centre { width:100%; max-width:100%; }
-  .filter-panel__body   { padding:14px 14px 10px; }
+  .stat-situations      { padding:0 4px 20px; }
+  .filter-panel__body   { padding:10px 12px; }
+  .filter-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filter-grid__actions {
+    grid-column: 1 / -1;
+    justify-content: stretch;
+  }
+  .filter-grid__actions .btn-search,
+  .filter-grid__actions .btn-export {
+    flex: 1 1 auto;
+  }
   .table-toolbar        { padding:10px 14px; }
   .table-search         { min-width:0; width:100%; }
+}
+@media(max-width:959px) and (min-width:601px){
+  .filter-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .filter-grid__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
 }
 </style>

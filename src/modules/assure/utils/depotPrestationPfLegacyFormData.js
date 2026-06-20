@@ -1,10 +1,22 @@
 /**
  * Construction du FormData multipart aligné sur tele_prestation_pf.jsp /
  * tele_prestation_pf.js (POST ../Choix_prestation_pf).
+ *
+ * Soumission directe servlet Choix_prestation_pf (teleImmat_0.1, proxy /tele-immat).
+ * Le servlet teleImmat n'est pas modifié : soumission via query-string (scalaires)
+ * + multipart fichiers seuls (PfServletProxy / contournement Tomcat @MultipartConfig).
  */
 import { centres } from 'src/modules/shared/data/Centres.js'
+import { buildTeleImmatPfUploadDest } from 'src/modules/shared/config/teleImmat.js'
 import { DEPOT_PF_TYPE_CODES } from 'src/modules/assure/data/depotPrestationPfTypes.js'
-import { syncAllocationsPieces } from 'src/modules/assure/utils/depotPrestationPfAccouchement.js'
+import {
+  acteNaissanceKey,
+  parseNombreEnfantsSousControleAccouchement,
+  syncAllocationsPieces,
+} from 'src/modules/assure/utils/depotPrestationPfAccouchement.js'
+import { formatTodayFr } from 'src/modules/assure/api/depotPrestationPfUtils.js'
+import { PF_LACTION_CREATE } from 'src/modules/assure/utils/pfServletSubmit.js'
+import { PF_PIECE } from 'src/modules/assure/data/depotPrestationPfLegacyFields.js'
 
 /** @type {Record<string, { typePrestation: string, choixAp: string, choixAc: string, choixIjcm: string, choixAf: string }>} */
 const TYPE_CODE_TO_LEGACY_FLAGS = {
@@ -38,7 +50,6 @@ const TYPE_CODE_TO_LEGACY_FLAGS = {
   },
 }
 
-/** Champs communs ExtJS — exclus de la boucle « specific ». */
 const COMMON_FORM_KEYS = new Set([
   'matEmployeur',
   'RAISON_SOCIALE',
@@ -63,15 +74,27 @@ function appendScalar(fd, key, value) {
   fd.append(key, String(value))
 }
 
-/**
- * Cases à cocher ExtJS : valeur envoyée lorsque cochée.
- * @param {FormData} fd
- * @param {string} key
- * @param {boolean} checked
- */
+/** Toujours envoyer (le servlet legacy attend « 0 » / « 1 », pas l’absence du champ). */
+function appendScalarAlways(fd, key, value) {
+  fd.append(key, value === null || value === undefined ? '' : String(value))
+}
+
 function appendCheckbox(fd, key, checked) {
-  if (checked) {
-    fd.append(key, 'on')
+  if (checked) fd.append(key, 'on')
+}
+
+/**
+ * @param {FormData} fd
+ * @param {Array<[string, unknown]>} entries
+ */
+function appendOrderedScalars(fd, entries) {
+  for (const [key, value] of entries) {
+    if (value === null || value === undefined || value === '') continue
+    if (typeof value === 'boolean') {
+      appendCheckbox(fd, key, value)
+    } else {
+      fd.append(key, String(value))
+    }
   }
 }
 
@@ -81,15 +104,19 @@ function appendCheckbox(fd, key, checked) {
  * @param {Set<string>} [skipKeys]
  */
 function appendLegacyFormFields(fd, form, skipKeys = new Set()) {
+  const fileEntries = []
   for (const [key, val] of Object.entries(form)) {
     if (skipKeys.has(key) || COMMON_FORM_KEYS.has(key)) continue
     if (val instanceof File) {
-      fd.append(key, val, val.name)
+      fileEntries.push([key, val])
     } else if (typeof val === 'boolean') {
       appendCheckbox(fd, key, val)
     } else {
       appendScalar(fd, key, val)
     }
+  }
+  for (const [key, file] of fileEntries) {
+    fd.append(key, file, file.name)
   }
 }
 
@@ -110,66 +137,180 @@ function resolveCentreFields(common) {
 
 function buildDestPath(numAssu, ctxDest) {
   if (ctxDest) return ctxDest
-  const num = String(numAssu || '').trim()
-  if (!num) return ''
-  return `DestFichAssu/${num.replace(/-/g, '_')}/pf/`
+  return buildTeleImmatPfUploadDest(numAssu)
 }
 
-/**
- * @param {import('pinia').Store} store — useDepotPrestationPfStore
- * @param {string} typeCode — DEPOT_PF_TYPE_CODES.*
- * @returns {FormData}
- */
-export function buildDepotPrestationPfLegacyFormData(store, typeCode) {
-  const fd = new FormData()
+function appendCommonServletFields(fd, store, typeCode) {
   const ctx = store.contexte || {}
   const common = store.getCommonForSubmit()
   const flags = TYPE_CODE_TO_LEGACY_FLAGS[typeCode] || {}
   const numAssu = store.numAssu || ctx.numAssu || ''
-
-  appendScalar(fd, 'numAssu', numAssu)
-  appendScalar(fd, 'codeSecret', ctx.codeSecret || ctx.codeSecrText || '')
-  appendScalar(fd, 'choixAp', flags.choixAp ?? '0')
-  appendScalar(fd, 'choixAc', flags.choixAc ?? '0')
-  appendScalar(fd, 'choixIjcm', flags.choixIjcm ?? '0')
-  appendScalar(fd, 'choixAf', flags.choixAf ?? '0')
-
-  const nomComplet = [ctx.nom, ctx.prenom].filter(Boolean).join(' ').trim()
-  appendScalar(fd, 'numAssuText', numAssu)
-  appendScalar(fd, 'laction', ctx.laction || 'Créer')
-  appendScalar(fd, 'nomAssuText', nomComplet || ctx.nomAssuText || '')
-  appendScalar(fd, 'dateNaissAssuText', ctx.dateNaissance || ctx.dateNaissAssuText || '')
-  appendScalar(fd, 'sexeAssuText', formatSexeAssuText(ctx.sexe || ctx.sexeAssuText))
-  appendScalar(fd, 'addrAssuText', common.addrAssuText || '')
-  appendScalar(fd, 'emailAssuText', common.emailAssuText || '')
-  appendScalar(fd, 'telAssuText', common.telAssuText || '')
-  appendScalar(fd, 'matrInteText', common.matrInteText || '')
-  appendScalar(fd, 'matEmployeur', common.matEmployeur || '')
-  appendScalar(fd, 'RAISON_SOCIALE', common.RAISON_SOCIALE || '')
-
+  const nomAssuText =
+    String(ctx.nomAssuText || '')
+      .trim()
+      .replace(/^\.+\s*/, '') ||
+    [ctx.nom, ctx.prenom].filter(Boolean).join(' ').trim()
   const centreFields = resolveCentreFields(common)
-  appendScalar(fd, 'codeCentrePrefText', centreFields.codeCentrePrefText)
-  appendScalar(fd, 'CODE_CENTRECNPSC', centreFields.CODE_CENTRECNPSC)
-  appendScalar(fd, 'Dest', buildDestPath(numAssu, ctx.Dest))
 
-  appendScalar(fd, 'typePrestation', flags.typePrestation || '')
-  appendScalar(fd, 'codeSecrText', ctx.codeSecrText || ctx.codeSecret || '')
-  appendScalar(fd, 'numDossier', ctx.numDossier || '')
-  appendScalar(fd, 'dateCreaDoss', ctx.dateCreaDoss || '')
-  appendScalar(fd, 'simples', 'simples')
+  appendOrderedScalars(fd, [
+    ['numAssuText', numAssu],
+    ['laction', PF_LACTION_CREATE],
+    ['sexeAssuText', formatSexeAssuText(ctx.sexe || ctx.sexeAssuText)],
+    ['addrAssuText', common.addrAssuText || ''],
+    ['emailAssuText', common.emailAssuText || ''],
+    ['telAssuText', common.telAssuText || ''],
+    ['matrInteText', common.matrInteText || ''],
+    ['matEmployeur', common.matEmployeur || ''],
+    ['RAISON_SOCIALE', common.RAISON_SOCIALE || ''],
+  ])
 
-  if (common.typeSubmission === 'temporaire') {
-    appendScalar(fd, 'valider', 'NON')
-  } else if (common.typeSubmission === 'definitive') {
-    appendScalar(fd, 'valider', 'OUI')
+  appendScalarAlways(fd, 'nomAssuText', nomAssuText || numAssu)
+  appendScalarAlways(fd, 'dateNaissAssuText', ctx.dateNaissance || ctx.dateNaissAssuText || '')
+  appendScalarAlways(fd, 'numDossier', ctx.numDossier || '')
+
+  const isExistingDossier = Boolean(String(ctx.numDossier || '').trim())
+  if (isExistingDossier) {
+    appendScalarAlways(fd, 'codeSecrText', ctx.codeSecrText || ctx.codeSecret || '')
   }
 
+  appendScalarAlways(fd, 'dateCreaDoss', ctx.dateCreaDoss || formatTodayFr())
+
+  appendOrderedScalars(fd, [
+    ['typePrestation', flags.typePrestation || ''],
+    ['codeCentrePrefText', centreFields.codeCentrePrefText],
+    ['CODE_CENTRECNPSC', centreFields.CODE_CENTRECNPSC],
+    ['Dest', buildDestPath(numAssu, ctx.Dest)],
+    ['numAssu', numAssu],
+    ['choixAp', flags.choixAp ?? '0'],
+    ['choixAc', flags.choixAc ?? '0'],
+    ['choixIjcm', flags.choixIjcm ?? '0'],
+    ['choixAf', flags.choixAf ?? '0'],
+  ])
+
+  if (isExistingDossier) {
+    appendOrderedScalars(fd, [
+      ['codeSecret', ctx.codeSecret || ctx.codeSecrText || ''],
+      ['code_secret', ctx.codeSecrText || ctx.codeSecret || ''],
+      ['code_tele', ctx.numDossier || ctx.code_tele || ''],
+    ])
+  }
+
+  return { common, flags, numAssu }
+}
+
+function appendExamensPrenatauxFields(fd, store) {
+  const form = store.examensPrenataux
+  const choice = store.examensPrenatauxChoice || 'both'
+  const includePremier = choice !== 'deuxieme'
+  const includeDeuxieme = choice !== 'premier'
+
+  // GererPrestationPf lit ces dates sans garde null lorsque choixAp=1 (ExtJS envoie toujours les champs).
+  appendScalarAlways(
+    fd,
+    'dateExam1Date',
+    includePremier ? form.dateExam1Date || '' : '',
+  )
+  appendScalarAlways(fd, 'dateExam2', includeDeuxieme ? form.dateExam2 || '' : '')
+  appendScalarAlways(fd, 'dateAccoProb', includeDeuxieme ? form.dateAccoProb || '' : '')
+
+  if (includePremier) {
+    appendCheckbox(fd, 'AP1ChBo', form.AP1ChBo)
+    appendCheckbox(fd, 'FM1ChBo', form.FM1ChBo)
+  }
+  if (includeDeuxieme) {
+    appendCheckbox(fd, 'AP2ChBo', form.AP2ChBo)
+    appendCheckbox(fd, 'FM2ChBo', form.FM2ChBo)
+  }
+
+  const pushFile = (key) => {
+    const file = form[key]
+    if (file instanceof File) fd.append(key, file, file.name)
+  }
+
+  if (includePremier) {
+    pushFile(PF_PIECE.CERT_AP1)
+    if (form.FM1ChBo) pushFile(PF_PIECE.FRAIS_AP1)
+  }
+  if (includeDeuxieme) {
+    pushFile(PF_PIECE.CERT_AP2)
+    if (form.FM2ChBo) pushFile(PF_PIECE.FRAIS_AP2)
+  }
+}
+
+function appendCongesMaterniteScalars(fd, form) {
+  const nombJourSupp =
+    form.nombJourSupp === null || form.nombJourSupp === undefined || form.nombJourSupp === ''
+      ? '0'
+      : String(form.nombJourSupp)
+  const nombEnfaViab =
+    form.nombEnfaViab === null || form.nombEnfaViab === undefined || form.nombEnfaViab === ''
+      ? '1'
+      : String(form.nombEnfaViab)
+  const nombEnfaContMedi =
+    form.nombEnfaContMedi === null ||
+    form.nombEnfaContMedi === undefined ||
+    form.nombEnfaContMedi === ''
+      ? ''
+      : String(form.nombEnfaContMedi)
+  const dateAccoEffe = form.dateAccoEffe || form.dateDebuCongEffe || ''
+
+  if (form.ijcmChBo !== false) {
+    fd.append('ijcmChBo', 'on')
+  }
+  if (form.accoPremChBo) {
+    fd.append('accoPremChBo', 'on')
+  }
+
+  appendScalarAlways(fd, 'nombJourSupp', nombJourSupp)
+  appendScalar(fd, 'dateDebuCongEffe', form.dateDebuCongEffe)
+  appendScalar(fd, 'dateFinCongEffe', form.dateFinCongEffe)
+  appendScalar(fd, 'dateDebuNonSala', form.dateDebuNonSala)
+  appendScalar(fd, 'dateFinNonSala', form.dateFinNonSala)
+  appendScalar(fd, 'dateReprActi', form.dateReprActi)
+  appendScalar(fd, 'dateAccoEffe', dateAccoEffe)
+  appendScalarAlways(fd, 'nombEnfaViab', nombEnfaViab)
+  appendScalar(fd, 'nombEnfaContMedi', nombEnfaContMedi)
+}
+
+function appendCongesMaterniteFiles(fd, form) {
+  const files = []
+
+  const pushFile = (key) => {
+    const file = form[key]
+    if (file instanceof File) files.push([key, file])
+  }
+
+  pushFile(PF_PIECE.CERT_ACCOUCHEMENT)
+  pushFile(PF_PIECE.BULLETIN_PAIE)
+  pushFile(PF_PIECE.ATTESTATION_CESSATION)
+
+  const count = parseNombreEnfantsSousControleAccouchement(form.nombEnfaContMedi)
+  for (let i = 1; i <= count; i += 1) {
+    pushFile(acteNaissanceKey(i))
+  }
+
+  for (const [key, file] of files) {
+    fd.append(key, file, file.name)
+  }
+}
+
+/**
+ * @param {import('pinia').Store} store
+ * @param {string} typeCode
+ * @returns {FormData}
+ */
+export function buildDepotPrestationPfLegacyFormData(store, typeCode) {
+  const fd = new FormData()
+  appendCommonServletFields(fd, store, typeCode)
+
   if (typeCode === DEPOT_PF_TYPE_CODES.EXAMENS_PRENATAUX) {
-    appendLegacyFormFields(fd, store.examensPrenataux)
+    appendExamensPrenatauxFields(fd, store)
   } else if (typeCode === DEPOT_PF_TYPE_CODES.ACCOUCHEMENT) {
     appendLegacyFormFields(fd, store.accouchement)
   } else if (typeCode === DEPOT_PF_TYPE_CODES.CONGES_MATERNITE) {
-    appendLegacyFormFields(fd, store.congesMaternite)
+    const form = store.congesMaternite
+    appendCongesMaterniteScalars(fd, form)
+    appendCongesMaterniteFiles(fd, form)
   } else if (typeCode === DEPOT_PF_TYPE_CODES.ALLOCATIONS_FAMILIALES) {
     syncAllocationsPieces(store.allocations)
     appendLegacyFormFields(fd, store.allocations)

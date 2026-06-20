@@ -35,7 +35,36 @@ export function isInsuredSessionActive() {
     if (sessionStorage.getItem(ASSURE_PROFILE_KEY) === 'external') return true
   }
   const user = readUserInfo()
-  return user?.profile === 'external'
+  if (user?.profile === 'external') {
+    repairInsuredSessionMarkers()
+    return true
+  }
+  const numAssu = String(user?.num_assu || user?.login || user?.numeroAssure || '').trim()
+  if (numAssu && user?.profile !== 'internal') {
+    repairInsuredSessionMarkers()
+    return true
+  }
+  return false
+}
+
+/** Aligne sessionStorage sur localStorage après connexion assuré. */
+export function repairInsuredSessionMarkers() {
+  if (typeof sessionStorage === 'undefined' || typeof localStorage === 'undefined') return
+  if (!hasAuthToken()) return
+  const user = readUserInfo()
+  if (!user) return
+  const numAssu = String(user.num_assu || user.login || user.numeroAssure || '').trim()
+  const isExternal =
+    user.profile === 'external' || (numAssu && user.profile !== 'internal')
+  if (!isExternal) return
+  sessionStorage.setItem(ASSURE_PROFILE_KEY, 'external')
+  const displayName =
+    user.displayName ||
+    [user.prenom, user.nom].filter(Boolean).join(' ').trim() ||
+    numAssu
+  if (displayName) {
+    sessionStorage.setItem(ASSURE_NAME_KEY, displayName)
+  }
 }
 
 /**
@@ -86,8 +115,23 @@ export function persistAgentSession(payload = {}) {
  * @param {{ login: string, displayName?: string, num_assu?: string, token: string, user?: object }} payload
  */
 export function persistInsuredSession(payload = {}) {
-  const numAssu = payload.num_assu || payload.login || ''
-  const displayName = payload.displayName || numAssu
+  const existing = readUserInfo() || {}
+  const apiUser = payload.user && typeof payload.user === 'object' ? payload.user : {}
+  const numAssu =
+    payload.num_assu ||
+    apiUser.num_assu ||
+    payload.login ||
+    existing.num_assu ||
+    existing.login ||
+    ''
+  const prenom = apiUser.prenom || existing.prenom || ''
+  const nom = apiUser.nom || existing.nom || ''
+  const displayName =
+    payload.displayName ||
+    apiUser.displayName ||
+    [prenom, nom].filter(Boolean).join(' ') ||
+    existing.displayName ||
+    numAssu
 
   if (typeof sessionStorage !== 'undefined') {
     sessionStorage.setItem(ASSURE_PROFILE_KEY, 'external')
@@ -100,17 +144,22 @@ export function persistInsuredSession(payload = {}) {
     localStorage.setItem(
       USER_KEY,
       JSON.stringify({
+        ...existing,
+        ...apiUser,
         profile: 'external',
-        login: payload.login || numAssu,
+        login: payload.login || apiUser.login || numAssu || existing.login,
         num_assu: numAssu,
         displayName,
-        nom: displayName,
-        email: payload.email || payload.login || numAssu,
+        prenom,
+        nom,
+        email: apiUser.email || payload.email || existing.email || '',
         numeroAssure: numAssu,
-        ...(payload.user || {}),
+        forlink: apiUser.forlink || existing.forlink || '',
+        code_centre: apiUser.code_centre || existing.code_centre || '',
       }),
     )
   }
+  repairInsuredSessionMarkers()
 }
 
 export function clearPortalSimSession() {

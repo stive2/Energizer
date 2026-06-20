@@ -38,10 +38,15 @@ export const LEGACY_TELEPHONE_INPUT_ATTRS = {
  * @param {(key: string) => string} t
  * @param {{ required?: boolean }} [options]
  */
-export function buildLegacyTelephoneRules(t, { required = false } = {}) {
+export function buildLegacyTelephoneRules(t, { required = false, requiredMessage } = {}) {
   const rules = []
   if (required) {
-    rules.push((val) => (val != null && String(val).trim() !== '') || t('input.requis'))
+    rules.push(
+      (val) =>
+        (val != null && String(val).trim() !== '') ||
+        requiredMessage ||
+        t('input.requis'),
+    )
   }
   rules.push((val) => !val || isValidCameroonPhone(val) || t('input.invalidPhone'))
   return rules

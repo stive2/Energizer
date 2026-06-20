@@ -43,8 +43,17 @@ export function useDepotPrestationPfRules() {
     )
   }
 
+  /** Libellé affiché (l’astérisque obligatoire est ajoutée en CSS via `requiredFieldClass`). */
+  const fieldLabel = (text) => String(text || '').trim()
+
+  /** Classe à poser sur q-input / q-select / q-file / q-checkbox si le champ est requis. */
+  const requiredFieldClass = (isRequired = false) =>
+    isRequired ? 'depot-pf-field--required' : ''
+
   return {
     required,
+    fieldLabel,
+    requiredFieldClass,
     validateEmail,
     validateMatriculeCNPS,
     validateTelephone,

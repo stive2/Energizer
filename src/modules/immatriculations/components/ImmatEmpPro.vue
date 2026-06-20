@@ -1,6 +1,21 @@
 <template>
   <q-dialog v-model="open" persistent full-width>
+    <ImmatAssuTrvControle
+      v-show="phase === 'controle'"
+      kind="employeur"
+      :code-tele="controleCredentials.codeTele"
+      :code-secret="controleCredentials.codeSecret"
+      :show-preview="controleValidated"
+      :validating="validatingControle"
+      :reload-token="controleReloadToken"
+      @close="closeDialog"
+      @edit="onEditFromControle"
+      @modify="onModifierFromControle"
+      @validate="onValidateFromControle"
+      @validated="onControleValidated"
+    />
     <q-card
+      v-show="phase === 'form'"
       :style="$q.screen.gt.sm ? 'width: 960px; max-width: 98vw' : 'width: 100%'"
       class="immat-main-card column no-wrap"
     >
@@ -383,6 +398,7 @@
                       dense
                       class="full-width"
                       :rules="[
+                        ruleNumRegistre,
                         (val) =>
                           !val || regexPatterns.regComm.test(val) || '(ex: RC/YAO/2020/B/0002)',
                       ]"
@@ -391,7 +407,7 @@
                       <template v-slot:label>
                         <span class="req-label"
                           >{{ $t('input.numRegistreCommerce')
-                          }}<span class="req-badge">*</span></span
+                          }}<span v-if="numRegistreRequired" class="req-badge">*</span></span
                         >
                       </template>
                     </q-input>
@@ -426,6 +442,9 @@
                   <q-icon name="attach_file" class="q-mr-xs" />
                   {{ $t('immep.step5') }}
                 </div>
+                <p class="text-caption text-grey-7 q-mb-sm">
+                  {{ $t('immep.registreOuAutorisationHint') }}
+                </p>
                 <div class="row q-col-gutter-sm">
                   <div class="col-12 col-sm-4">
                     <q-file
@@ -433,11 +452,12 @@
                       :label="$t('input.carteContribuable')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       accept=".gif,.jpg,.jpeg,.png,.pdf"
                       :max-total-size="maxSize"
                       @rejected="onRejected"
-                      :rules="[(val) => (val && val != '') || t('input.requis'), fileTypeImage]"
+                      :rules="[ruleRegistreOuAutorisation, fileTypeImage]"
                       counter
                       max-files="1"
                       :hint="$t('input.max_size_hint')"
@@ -446,9 +466,7 @@
                         ><q-icon name="upload_file" color="primary"
                       /></template>
                       <template v-slot:label>
-                        <span class="req-label"
-                          >{{ $t('input.registreCommerce') }}<span class="req-badge">*</span></span
-                        >
+                        <span class="req-label">{{ $t('input.registreCommerce') }}</span>
                       </template>
                     </q-file>
                   </div>
@@ -458,11 +476,12 @@
                       :label="$t('input.carteContribuable')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       accept=".gif,.jpg,.jpeg,.png,.pdf"
                       :max-total-size="maxSize"
                       @rejected="onRejected"
-                      :rules="[(val) => (val && val != '') || t('input.requis'), fileTypeImage]"
+                      :rules="[ruleRegistreOuAutorisation, fileTypeImage]"
                       counter
                       max-files="1"
                       :hint="$t('input.max_size_hint')"
@@ -471,10 +490,7 @@
                         ><q-icon name="upload_file" color="primary"
                       /></template>
                       <template v-slot:label>
-                        <span class="req-label"
-                          >{{ $t('input.autorisationOuverture')
-                          }}<span class="req-badge">*</span></span
-                        >
+                        <span class="req-label">{{ $t('input.autorisationOuverture') }}</span>
                       </template>
                     </q-file>
                   </div>
@@ -483,6 +499,7 @@
                       v-model="formFile.IDCONTRIBUABLE"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       :label="$t('input.carteContribuable')"
                       accept=".gif,.jpg,.jpeg,.png,.pdf"
@@ -809,6 +826,7 @@
                       :label="$t('input.planLocalisation')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       accept=".gif,.jpg,.jpeg,.png,.pdf"
                       :max-total-size="maxSize"
@@ -833,6 +851,7 @@
                       v-model="formFile.IDCONTRATBAIL"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       :label="$t('input.contratbail')"
                       accept=".gif,.jpg,.jpeg,.png,.pdf"
@@ -853,11 +872,12 @@
                       :label="$t('input.listeTravailleurs')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
-                      accept=".gif,.jpg,.jpeg,.png,.xls,.xlsx,.doc,.docx,.pdf"
+                      :accept="LEGACY_LISTE_TRAVAILLEURS_FILE_ACCEPT"
                       :max-total-size="maxSize"
                       @rejected="onRejected"
-                      :rules="[(val) => (val && val != '') || t('input.requis'), fileTypeImage]"
+                      :rules="[(val) => (val && val != '') || t('input.requis'), fileTypeListeTravailleurs]"
                       counter
                       max-files="1"
                       :hint="$t('input.max_size_hint')"
@@ -877,6 +897,7 @@
                       v-model="formFile.IDPATENTE"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       :label="$t('input.patente')"
                       accept=".gif,.jpg,.jpeg,.png,.pdf"
@@ -897,6 +918,7 @@
                       :label="$t('input.impotLiberatoire')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       accept=".gif,.jpg,.jpeg,.png,.pdf"
                       :max-total-size="maxSize"
@@ -915,6 +937,7 @@
                       v-model="formFile.IDSTATUTS"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       :label="$t('input.statuts')"
                       accept=".gif,.jpg,.jpeg,.png,.pdf"
@@ -1276,6 +1299,7 @@
                       v-model="formFile.fichierIdentiteResponsable"
                       outlined
                       dense
+                      clearable
                       :label="fichierIdentiteResponsableLabel"
                       class="full-width"
                       accept=".gif,.jpg,.jpeg,.png,.pdf"
@@ -1484,18 +1508,22 @@
 </template>
 
 <script setup>
-import { ref, computed, defineProps, defineEmits, watch, onMounted } from 'vue'
+import { ref, computed, defineProps, defineEmits, watch, onMounted, nextTick } from 'vue'
 import { useQuasar } from 'quasar'
 import { useNotify } from 'src/modules/shared/components/useNotify.js'
 import { regexPatterns } from 'src/js/regex.js'
 import { buildLegacyTelephoneRules } from 'src/modules/energizer/utils/energizerFormInputUtils.js'
 import {
   isLegacyImageOrPdfFile,
+  isLegacyListeTravailleursFile,
   LEGACY_FORM_FILE_MAX_SIZE,
+  LEGACY_LISTE_TRAVAILLEURS_FILE_ACCEPT,
 } from 'src/modules/immatriculations/utils/immatLegacyCommon.js'
 import { useI18n } from 'vue-i18n'
 import html2pdf from 'html2pdf.js'
 import { submitGererEmployeur } from 'src/modules/immatriculations/api/immatEmployeurApi.js'
+import { resolveImmatSubmitNotifyMessage } from 'src/modules/immatriculations/api/immatAssureResponse.js'
+import ImmatAssuTrvControle from 'src/modules/immatriculations/components/ImmatAssuTrvControle.vue'
 import {
   fetchEmployeurTele,
   fetchImmatEmpProReferentials,
@@ -1512,6 +1540,7 @@ import {
   getCircuitDossierOptions,
   syncImmatEmpProHiddenFields,
   validateImmatEmpProBusinessRules,
+  usesAutorisationOuvertureOnly,
 } from 'src/modules/immatriculations/utils/immatEmpProLegacy.js'
 
 const props = defineProps({
@@ -1523,12 +1552,13 @@ const props = defineProps({
 const $q = useQuasar()
 const { t, locale } = useI18n()
 const emit = defineEmits(['close'])
-const { notifyError, notifySuccess, notifyInfo } = useNotify()
+const { notifyError, notifySuccess, notifyControleGenerated } = useNotify()
 
 const causeImmaOptions = getCauseImmaOptions()
 const circuitDossierOptions = getCircuitDossierOptions()
 
 const open = ref(true)
+const phase = ref('form')
 const step = ref(1)
 const maxStep = ref(1)
 const formRef = ref(null)
@@ -1537,6 +1567,11 @@ const pdfDialog = ref(false)
 const dialValidation = ref(false)
 const pdfBlobUrl = ref(null)
 const recapContent = ref()
+const controleCredentials = ref({ codeTele: '', codeSecret: '' })
+const controleValidated = ref(false)
+const controleReloadToken = ref(0)
+const validatingControle = ref(false)
+const fromControleEdit = ref(false)
 
 const loadingInit = ref(false)
 const loadingSiege = ref(false)
@@ -1610,9 +1645,11 @@ async function loadFormBootstrap() {
   }
 }
 
-async function loadExistingDossier(codeTele, codeSecret) {
+async function loadExistingDossier(codeTele, codeSecret, options = {}) {
   try {
-    $q.loading.show({ message: t('immat.controle.loading', 'Chargement du dossier…') })
+    $q.loading.show({
+      message: options.loadingMessage || t('immat.controle.loading', 'Chargement du dossier…'),
+    })
     const row = await fetchEmployeurTele(codeTele, codeSecret)
     const { exploited, needsSiegeLookup } = applyEmployeurProTeleToForm(form.value, row)
     form.value.code_tele = codeTele
@@ -1743,6 +1780,31 @@ const fileTypeImage = (val) => {
   if (!val) return true
   return isLegacyImageOrPdfFile(val) || 'Type de fichier non autorise (gif/jpg/png/pdf)'
 }
+
+const fileTypeListeTravailleurs = (val) => {
+  if (!val) return true
+  return (
+    isLegacyListeTravailleursFile(val) ||
+    'Type de fichier non autorise (xls, xlsx, doc, docx, pdf)'
+  )
+}
+
+const numRegistreRequired = computed(() => {
+  if (String(form.value.A_VERIFIER ?? '') === '0') return false
+  if (usesAutorisationOuvertureOnly(formFile.value)) return false
+  return true
+})
+
+const ruleNumRegistre = (val) => {
+  if (!numRegistreRequired.value) return true
+  return !!String(val ?? '').trim() || t('input.requis')
+}
+
+const ruleRegistreOuAutorisation = (val) =>
+  !!val ||
+  !!formFile.value.IDREGICOMM ||
+  !!formFile.value.IDAUTORISATION ||
+  t('immep.registreOuAutorisationRequis')
 
 const fileTypeDoc = (val) => {
   if (!val) return true
@@ -1958,6 +2020,11 @@ const onCentreCnpsSelected = () => {
 }
 
 watch(
+  () => [formFile.value.IDREGICOMM, formFile.value.IDAUTORISATION],
+  () => nextTick(() => formRef.value?.validate()),
+)
+
+watch(
   () => [
     form.value.CAUSE_IMMA,
     form.value.CIRCUIT_DOSSIER,
@@ -2008,29 +2075,106 @@ const submitForm = async () => {
     notifyError('Veuillez corriger les erreurs du formulaire.')
     return
   }
-  const bizErr = validateImmatEmpProBusinessRules(form.value)
+  const bizErr = validateImmatEmpProBusinessRules(form.value, formFile.value)
   if (bizErr) {
     notifyError(bizErr)
     return
   }
-  spinner.value = true
-  notifyInfo('Soumission des données à Energizer.')
-  try {
-    const fd = buildImmatEmpProLegacyFormData(form.value, formFile.value, {
+  await confirmSubmission()
+}
+
+async function postEmployeurSubmission(submissionType) {
+  return submitGererEmployeur(
+    buildImmatEmpProLegacyFormData(form.value, formFile.value, {
       dest: form.value.Dest || TELE_IMMAT_DEST_EMP_PRO,
       codeTele: props.codeTele || form.value.code_tele,
       codeSecret: props.codeSecret || form.value.code_secret,
       referentials: getReferentialsSnapshot(),
-    })
-    const result = await submitGererEmployeur(fd)
-    notifySuccess(result?.Msg || 'Formulaire soumis avec succès.')
-    spinner.value = false
-    open.value = false
-    emit('close')
+      submissionType,
+    }),
+  )
+}
+
+const confirmSubmission = async () => {
+  spinner.value = true
+  const revalidateFromControle = fromControleEdit.value
+  try {
+    const submissionType = revalidateFromControle ? 'definitive' : 'temporary'
+    const result = await postEmployeurSubmission(submissionType)
+    const codeTele = result.codeTele || form.value.code_tele
+    const codeSecret = result.codeSecret || form.value.code_secret
+
+    if (!codeTele) {
+      notifyError(t('immat.controle.submitNoCode'))
+      return
+    }
+
+    form.value.code_tele = codeTele
+    form.value.code_secret = codeSecret
+    form.value.laction = 'Modifier'
+    controleCredentials.value = { codeTele, codeSecret }
+    controleValidated.value = revalidateFromControle
+    fromControleEdit.value = false
+    controleReloadToken.value += 1
+    phase.value = 'controle'
+
+    if (revalidateFromControle) {
+      notifySuccess(resolveImmatSubmitNotifyMessage(result, t('form.submitted')))
+    } else {
+      notifyControleGenerated(resolveImmatSubmitNotifyMessage(result, t('form.submitted')))
+    }
   } catch (err) {
     notifyError(err?.message || 'Erreur lors de la soumission.')
+  } finally {
     spinner.value = false
   }
+}
+
+async function onEditFromControle({ codeTele, codeSecret }) {
+  fromControleEdit.value = true
+  controleValidated.value = false
+  phase.value = 'form'
+  await loadExistingDossier(codeTele, codeSecret, {
+    loadingMessage: t('immat.controle.loadingDossier'),
+  })
+  form.value.laction = 'Modifier'
+  step.value = 4
+  maxStep.value = 4
+  await nextTick()
+}
+
+function onModifierFromControle() {
+  fromControleEdit.value = true
+  controleValidated.value = false
+  phase.value = 'form'
+  form.value.laction = 'Modifier'
+  step.value = 4
+  maxStep.value = 4
+}
+
+async function onValidateFromControle() {
+  validatingControle.value = true
+  try {
+    const result = await postEmployeurSubmission('definitive')
+    form.value.code_tele = result.codeTele || form.value.code_tele
+    form.value.code_secret = result.codeSecret || form.value.code_secret
+    form.value.laction = 'Modifier'
+    controleCredentials.value = {
+      codeTele: result.codeTele || form.value.code_tele,
+      codeSecret: result.codeSecret || form.value.code_secret,
+    }
+    controleValidated.value = true
+    controleReloadToken.value += 1
+    notifySuccess(resolveImmatSubmitNotifyMessage(result, t('form.submitted')))
+  } catch (err) {
+    notifyError(err?.message || 'Erreur lors de la validation.')
+  } finally {
+    validatingControle.value = false
+  }
+}
+
+function onControleValidated() {
+  controleValidated.value = true
 }
 
 const isStepAllowed = (stepName) => stepName <= maxStep.value

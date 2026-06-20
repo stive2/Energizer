@@ -15,6 +15,7 @@ import {
   getEnergizerLegacyHtml,
   postEnergizerLegacyJsp,
   postEnergizerLegacyHtml,
+  postEnergizerLegacyServlet,
   legacyNouveauDossierRefererUrl,
   parseEnergizerLegacyRows,
 } from './energizerLegacyClient.js'
@@ -30,10 +31,19 @@ import {
   isLegacyNouveauDossierSuccessMessage,
   isLegacySessionExpiredHtml,
   parseExistingPiecesFromAddpieceRecepHtml,
+  parseAddpieceRecepHiddenFields,
   parseNumdossierFromAddpieceHtml,
   parsePieceTypeOptionsFromAddpieceHtml,
+  parsePieceTypeOptionsFromLegacyPiecesHtml,
+  toUserFacingNouveauDossierError,
 } from './adapters/parseNouveauDossierLegacyHtml.js'
 import { NouveauDossierSubmitError } from './nouveauDossierErrors.js'
+import { buildNouveauDossierReceptionPiecesApiPayload } from 'src/modules/energizer/data/nouveauDossierLegacyFields.js'
+import {
+  resolveObjCodeFromNumDossier,
+  toReceptionPiecesRow,
+} from 'src/modules/energizer/utils/nouveauDossierPieces.js'
+import { isEnergizerLegacySuccessRedirectUrl } from 'src/modules/energizer/utils/energizerLegacySessionDetect.js'
 
 async function fetchNouveauDossierObjetsLegacy() {
   const data = await getEnergizerLegacyJsp(ENERGIZER_LEGACY_JSP.nouvDossier)
@@ -82,31 +92,50 @@ async function fetchTeleimportationLegacy(params) {
   return postEnergizerLegacyJsp(ENERGIZER_LEGACY_JSP.teleimportation, params)
 }
 
-async function fetchSavedDossiersLegacy() {
-  const data = await getEnergizerLegacyJsp(ENERGIZER_LEGACY_JSP.getDossier)
+/**
+ * Filtres alignés jAccueil.jsp → get/get_dossier.jsp (recherche LIKE côté serveur).
+ * @param {{ num_dossier?: string, num_assu?: string, nom_requerant?: string, localisation?: string, initiateur?: string }} [filters]
+ */
+function buildGetDossierLegacyParams(filters = {}) {
+  const params = {}
+  const map = {
+    num_dossier: filters.num_dossier,
+    num_assu: filters.num_assu,
+    nom_requerant: filters.nom_requerant,
+    localisation: filters.localisation,
+    initiateur: filters.initiateur,
+  }
+  Object.entries(map).forEach(([key, value]) => {
+    const trimmed = String(value ?? '').trim()
+    if (trimmed) params[key] = trimmed
+  })
+  return params
+}
+
+async function fetchSavedDossiersLegacy(filters = {}) {
+  const data = await getEnergizerLegacyJsp(
+    ENERGIZER_LEGACY_JSP.getDossier,
+    buildGetDossierLegacyParams(filters),
+  )
   const rows = parseEnergizerLegacyRows(data, 'get_dossier.jsp')
   return normalizeSavedDossiersFromLegacy(rows)
 }
 
-function buildAddpieceRecepVariable({
-  num_dossier,
-  objet,
-  num_assu,
-  nom_requerant,
-  adresse,
-  tel,
-  myobjet,
-  date_demande,
-}) {
+function buildAddpieceRecepVariable(row) {
+  const num_dossier = String(row?.num_dossier ?? '').trim()
+  const Obj =
+    String(row?.Obj ?? '').trim() || resolveObjCodeFromNumDossier(num_dossier)
+  const myobjet = String(row?.myobjet ?? row?.myObjet ?? '').trim()
+
   return [
     num_dossier,
-    objet,
-    num_assu,
-    nom_requerant,
-    adresse,
-    tel,
+    Obj,
+    row?.num_assu ?? row?.numassu ?? '',
+    row?.nom_requerant ?? row?.nomcomplet ?? '',
+    row?.adresse ?? '',
+    row?.tel ?? row?.telephone ?? '',
     myobjet,
-    date_demande,
+    row?.date_demande ?? row?.datedemande ?? '',
   ]
     .map((part) => String(part ?? ''))
     .join(';')
@@ -129,7 +158,7 @@ async function submitNouveauDossierLegacy(form) {
   const isAttestation = payload.code_pres === 'X'
 
   if (serverMessage && !isLegacyNouveauDossierSuccessMessage(serverMessage)) {
-    throw new NouveauDossierSubmitError(serverMessage)
+    throw new NouveauDossierSubmitError(toUserFacingNouveauDossierError(serverMessage))
   }
 
   if (!num_dossier) {
@@ -139,14 +168,16 @@ async function submitNouveauDossierLegacy(form) {
         num_dossier: '',
         code_type_pres: '',
         pieceTypeOptions: [],
-        message: serverMessage,
+        message: toUserFacingNouveauDossierError(serverMessage),
         redirect: 'redirect',
       }
     }
 
     throw new NouveauDossierSubmitError(
-      serverMessage ||
+      toUserFacingNouveauDossierError(
+        serverMessage,
         'Enregistrement du dossier : réponse serveur inattendue (numéro de dossier introuvable).',
+      ),
     )
   }
 
@@ -166,16 +197,24 @@ async function submitNouveauDossierLegacy(form) {
 }
 
 async function persistNouveauDossierPiecesLegacy(context, pieceRows, options = {}) {
-  const payload = toLegacyApiPayload(LegacyOperation.NOUVEAU_DOSSIER_PIECES, {
-    context,
-    pieceRows,
-    username: options.username,
-  })
-  const response = await postEnergizerLegacyHtml(ENERGIZER_LEGACY_JSP.showPieces, payload)
+  const isReception = options.mode === 'reception'
+  const payload = isReception
+    ? buildNouveauDossierReceptionPiecesApiPayload(context, pieceRows, options)
+    : toLegacyApiPayload(LegacyOperation.NOUVEAU_DOSSIER_PIECES, {
+        context,
+        pieceRows,
+        username: options.username,
+      })
+
+  const endPath = isReception
+    ? ENERGIZER_LEGACY_JSP.showAjoutPieces
+    : ENERGIZER_LEGACY_JSP.showPieces
+
+  const response = await postEnergizerLegacyServlet(endPath, payload)
 
   const serverMessage = extractLegacyNouveauDossierServerMessage(response)
   if (serverMessage && !isLegacyNouveauDossierSuccessMessage(serverMessage)) {
-    throw new Error(serverMessage)
+    throw new Error(toUserFacingNouveauDossierError(serverMessage))
   }
   if (isLegacySessionExpiredHtml(response.html)) {
     throw new Error('Session Energizer expirée. Veuillez vous reconnecter.')
@@ -194,67 +233,66 @@ async function finalizeNouveauDossierLegacy(context) {
     throw new Error('Numéro de dossier manquant pour la finalisation.')
   }
 
-  const response = await postEnergizerLegacyHtml(ENERGIZER_LEGACY_JSP.endDossier, {
+  // show.jsp / showAjout.jsp (récap 2 boutons) → POST end.jsp uniquement.
+  const numassu = String(context?.numassu ?? '').trim() || 'RAS'
+
+  const response = await postEnergizerLegacyServlet(ENERGIZER_LEGACY_JSP.endDossier, {
     numdossier,
-    numassu: String(context?.numassu ?? ''),
+    numassu,
   })
 
   const serverMessage = extractLegacyNouveauDossierServerMessage(response)
   if (serverMessage && !isLegacyNouveauDossierSuccessMessage(serverMessage)) {
-    throw new Error(serverMessage)
+    throw new Error(toUserFacingNouveauDossierError(serverMessage))
   }
 
-  const redirectedToJaccueil =
-    response.redirectUrl?.includes('jAccueil') ||
-    response.redirectUrl?.includes('pagePrincipale')
+  const redirectedToSuccess =
+    isEnergizerLegacySuccessRedirectUrl(response.redirectUrl) ||
+    isEnergizerLegacySuccessRedirectUrl(response.finalUrl)
 
-  if (!redirectedToJaccueil && isLegacySessionExpiredHtml(response.html)) {
+  if (!redirectedToSuccess && isLegacySessionExpiredHtml(response.html)) {
     throw new Error('Session Energizer expirée. Veuillez vous reconnecter.')
+  }
+
+  if (!redirectedToSuccess && response.error) {
+    throw new Error(toUserFacingNouveauDossierError(response.error))
   }
 
   return {
     ok: true,
     message: `Dossier ${numdossier} transmis pour traitement.`,
-    code_situ: 'Receptionne',
-    etape: 'Accueil',
+    code_situ: 'En Cours d instruction',
+    etape: context?.localisation ?? 'Accueil',
+    num_dossier: numdossier,
   }
 }
 
-async function fetchJaccueilDossiersLegacy(currentNumdossier) {
-  const rows = await fetchSavedDossiersLegacy()
-  const mapped = normalizeJaccueilRowsFromLegacy(rows)
-  if (currentNumdossier && !mapped.some((r) => r.num_dossier === currentNumdossier)) {
-    mapped.unshift({
-      num_dossier: currentNumdossier,
-      nom_requerant: '',
-      telephone: '',
-      adresse: '',
-      myobjet: '',
-      datedemande: '',
-      etape: 'Accueil',
-      date_position: '',
-      code_situ: 'Receptionne',
-    })
+async function fetchJaccueilDossiersLegacy(filters = {}) {
+  const query = {}
+  const map = {
+    num_dossier: filters.num_dossier,
+    num_assu: filters.num_assu,
+    nom_requerant: filters.nom_requerant,
+    localisation: filters.localisation,
+    initiateur: filters.initiateur,
   }
-  return mapped
+  Object.entries(map).forEach(([key, value]) => {
+    const trimmed = String(value ?? '').trim()
+    if (trimmed) query[key] = trimmed
+  })
+
+  const rows = await fetchSavedDossiersLegacy(query)
+  return normalizeJaccueilRowsFromLegacy(rows)
 }
 
 async function fetchReceptionPiecesContextLegacy(row) {
-  const num_dossier = String(row?.num_dossier ?? '').trim()
+  const receptionRow = toReceptionPiecesRow(row)
+  const num_dossier = String(receptionRow?.num_dossier ?? '').trim()
   if (!num_dossier) {
     throw new Error('Numéro de dossier manquant.')
   }
 
-  const variable = buildAddpieceRecepVariable({
-    num_dossier,
-    objet: row?.Obj || row?.objet || num_dossier.charAt(0),
-    num_assu: row?.num_assu ?? row?.numassu ?? '',
-    nom_requerant: row?.nom_requerant ?? row?.nomcomplet ?? '',
-    adresse: row?.adresse ?? '',
-    tel: row?.telephone ?? row?.tel ?? '',
-    myobjet: row?.myobjet ?? row?.myObjet ?? '',
-    date_demande: row?.datedemande ?? row?.date_demande ?? '',
-  })
+  const variable = buildAddpieceRecepVariable(receptionRow)
 
   const html = await getEnergizerLegacyHtml(ENERGIZER_LEGACY_JSP.addpieceRecep, { variable })
 
@@ -263,8 +301,9 @@ async function fetchReceptionPiecesContextLegacy(row) {
   }
 
   return {
-    pieceTypeOptions: parsePieceTypeOptionsFromAddpieceHtml(html),
+    pieceTypeOptions: parsePieceTypeOptionsFromLegacyPiecesHtml(html),
     existingPieces: parseExistingPiecesFromAddpieceRecepHtml(html),
+    serverContext: parseAddpieceRecepHiddenFields(html),
   }
 }
 
@@ -391,11 +430,12 @@ export async function finalizeNouveauDossier(context) {
   return unwrapData(data)
 }
 
-export async function fetchJaccueilDossiers(currentNumdossier) {
+export async function fetchJaccueilDossiers(filters = {}) {
   if (isEnergizerLegacyAuthEnabled()) {
-    return fetchJaccueilDossiersLegacy(currentNumdossier)
+    return fetchJaccueilDossiersLegacy(filters)
   }
   const { data } = await api.get(`${ENERGIZER_API.reception.dossiers}/jaccueil`, {
+    params: filters,
     skipErrorNotify: true,
   })
   return unwrapData(data) ?? []
@@ -412,14 +452,17 @@ export async function fetchReceptionPiecesContext(row) {
   return unwrapData(data) ?? { pieceTypeOptions: [], existingPieces: [] }
 }
 
-export async function listSavedNouveauDossiers() {
+/**
+ * @param {{ num_dossier?: string, num_assu?: string, nom_requerant?: string, localisation?: string, initiateur?: string }} [filters]
+ */
+export async function listSavedNouveauDossiers(filters = {}) {
   if (isEnergizerLegacyAuthEnabled()) {
-    return fetchSavedDossiersLegacy()
+    return fetchSavedDossiersLegacy(filters)
   }
 
   const agent = getConnectedAgentContext()
   const { data } = await api.get(ENERGIZER_API.reception.dossiers, {
-    params: { agentMatricule: agent.matricule },
+    params: { agentMatricule: agent.matricule, ...filters },
     skipErrorNotify: true,
   })
   const list = unwrapData(data)

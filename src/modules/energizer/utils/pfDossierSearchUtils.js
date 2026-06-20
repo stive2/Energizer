@@ -1,6 +1,7 @@
 /**
- * Filtre client aligné sur elementsLiquidationPF.jsp / elementsLiquidationAF.jsp :
- * LIKE %valeur% pour fnumdoss, fnumassu, fnomassu ; borne haute optionnelle (txtvaleurfin).
+ * Filtre client aligné sur les JSP EnergizerDev (elementsLiquidationPF, gestionDesReprises,
+ * gestionPieceMaintientDroit) : LIKE %valeurdeb% côté serveur ; txtvaleurfin appliqué ici
+ * (borne haute lexicographique pour texte, plage de dates pour fdatepmd).
  */
 
 function dateToSortKey(value) {

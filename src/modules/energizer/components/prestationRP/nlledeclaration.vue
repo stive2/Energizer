@@ -1,258 +1,903 @@
 <template>
-  <div class="q-pa-sm nlle-declaration">
-    <div class="text-center q-mb-sm">
-      <div class="text-h6 text-primary text-weight-bold">
-        <q-icon name="assignment" class="q-mr-xs" />
-        Mise à jour des Déclarations RP
-      </div>
-      <div class="text-caption text-grey-6">Accidents du Travail / Maladies Professionnelles</div>
-    </div>
-
+  <div class="q-pa-sm rp-declaration">
     <q-banner v-if="loadError" class="bg-negative text-white q-mb-sm" rounded dense>
       {{ loadError }}
     </q-banner>
 
+    <div class="rp-declaration__hero q-mb-sm">
+      <div class="rp-declaration__hero-icon">
+        <q-icon name="assignment_add" size="26px" color="white" />
+      </div>
+      <div>
+        <div class="text-h6 text-weight-bold text-primary">Mise à jour des déclarations</div>
+        <div class="text-caption text-grey-7">Nouveau dossier RP — AT / MP</div>
+      </div>
+    </div>
+
     <q-form ref="formRef" @submit.prevent="submitForm">
-      <q-stepper
-        v-model="step"
-        ref="stepperRef"
-        color="primary"
-        done-color="positive"
-        error-color="negative"
-        animated
-        flat
-        bordered
-        header-nav
-        :vertical="$q.screen.lt.md"
-        class="nlle-stepper"
-        @update:model-value="onStepChange"
-      >
-        <!-- ÉTAPE 1 — Identification -->
-        <q-step :name="1" title="Dossier" icon="folder_open" :done="step > 1" :error="stepErrors[1]" :disable="!isStepAllowed(1)">
-          <div class="row q-col-gutter-xs q-mb-xs">
-            <div class="col-12 col-md-4">
+      <!-- Identification dossier / employeur -->
+      <q-card class="q-mb-sm card-elevated">
+        <q-card-section class="card-header card-header--primary q-py-sm">
+          <div class="row items-center justify-between">
+            <div class="row items-center">
+              <q-icon name="folder_open" size="xs" class="q-mr-xs" />
+              <span class="text-body2 text-weight-bold">Dossier et employeur</span>
+            </div>
+            <q-btn flat dense round icon="restart_alt" color="white" size="sm" @click="resetForm">
+              <q-tooltip>Réinitialiser</q-tooltip>
+            </q-btn>
+          </div>
+        </q-card-section>
+        <q-card-section class="q-py-sm">
+          <div class="row q-col-gutter-sm">
+            <div class="col-12 col-md-5">
               <q-select
                 v-model="selectedDossier"
                 :options="dossierOptions"
-                label="N° Dossier *"
-                outlined dense emit-value map-options
+                label="Numéro Dossier *"
+                outlined
+                dense
+                emit-value
+                map-options
                 option-label="numdossier"
                 option-value="numdossier"
-                use-input input-debounce="0"
+                use-input
+                input-debounce="0"
                 :loading="loadingCatalog"
+                class="field-num-value"
+                placeholder="Choisir un dossier MP/AT SVP..."
                 @filter="filterDossiers"
                 @update:model-value="onDossierSelect"
                 color="primary"
+                :rules="[(v) => !!v || 'Choisissez un dossier SVP']"
+              >
+                <template #prepend
+                  ><q-icon name="confirmation_number" color="primary" size="xs"
+                /></template>
+                <template #no-option>
+                  <q-item><q-item-section class="text-grey">Aucun dossier</q-item-section></q-item>
+                </template>
+              </q-select>
+            </div>
+            <div class="col-12 col-md-7">
+              <q-input
+                v-model="form.objet"
+                label="Objet"
+                outlined
+                dense
+                readonly
+                bg-color="blue-grey-1"
               />
             </div>
-            <div class="col-6 col-md-3"><q-input v-model="form.objet" label="Objet" outlined dense readonly bg-color="blue-grey-1" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.datedeclaration" label="Date Déclaration" outlined dense readonly bg-color="blue-grey-1" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.datedepot" label="Date Dépôt Dossier" outlined dense readonly bg-color="blue-grey-1" /></div>
-          </div>
-          <div class="row q-col-gutter-xs q-mb-xs">
-            <div class="col-6 col-md-2"><q-input v-model="form.numassu" label="N° Assuré" outlined dense readonly bg-color="blue-grey-1" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.nom" label="Nom Assuré" outlined dense readonly bg-color="blue-grey-1" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.emploiassure" label="Emploi Assuré" outlined dense readonly bg-color="blue-grey-1" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.datedeces" label="Décédé le" outlined dense readonly bg-color="blue-grey-1" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.txipp" label="Taux IPP Précédent" outlined dense readonly bg-color="blue-grey-1" /></div>
-          </div>
-          <div class="row q-col-gutter-xs">
+
+            <div class="col-6 col-md-3">
+              <q-input
+                v-model="form.numassu"
+                label="Numéro assuré"
+                outlined
+                dense
+                readonly
+                bg-color="blue-grey-1"
+                class="field-num-value"
+              />
+            </div>
+            <div class="col-6 col-md-4">
+              <q-input
+                v-model="form.nom"
+                label="Nom assuré"
+                outlined
+                dense
+                readonly
+                bg-color="blue-grey-1"
+              />
+            </div>
+            <div class="col-12 col-md-5">
+              <q-input
+                v-model="form.emploiassure"
+                label="Emploi assuré"
+                outlined
+                dense
+                readonly
+                bg-color="blue-grey-1"
+              />
+            </div>
+
+            <div class="col-6 col-md-3">
+              <q-input
+                v-model="form.datedeces"
+                label="Décédé le"
+                outlined
+                dense
+                readonly
+                bg-color="blue-grey-1"
+              />
+            </div>
+            <div class="col-6 col-md-3">
+              <q-input
+                v-model="form.txipp"
+                label="Taux IPP précédent"
+                outlined
+                dense
+                readonly
+                bg-color="blue-grey-1"
+              />
+            </div>
+
             <div class="col-6 col-md-3">
               <q-input
                 v-model="form.numemployeur"
                 label="Numéro Employeur *"
-                outlined dense bg-color="yellow-1"
-                @update:model-value="v => upper('numemployeur', v)"
-                @keydown.enter.prevent="fetchEmployeur"
-                @blur="onEmployeurFieldActivate"
-                :loading="loadingEmployeur"
+                outlined
+                dense
+                class="field-num-value"
+                :rules="[(v) => !!String(v ?? '').trim() || 'Numéro employeur obligatoire']"
+                @keyup.enter="lookupEmployeur"
               >
-                <template v-slot:append>
-                  <q-btn flat round icon="search" size="xs" color="primary" @click="fetchEmployeur" />
+                <template #prepend
+                  ><q-icon name="business_center" color="primary" size="xs"
+                /></template>
+                <template #append>
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    icon="search"
+                    color="primary"
+                    :loading="loadingEmployeur"
+                    @click="lookupEmployeur"
+                  >
+                    <q-tooltip>Rechercher (Entrée)</q-tooltip>
+                  </q-btn>
                 </template>
               </q-input>
             </div>
-            <div class="col-6 col-md-5"><q-input v-model="form.nomemployeur" label="Nom Employeur" outlined dense readonly bg-color="blue-grey-1" /></div>
-            <div class="col-12 col-md-4"><q-input v-model="form.observation" label="Observation" outlined dense readonly bg-color="blue-grey-1" /></div>
-          </div>
-        </q-step>
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="form.nomemployeur"
+                label="Nom employeur *"
+                outlined
+                dense
+                readonly
+                bg-color="blue-grey-1"
+                :rules="[
+                  (v) => !!String(v ?? '').trim() || 'Chargez l\'employeur (Entrée ou recherche)',
+                ]"
+              />
+            </div>
 
-        <!-- ÉTAPE 2 — Accident & lieu -->
-        <q-step :name="2" title="Accident" icon="warning_amber" :done="step > 2" :error="stepErrors[2]" :disable="!isStepAllowed(2)">
-          <div class="row q-col-gutter-xs q-mb-xs">
-            <div class="col-12 col-md-4">
-              <q-select v-model="form.postetravail" :options="posteTravailOptions" label="Poste de Travail *"
-                outlined dense emit-value map-options option-label="label" option-value="value"
-                @update:model-value="v => { form.codeposte = v }" color="primary" />
+            <div class="col-6 col-md-3">
+              <q-input
+                v-model="form.datedeclaration"
+                label="Date déclaration"
+                outlined
+                dense
+                readonly
+                bg-color="blue-grey-1"
+              />
             </div>
-            <div class="col-12 col-md-4">
-              <q-select v-model="form.codetyperisque" :options="typeRisqueOptions" label="Type de Risque *"
-                outlined dense emit-value map-options option-label="label" option-value="value"
-                @update:model-value="v => { form.coderisque = v }" color="primary" />
+            <div class="col-6 col-md-3">
+              <q-input
+                v-model="form.datedepot"
+                label="Date dépôt dossier"
+                outlined
+                dense
+                readonly
+                bg-color="blue-grey-1"
+              />
             </div>
-            <div class="col-6 col-md-2">
-              <q-input v-model="form.datesurvenance" label="Date Accident *" outlined dense bg-color="yellow-1"
-                :rules="[ruleDateAccident]">
-                <template v-slot:append>
+            <div class="col-12">
+              <q-input
+                v-model="form.observation"
+                label="Observation"
+                outlined
+                dense
+                readonly
+                bg-color="blue-grey-1"
+                type="textarea"
+                autogrow
+              />
+            </div>
+          </div>
+        </q-card-section>
+      </q-card>
+
+      <!-- Informations sur le risque -->
+      <q-expansion-item
+        v-model="expanded.risque"
+        icon="warning_amber"
+        label="Informations sur le Risque"
+        header-class="expansion-header expansion-header--risque"
+        class="q-mb-sm card-elevated expansion-card"
+      >
+        <q-card-section class="q-pt-none q-pb-sm">
+          <div class="row q-col-gutter-sm">
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="form.codeposte"
+                :options="posteOptions"
+                label="Poste travail *"
+                outlined
+                dense
+                emit-value
+                map-options
+                @update:model-value="
+                  (v) => syncRefLabel('postetravail', 'codeposte', posteOptions, v)
+                "
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="form.coderisque"
+                :options="typeRisqueOptions"
+                label="Type risque *"
+                outlined
+                dense
+                emit-value
+                map-options
+                @update:model-value="
+                  (v) => syncRefLabel('codetyperisque', 'coderisque', typeRisqueOptions, v)
+                "
+              />
+            </div>
+
+            <div class="col-6 col-md-3">
+              <q-input
+                v-model="form.datesurvenance"
+                label="Date accident *"
+                outlined
+                dense
+                bg-color="yellow-1"
+                mask="##/##/####"
+                :rules="dateAccidentRules"
+              >
+                <template #append>
                   <q-icon name="edit_calendar" class="cursor-pointer" color="primary" size="xs">
                     <q-popup-proxy cover transition-show="scale" transition-hide="scale">
-                      <q-date v-model="form.datesurvenance" mask="DD/MM/YYYY" today-btn color="primary">
-                        <div class="row items-center justify-end"><q-btn v-close-popup label="OK" color="primary" flat dense /></div>
+                      <q-date
+                        v-model="form.datesurvenance"
+                        mask="DD/MM/YYYY"
+                        today-btn
+                        color="primary"
+                      >
+                        <div class="row items-center justify-end">
+                          <q-btn v-close-popup label="OK" color="primary" flat dense />
+                        </div>
                       </q-date>
                     </q-popup-proxy>
                   </q-icon>
                 </template>
               </q-input>
             </div>
-            <div class="col-6 col-md-2">
-              <q-input v-model="form.heuresurvenance" label="Heure Accident" type="time" outlined dense bg-color="yellow-1" />
-            </div>
-          </div>
-          <div class="row q-col-gutter-xs q-mb-xs">
-            <div class="col-6 col-md-3"><q-input v-model="form.lieuaccident" label="Lieu Accident" outlined dense bg-color="yellow-1" @update:model-value="v => upper('lieuaccident', v)" /></div>
             <div class="col-6 col-md-3">
-              <q-select v-model="form.arrondissement" :options="arrondissementOptions" label="Arrondissement"
-                outlined dense emit-value map-options option-label="label" option-value="value" color="primary" />
+              <q-input
+                v-model="form.heuresurvenance"
+                label="Heure"
+                outlined
+                dense
+                mask="##:##"
+                placeholder="HH:MM"
+              />
             </div>
-            <div class="col-6 col-md-3"><q-input v-model="form.quartier" label="Quartier" outlined dense bg-color="yellow-1" @update:model-value="v => upper('quartier', v)" /></div>
-            <div class="col-12 col-md-3"><q-input v-model="form.adresse" label="Rue / Avenue / Boulevard" type="textarea" rows="2" outlined dense bg-color="yellow-1" @update:model-value="v => upper('adresse', v)" /></div>
-          </div>
-          <div class="row q-col-gutter-xs">
-            <div class="col-12 col-md-6"><q-input v-model="form.causes" label="Causes" type="textarea" rows="2" outlined dense bg-color="yellow-1" @update:model-value="v => upper('causes', v)" /></div>
-            <div class="col-12 col-md-6"><q-input v-model="form.consequences" label="Conséquences" type="textarea" rows="2" outlined dense bg-color="yellow-1" @update:model-value="v => upper('consequences', v)" /></div>
-          </div>
-        </q-step>
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="form.lieuaccident"
+                label="Lieu accident"
+                outlined
+                dense
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.lieuaccident = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
 
-        <!-- ÉTAPE 3 — Lésions & victime -->
-        <q-step :name="3" title="Lésions" icon="healing" :done="step > 3" :error="stepErrors[3]" :disable="!isStepAllowed(3)">
-          <div class="row q-col-gutter-xs q-mb-xs">
-            <div class="col-12 col-md-3">
-              <q-select v-model="form.codesiegelesion" :options="siegeLesionOptions" label="Siège Lésion Codifié *"
-                outlined dense emit-value map-options option-label="label" option-value="value"
-                @update:model-value="v => { form.codesiegel = v }" color="primary" />
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="form.arrondissement"
+                :options="arrondissementOptions"
+                label="Arrondissement"
+                outlined
+                dense
+                emit-value
+                map-options
+                clearable
+              />
             </div>
-            <div class="col-12 col-md-3"><q-input v-model="form.siegelesion" label="Précisions siège lésion" type="textarea" rows="2" outlined dense bg-color="yellow-1" @update:model-value="v => upper('siegelesion', v)" /></div>
-            <div class="col-12 col-md-3">
-              <q-select v-model="form.codenatlesion" :options="natureLesionOptions" label="Nature Lésion Codifiée *"
-                outlined dense emit-value map-options option-label="label" option-value="value"
-                @update:model-value="v => { form.codenaturel = v }" color="primary" />
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="form.quartier"
+                label="Quartier"
+                outlined
+                dense
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.quartier = toLegacyUppercase(v)
+                  }
+                "
+              />
             </div>
-            <div class="col-12 col-md-3"><q-input v-model="form.naturelesion" label="Précisions nature lésion" type="textarea" rows="2" outlined dense bg-color="yellow-1" @update:model-value="v => upper('naturelesion', v)" /></div>
+            <div class="col-12">
+              <q-input
+                v-model="form.adresse"
+                label="Rue, Avenue, Boulevard"
+                outlined
+                dense
+                type="textarea"
+                autogrow
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.adresse = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="form.causes"
+                label="Causes"
+                outlined
+                dense
+                type="textarea"
+                autogrow
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.causes = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="form.consequences"
+                label="Conséquences"
+                outlined
+                dense
+                type="textarea"
+                autogrow
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.consequences = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="form.codesiegel"
+                :options="siegeLesionOptions"
+                label="Siège lésion codifié *"
+                outlined
+                dense
+                emit-value
+                map-options
+                @update:model-value="
+                  (v) => syncRefLabel('codesiegelesion', 'codesiegel', siegeLesionOptions, v)
+                "
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="form.siegelesion"
+                label="Autres précisions siège lésion"
+                outlined
+                dense
+                type="textarea"
+                autogrow
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.siegelesion = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="form.codenaturel"
+                :options="natureLesionOptions"
+                label="Nature lésion codifiée *"
+                outlined
+                dense
+                emit-value
+                map-options
+                @update:model-value="
+                  (v) => syncRefLabel('codenatlesion', 'codenaturel', natureLesionOptions, v)
+                "
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="form.naturelesion"
+                label="Autres précisions nature lésion"
+                outlined
+                dense
+                type="textarea"
+                autogrow
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.naturelesion = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+
+            <div class="col-6 col-md-3">
+              <q-input
+                v-model.number="form.ancienneteposte"
+                type="number"
+                label="Ancienneté au poste (années) *"
+                outlined
+                dense
+                min="0"
+                max="40"
+                :rules="[
+                  (v) =>
+                    (v !== '' &&
+                      v != null &&
+                      !Number.isNaN(Number(v)) &&
+                      Number(v) >= 0 &&
+                      Number(v) <= 40) ||
+                    'Entre 0 et 40',
+                ]"
+              />
+            </div>
+            <div class="col-12 col-md-5">
+              <q-select
+                v-model="form.flagformation"
+                :options="ouiNonOptions"
+                label="Formation à cette activité ? *"
+                outlined
+                dense
+                emit-value
+                map-options
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="form.codeagentmat"
+                :options="agentMaterielOptions"
+                label="Agent matériel *"
+                outlined
+                dense
+                emit-value
+                map-options
+                @update:model-value="
+                  (v) => syncRefLabel('agentmateriel', 'codeagentmat', agentMaterielOptions, v)
+                "
+              />
+            </div>
+
+            <div class="col-12"><div class="sep q-my-xs">Témoins</div></div>
+            <div class="col-12 col-md-4">
+              <q-input
+                v-model="form.temoin1"
+                label="Témoin (T1)"
+                outlined
+                dense
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.temoin1 = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+            <div class="col-12 col-md-8">
+              <q-input
+                v-model="form.identite1"
+                label="Identité T1"
+                outlined
+                dense
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.identite1 = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+            <div class="col-12 col-md-4">
+              <q-input
+                v-model="form.temoin2"
+                label="Témoin (T2)"
+                outlined
+                dense
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.temoin2 = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+            <div class="col-12 col-md-8">
+              <q-input
+                v-model="form.identite2"
+                label="Identité T2"
+                outlined
+                dense
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.identite2 = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+            <div class="col-12 col-md-4">
+              <q-input
+                v-model="form.temoin3"
+                label="Témoin (T3)"
+                outlined
+                dense
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.temoin3 = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+            <div class="col-12 col-md-8">
+              <q-input
+                v-model="form.identite3"
+                label="Identité T3"
+                outlined
+                dense
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.identite3 = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="form.flaghospitalisation"
+                :options="ouiNonOptions"
+                label="Hospitalisée ? *"
+                outlined
+                dense
+                emit-value
+                map-options
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="form.lieuhospitalisation"
+                label="Lieu d'hospitalisation"
+                outlined
+                dense
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.lieuhospitalisation = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+            <div class="col-12 col-md-4">
+              <q-select
+                v-model="form.flag"
+                :options="ouiNonOptions"
+                label="Prise en charge ? *"
+                outlined
+                dense
+                emit-value
+                map-options
+              />
+            </div>
+            <div class="col-12 col-md-4">
+              <q-select
+                v-model="form.flagarrettravail"
+                :options="ouiNonOptions"
+                label="Arrêt de travail ? *"
+                outlined
+                dense
+                emit-value
+                map-options
+              />
+            </div>
+            <div class="col-12 col-md-4">
+              <q-select
+                v-model="form.flagdecesimmediat"
+                :options="ouiNonOptions"
+                label="Décès immédiat ? *"
+                outlined
+                dense
+                emit-value
+                map-options
+              />
+            </div>
           </div>
-          <div class="row q-col-gutter-xs q-mb-xs">
+        </q-card-section>
+      </q-expansion-item>
+
+      <!-- Informations salariales -->
+      <q-expansion-item
+        v-model="expanded.salarial"
+        icon="payments"
+        label="Informations salariales"
+        header-class="expansion-header expansion-header--salarial"
+        class="q-mb-sm card-elevated expansion-card"
+      >
+        <q-card-section class="q-pt-none q-pb-sm">
+          <div class="row q-col-gutter-sm">
+            <div class="col-6 col-md-3">
+              <q-input
+                v-model="form.categorie"
+                label="Catégorie *"
+                outlined
+                dense
+                :rules="[(v) => !!String(v ?? '').trim() || 'Catégorie obligatoire']"
+              />
+            </div>
+            <div class="col-6 col-md-3">
+              <q-input
+                v-model="form.echelon"
+                label="Échelon *"
+                outlined
+                dense
+                :rules="[(v) => !!String(v ?? '').trim() || 'Échelon obligatoire']"
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-select
+                v-model="form.secteur"
+                :options="secteurOptions"
+                label="Secteur activité *"
+                outlined
+                dense
+                emit-value
+                map-options
+              />
+            </div>
+            <div class="col-12 col-md-4">
+              <q-select
+                v-model="form.zone"
+                :options="zoneOptions"
+                label="Zone accident *"
+                outlined
+                dense
+                emit-value
+                map-options
+              />
+            </div>
+
+            <div class="col-6 col-md-4">
+              <q-input
+                v-model.number="form.montant1"
+                type="number"
+                label="Salaire (n-1)"
+                outlined
+                dense
+              />
+            </div>
+            <div class="col-6 col-md-4">
+              <q-input
+                v-model.number="form.montant2"
+                type="number"
+                label="Salaire (n-2)"
+                outlined
+                dense
+              />
+            </div>
+            <div class="col-6 col-md-4">
+              <q-input
+                v-model.number="form.montant3"
+                type="number"
+                label="Salaire (n-3)"
+                outlined
+                dense
+              />
+            </div>
+            <div class="col-6 col-md-4">
+              <q-input
+                v-model.number="form.salrecons"
+                type="number"
+                label="Salaire reconstitué"
+                outlined
+                dense
+              />
+            </div>
+            <div class="col-12 col-md-5">
+              <q-select
+                v-model="form.flagretarrerage"
+                :options="ouiNonOptions"
+                label="Retenir les arriérages ? *"
+                outlined
+                dense
+                emit-value
+                map-options
+                @update:model-value="onRetenueFlagChange"
+              />
+            </div>
+            <div class="col-12 col-md-4">
+              <q-input
+                v-model.number="form.montantretenue"
+                type="number"
+                label="Montant retenue"
+                outlined
+                dense
+                :disable="form.flagretarrerage === 'NON'"
+              />
+            </div>
+          </div>
+        </q-card-section>
+      </q-expansion-item>
+
+      <!-- Risque précédent -->
+      <q-expansion-item
+        v-model="expanded.precedent"
+        icon="history"
+        label="Informations sur le risque précédent"
+        header-class="expansion-header expansion-header--precedent"
+        class="q-mb-sm card-elevated expansion-card"
+      >
+        <q-card-section class="q-pt-none q-pb-sm">
+          <div class="row q-col-gutter-sm">
+            <div class="col-6 col-md-3">
+              <q-input
+                v-model.number="form.ippold"
+                type="number"
+                label="Taux IPP précédent *"
+                outlined
+                dense
+                :rules="[(v) => (v !== '' && v != null) || 'Taux IPP précédent obligatoire']"
+              />
+            </div>
+            <div class="col-6 col-md-3">
+              <q-input
+                v-model.number="form.rmmold"
+                type="number"
+                label="Ancienne RMM *"
+                outlined
+                dense
+                :rules="[(v) => (v !== '' && v != null) || 'Ancienne RMM obligatoire']"
+              />
+            </div>
+            <div class="col-6 col-md-3">
+              <q-input
+                v-model.number="form.renteold"
+                type="number"
+                label="Rente mensuelle"
+                outlined
+                dense
+              />
+            </div>
+            <div class="col-6 col-md-3">
+              <q-input
+                v-model.number="form.allocationold"
+                type="number"
+                label="Allocation d'incapacité *"
+                outlined
+                dense
+                :rules="[(v) => (v !== '' && v != null) || 'Allocation obligatoire']"
+              />
+            </div>
+          </div>
+        </q-card-section>
+      </q-expansion-item>
+
+      <!-- Tiers responsable -->
+      <q-expansion-item
+        v-model="expanded.tiers"
+        icon="gavel"
+        label="Informations sur le tiers responsable"
+        header-class="expansion-header expansion-header--tiers"
+        class="q-mb-sm card-elevated expansion-card"
+      >
+        <q-card-section class="q-pt-none q-pb-sm">
+          <div class="row q-col-gutter-sm">
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="form.nomtiers"
+                label="Nom ou raison sociale"
+                outlined
+                dense
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.nomtiers = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+            <div class="col-12 col-md-6">
+              <q-input
+                v-model="form.orgassureur"
+                label="Organisme assureur"
+                outlined
+                dense
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.orgassureur = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+            <div class="col-6 col-md-4">
+              <q-input
+                v-model="form.numpolice"
+                label="Numéro police"
+                outlined
+                dense
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.numpolice = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+            <div class="col-6 col-md-4">
+              <q-input
+                v-model="form.immatriculation"
+                label="Immatriculation"
+                outlined
+                dense
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.immatriculation = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
+            <div class="col-12 col-md-8">
+              <q-input
+                v-model="form.adresseassureur"
+                label="Adresse assureur"
+                outlined
+                dense
+                class="input-uppercase"
+                @update:model-value="
+                  (v) => {
+                    form.adresseassureur = toLegacyUppercase(v)
+                  }
+                "
+              />
+            </div>
             <div class="col-6 col-md-2">
-              <q-input v-model.number="form.ancienneteposte" label="Ancienneté (années) *" type="number" min="0" max="40" outlined dense />
+              <q-input v-model="form.boitepostale" label="Boîte postale" outlined dense />
             </div>
-            <div class="col-6 col-md-2"><q-select v-model="form.flagformation" :options="ouiNonOptions" label="Formée ? *" outlined dense emit-value map-options color="primary" /></div>
-            <div class="col-6 col-md-2"><q-select v-model="form.flaghospitalisation" :options="ouiNonOptions" label="Hospitalisée ? *" outlined dense emit-value map-options color="primary" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.lieuhospitalisation" label="Lieu d'Hospitalisation" outlined dense bg-color="yellow-1" :disable="form.flaghospitalisation !== 'OUI'" @update:model-value="v => upper('lieuhospitalisation', v)" /></div>
-            <div class="col-6 col-md-3"><q-select v-model="form.agentmateriel" :options="agentMaterielOptions" label="Agent Matériel *" outlined dense emit-value map-options option-label="label" option-value="value" @update:model-value="v => { form.codeagentmat = v }" color="primary" /></div>
-          </div>
-          <div class="row q-col-gutter-xs q-mb-xs">
-            <div class="col-6 col-md-2"><q-select v-model="form.flag" :options="ouiNonOptions" label="Prise en charge ? *" outlined dense emit-value map-options color="primary" /></div>
-            <div class="col-6 col-md-2"><q-select v-model="form.flagarrettravail" :options="ouiNonOptions" label="Arrêt travail ? *" outlined dense emit-value map-options color="primary" /></div>
-            <div class="col-6 col-md-2"><q-select v-model="form.flagdecesimmediat" :options="ouiNonOptions" label="Décédé immédiatement ? *" outlined dense emit-value map-options color="primary" /></div>
-          </div>
-          <div class="sep q-mb-xs">Témoins</div>
-          <div class="row q-col-gutter-xs">
-            <div class="col-6 col-md-3"><q-input v-model="form.temoin1" label="Témoin 1" outlined dense bg-color="yellow-1" @update:model-value="v => upper('temoin1', v)" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.identite1" label="Identité T1" outlined dense bg-color="yellow-1" @update:model-value="v => upper('identite1', v)" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.temoin2" label="Témoin 2" outlined dense bg-color="yellow-1" @update:model-value="v => upper('temoin2', v)" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.identite2" label="Identité T2" outlined dense bg-color="yellow-1" @update:model-value="v => upper('identite2', v)" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.temoin3" label="Témoin 3" outlined dense bg-color="yellow-1" @update:model-value="v => upper('temoin3', v)" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.identite3" label="Identité T3" outlined dense bg-color="yellow-1" @update:model-value="v => upper('identite3', v)" /></div>
-          </div>
-        </q-step>
-
-        <!-- ÉTAPE 4 — Salaires -->
-        <q-step :name="4" title="Salaires" icon="account_balance_wallet" :done="step > 4" :error="stepErrors[4]" :disable="!isStepAllowed(4)">
-          <div class="row q-col-gutter-xs q-mb-xs">
-            <div class="col-6 col-md-2"><q-input v-model="form.categorie" label="Catégorie *" outlined dense bg-color="yellow-1" @update:model-value="v => upper('categorie', v)" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.echelon" label="Échelon *" outlined dense bg-color="yellow-1" @update:model-value="v => upper('echelon', v)" /></div>
-            <div class="col-6 col-md-4"><q-select v-model="form.secteur" :options="secteurOptions" label="Secteur *" outlined dense emit-value map-options color="primary" /></div>
-            <div class="col-6 col-md-2"><q-select v-model="form.zone" :options="zoneOptions" label="Zone *" outlined dense emit-value map-options color="primary" /></div>
-            <div class="col-6 col-md-2"><q-input v-model.number="form.salrecons" label="Salaire Reconstitué" type="number" min="0" outlined dense bg-color="yellow-1" /></div>
-          </div>
-          <div class="row q-col-gutter-xs q-mb-xs">
-            <div class="col-6 col-md-2"><q-input v-model="form.periode1" label="Période (n-1)" outlined dense bg-color="yellow-1" placeholder="MM/AAAA" @update:model-value="v => upper('periode1', v)" /></div>
-            <div class="col-6 col-md-2"><q-input v-model.number="form.montant1" label="Salaire (n-1)" type="number" min="0" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.periode2" label="Période (n-2)" outlined dense bg-color="yellow-1" placeholder="MM/AAAA" @update:model-value="v => upper('periode2', v)" /></div>
-            <div class="col-6 col-md-2"><q-input v-model.number="form.montant2" label="Salaire (n-2)" type="number" min="0" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.periode3" label="Période (n-3)" outlined dense bg-color="yellow-1" placeholder="MM/AAAA" @update:model-value="v => upper('periode3', v)" /></div>
-            <div class="col-6 col-md-2"><q-input v-model.number="form.montant3" label="Salaire (n-3)" type="number" min="0" outlined dense bg-color="yellow-1" /></div>
-          </div>
-          <div class="row q-col-gutter-xs">
-            <div class="col-6 col-md-4">
-              <q-select v-model="form.flagretarrerage" :options="ouiNonOptions" label="Retenir arriérages ? *"
-                outlined dense emit-value map-options color="primary" @update:model-value="onFlagRetarreageChange" />
-            </div>
-            <div class="col-6 col-md-4">
-              <q-input v-model.number="form.montantretenue" label="Montant Retenue" type="number" min="0"
-                outlined dense bg-color="yellow-1" :disable="form.flagretarrerage !== 'OUI'" />
+            <div class="col-6 col-md-2">
+              <q-input v-model="form.telephone" label="Téléphone" outlined dense />
             </div>
           </div>
-        </q-step>
+        </q-card-section>
+      </q-expansion-item>
 
-        <!-- ÉTAPE 5 — Risque précédent -->
-        <q-step :name="5" title="Risque préc." icon="history" :done="step > 5" :error="stepErrors[5]" :disable="!isStepAllowed(5)">
-          <div class="row q-col-gutter-xs">
-            <div class="col-6 col-md-3"><q-input v-model="form.ippold" label="Taux IPP Précédent (%) *" type="number" min="0" max="100" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.rmmold" label="Ancienne RMM *" type="number" min="0" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.renteold" label="Rente Mensuelle" type="number" min="0" outlined dense bg-color="yellow-1" /></div>
-            <div class="col-6 col-md-3"><q-input v-model="form.allocationold" label="Allocation Incapacité *" type="number" min="0" outlined dense bg-color="yellow-1" /></div>
-          </div>
-        </q-step>
-
-        <!-- ÉTAPE 6 — Tiers -->
-        <q-step :name="6" title="Tiers" icon="gavel" :done="step > 6" :error="stepErrors[6]" :disable="!isStepAllowed(6)">
-          <div class="row q-col-gutter-xs">
-            <div class="col-12 col-md-4"><q-input v-model="form.nomtiers" label="Nom / Raison Sociale" outlined dense bg-color="yellow-1" @update:model-value="v => upper('nomtiers', v)" /></div>
-            <div class="col-12 col-md-4"><q-input v-model="form.orgassureur" label="Organisme Assureur" outlined dense bg-color="yellow-1" @update:model-value="v => upper('orgassureur', v)" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.numpolice" label="Numéro Police" outlined dense bg-color="yellow-1" @update:model-value="v => upper('numpolice', v)" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.immatriculation" label="Immatriculation" outlined dense bg-color="yellow-1" @update:model-value="v => upper('immatriculation', v)" /></div>
-            <div class="col-12 col-md-4"><q-input v-model="form.adresseassureur" label="Adresse Assureur" outlined dense bg-color="yellow-1" @update:model-value="v => upper('adresseassureur', v)" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.boitepostale" label="Boîte Postale" outlined dense bg-color="yellow-1" @update:model-value="v => upper('boitepostale', v)" /></div>
-            <div class="col-6 col-md-2"><q-input v-model="form.telephone" label="Téléphone" type="tel" prefix="+237" maxlength="9" outlined dense bg-color="yellow-1" :rules="telephoneRules" /></div>
-          </div>
-        </q-step>
-
-        <!-- ÉTAPE 7 — Récapitulatif -->
-        <q-step :name="7" title="Récapitulatif" icon="fact_check" :error="stepErrors[7]" :disable="!isStepAllowed(7)">
-          <div class="text-center q-mb-md">
-            <q-icon name="fact_check" size="36px" color="positive" />
-            <div class="text-subtitle1 text-weight-bold q-mt-xs">Vérifiez les informations avant validation</div>
-            <q-linear-progress :value="1" size="6px" color="positive" class="q-mt-sm rounded-borders" />
-          </div>
-          <div class="row q-col-gutter-md">
-            <div v-for="block in recapBlocks" :key="block.step" class="col-12 col-lg-6">
-              <q-card flat bordered class="recap-card">
-                <q-card-section class="recap-card__header row items-center q-py-sm">
-                  <q-icon :name="block.icon" size="sm" class="q-mr-sm" />
-                  <div class="col text-weight-bold">{{ block.title }}</div>
-                  <q-btn flat round dense icon="edit" size="xs" color="primary" @click="step = block.step">
-                    <q-tooltip>Modifier</q-tooltip>
-                  </q-btn>
-                </q-card-section>
-                <q-separator />
-                <q-list dense separator>
-                  <q-item v-for="item in block.items" :key="item.label" class="q-py-xs">
-                    <q-item-section>
-                      <q-item-label caption>{{ item.label }}</q-item-label>
-                      <q-item-label>{{ item.value || '—' }}</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </q-list>
-              </q-card>
-            </div>
-          </div>
-        </q-step>
-      </q-stepper>
-
-      <div class="row justify-center q-gutter-sm q-mt-md nlle-step-footer">
-        <q-btn v-if="step > 1" flat color="primary" icon="chevron_left" label="Précédent" no-caps @click="goPrevStep" />
-        <q-btn v-if="step < 7" color="primary" icon-right="chevron_right" label="Suivant" unelevated no-caps @click="goNextStep" />
-        <q-btn v-if="step === 7" type="submit" color="positive" icon="save" label="Valider" unelevated no-caps :loading="submitting" />
-        <q-btn flat color="grey-7" icon="restart_alt" label="Réinitialiser" no-caps @click="resetForm" />
+      <div class="row justify-center q-mt-md q-gutter-sm">
+        <q-btn
+          type="submit"
+          color="primary"
+          label="Valider"
+          icon="check_circle"
+          unelevated
+          class="action-btn"
+          :loading="submitting"
+        />
+        <q-btn
+          type="button"
+          color="grey-6"
+          label="Annuler"
+          icon="refresh"
+          unelevated
+          class="action-btn"
+          @click="resetForm"
+        />
       </div>
     </q-form>
   </div>
@@ -260,150 +905,142 @@
 
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
+import { useRoute } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { useLiquidationRpStore } from 'src/modules/energizer/stores/liquidationRpStore.js'
+import { toLegacyUppercase } from 'src/modules/energizer/utils/liquidationLegacyUtils.js'
 import {
-  validateRpDeclarationStep,
-  validateRpDeclarationForm,
-  mapRpDossierRowToForm,
-  applyRpRetenueArrierageRules,
-  toRpSelectOptions,
-  resolveRpSelectValue,
   RP_OUI_NON_OPTIONS,
   RP_SECTEUR_OPTIONS,
   RP_ZONE_OPTIONS,
-  isLegacyDateNotFuture,
+  applyRpRetenueArrierageRules,
   compareLegacyFrDates,
+  isLegacyDateNotFuture,
+  mapRpDossierRowToForm,
+  rpDeclarationResultMessage,
+  toRpSelectOptions,
+  validateRpDeclarationForm,
 } from 'src/modules/energizer/utils/liquidationRpDeclarationLegacy.js'
-import {
-  buildLegacyTelephoneRules,
-  setLegacyUppercaseText,
-} from 'src/modules/energizer/utils/energizerFormInputUtils.js'
 
 defineOptions({ name: 'NlleDeclaration' })
 
-const { t } = useI18n()
 const $q = useQuasar()
-const telephoneRules = buildLegacyTelephoneRules(t)
+const route = useRoute()
 const rpStore = useLiquidationRpStore()
 
 const formRef = ref(null)
-const stepperRef = ref(null)
-const step = ref(1)
-const maxStep = ref(1)
-const stepErrors = ref({ 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false })
-
 const submitting = ref(false)
 const loadingCatalog = ref(false)
 const loadingEmployeur = ref(false)
 const loadError = ref('')
 const selectedDossier = ref(null)
 
-const allDossiers = ref([])
-const dossierOptions = ref([])
-const posteTravailOptions = ref([])
-const typeRisqueOptions = ref([])
-const siegeLesionOptions = ref([])
-const natureLesionOptions = ref([])
-const agentMaterielOptions = ref([])
-const arrondissementOptions = ref([])
+const expanded = reactive({
+  risque: false,
+  salarial: false,
+  precedent: false,
+  tiers: false,
+})
 
 const ouiNonOptions = RP_OUI_NON_OPTIONS
 const secteurOptions = RP_SECTEUR_OPTIONS
 const zoneOptions = RP_ZONE_OPTIONS
 
+const allDossiers = ref([])
+const dossierOptions = ref([])
+const arrondissementOptions = ref([])
+const typeRisqueOptions = ref([])
+const siegeLesionOptions = ref([])
+const natureLesionOptions = ref([])
+const agentMaterielOptions = ref([])
+const posteOptions = ref([])
+
 const FORM_INITIAL = {
-  numdossier: '', objet: '', numassu: '', nom: '', emploiassure: '',
-  datedeclaration: '', datedepot: '', datedeces: '', txipp: '',
-  numemployeur: '', nomemployeur: '', observation: '',
-  postetravail: '', codeposte: '', codetyperisque: '', coderisque: '',
-  datesurvenance: '', heuresurvenance: '',
-  lieuaccident: '', arrondissement: '', quartier: '', adresse: '',
-  causes: '', consequences: '',
-  codesiegelesion: '', codesiegel: '', siegelesion: '',
-  codenatlesion: '', codenaturel: '', naturelesion: '',
+  numdossier: '',
+  objet: '',
+  numassu: '',
+  nom: '',
+  emploiassure: '',
+  datedeces: '',
+  txipp: '',
+  numemployeur: '',
+  nomemployeur: '',
+  datedeclaration: '',
+  datedepot: '',
+  observation: '',
+  postetravail: '',
+  codeposte: '',
+  codetyperisque: '',
+  coderisque: '',
+  datesurvenance: '',
+  heuresurvenance: '',
+  lieuaccident: '',
+  arrondissement: '',
+  quartier: '',
+  adresse: '',
+  causes: '',
+  consequences: '',
+  codesiegelesion: '',
+  codesiegel: '',
+  siegelesion: '',
+  codenatlesion: '',
+  codenaturel: '',
+  naturelesion: '',
   ancienneteposte: 0,
-  flagformation: '', agentmateriel: '', codeagentmat: '',
-  temoin1: '', identite1: '', temoin2: '', identite2: '', temoin3: '', identite3: '',
-  flaghospitalisation: '', lieuhospitalisation: '',
-  flag: '', flagarrettravail: '', flagdecesimmediat: '',
-  categorie: '', echelon: '', secteur: '', zone: '',
-  periode1: '', montant1: 0, periode2: '', montant2: 0, periode3: '', montant3: 0,
-  salrecons: 0, flagretarrerage: '', montantretenue: 0,
-  ippold: 0, rmmold: 0, renteold: 0, allocationold: 0,
-  nomtiers: '', orgassureur: '', numpolice: '', immatriculation: '',
-  adresseassureur: '', boitepostale: '', telephone: '',
+  flagformation: '',
+  agentmateriel: '',
+  codeagentmat: '',
+  temoin1: '',
+  identite1: '',
+  temoin2: '',
+  identite2: '',
+  temoin3: '',
+  identite3: '',
+  flaghospitalisation: '',
+  lieuhospitalisation: '',
+  flag: '',
+  flagarrettravail: '',
+  flagdecesimmediat: '',
+  categorie: '',
+  echelon: '',
+  secteur: '',
+  zone: '',
+  periode1: '',
+  montant1: 0,
+  periode2: '',
+  montant2: 0,
+  periode3: '',
+  montant3: 0,
+  salrecons: 0,
+  flagretarrerage: '',
+  montantretenue: 0,
+  ippold: 0,
+  rmmold: 0,
+  renteold: 0,
+  allocationold: 0,
+  nomtiers: '',
+  orgassureur: '',
+  numpolice: '',
+  immatriculation: '',
+  adresseassureur: '',
+  boitepostale: '',
+  telephone: '',
 }
 
 const form = reactive({ ...FORM_INITIAL })
 
-function upper(field, val) {
-  setLegacyUppercaseText(form, field, val)
-}
-
-const labelFor = (options, value) => {
-  if (!value) return ''
-  const opt = options.find(o => o.value === value || o.code === value)
-  return opt?.label ?? opt?.libelle ?? String(value)
-}
-
-const recapBlocks = computed(() => [
-  {
-    step: 1, title: 'Identification', icon: 'folder_open',
-    items: [
-      { label: 'N° Dossier', value: form.numdossier },
-      { label: 'Assuré', value: form.nom },
-      { label: 'Employeur', value: form.nomemployeur },
-      { label: 'N° Employeur', value: form.numemployeur },
-    ],
-  },
-  {
-    step: 2, title: 'Accident & lieu', icon: 'warning_amber',
-    items: [
-      { label: 'Poste', value: labelFor(posteTravailOptions.value, form.postetravail) },
-      { label: 'Type risque', value: labelFor(typeRisqueOptions.value, form.codetyperisque) },
-      { label: 'Date accident', value: form.datesurvenance },
-      { label: 'Lieu', value: form.lieuaccident },
-    ],
-  },
-  {
-    step: 3, title: 'Lésions & victime', icon: 'healing',
-    items: [
-      { label: 'Siège lésion', value: labelFor(siegeLesionOptions.value, form.codesiegelesion) },
-      { label: 'Nature lésion', value: labelFor(natureLesionOptions.value, form.codenatlesion) },
-      { label: 'Ancienneté', value: form.ancienneteposte },
-      { label: 'Hospitalisation', value: form.flaghospitalisation },
-    ],
-  },
-  {
-    step: 4, title: 'Salaires', icon: 'account_balance_wallet',
-    items: [
-      { label: 'Catégorie / Échelon', value: `${form.categorie} / ${form.echelon}` },
-      { label: 'Secteur', value: labelFor(secteurOptions, form.secteur) },
-      { label: 'Salaire reconstitué', value: form.salrecons },
-      { label: 'Arriérages', value: form.flagretarrerage },
-    ],
-  },
-  {
-    step: 5, title: 'Risque précédent', icon: 'history',
-    items: [
-      { label: 'IPP précédent', value: form.ippold },
-      { label: 'RMM', value: form.rmmold },
-      { label: 'Allocation', value: form.allocationold },
-    ],
-  },
-  {
-    step: 6, title: 'Tiers responsable', icon: 'gavel',
-    items: [
-      { label: 'Nom / Raison sociale', value: form.nomtiers },
-      { label: 'Assureur', value: form.orgassureur },
-      { label: 'Téléphone', value: form.telephone },
-    ],
+const dateAccidentRules = computed(() => [
+  (v) => !!String(v ?? '').trim() || 'Date accident obligatoire',
+  (v) => !v || isLegacyDateNotFuture(v) || 'Date accident invalide ou future',
+  (v) => {
+    if (!v || !form.datedeclaration) return true
+    const cmp = compareLegacyFrDates(v, form.datedeclaration)
+    return cmp == null || cmp <= 0 || 'La date accident doit être ≤ à la date de déclaration'
   },
 ])
 
 onMounted(async () => {
+  showLegacyResultBanner()
   loadingCatalog.value = true
   loadError.value = ''
   try {
@@ -413,12 +1050,12 @@ onMounted(async () => {
     ])
     allDossiers.value = Array.isArray(dossiers) ? dossiers : []
     dossierOptions.value = [...allDossiers.value]
-    posteTravailOptions.value = toRpSelectOptions(refs?.postesTravail)
+    arrondissementOptions.value = toRpSelectOptions(refs?.arrondissements)
     typeRisqueOptions.value = toRpSelectOptions(refs?.typeRisques)
     siegeLesionOptions.value = toRpSelectOptions(refs?.siegeLesions)
     natureLesionOptions.value = toRpSelectOptions(refs?.natureLesions)
     agentMaterielOptions.value = toRpSelectOptions(refs?.agentMateriels)
-    arrondissementOptions.value = toRpSelectOptions(refs?.arrondissements)
+    posteOptions.value = toRpSelectOptions(refs?.postesTravail)
   } catch (e) {
     loadError.value = e?.message || 'Impossible de charger les données depuis le serveur.'
   } finally {
@@ -426,123 +1063,112 @@ onMounted(async () => {
   }
 })
 
-function ruleDateAccident(val) {
-  if (!val) return 'Date accident obligatoire'
-  if (!isLegacyDateNotFuture(val)) return 'Date invalide ou future'
-  if (form.datedeclaration) {
-    const cmp = compareLegacyFrDates(val, form.datedeclaration)
-    if (cmp != null && cmp > 0) return 'Doit être antérieure ou égale à la date de déclaration'
-  }
-  return true
+function showLegacyResultBanner() {
+  const code = String(route.query.resultat ?? route.query.error ?? '').trim()
+  const message = rpDeclarationResultMessage(code)
+  if (!message) return
+  $q.notify({
+    type: code === 'ok' ? 'positive' : 'negative',
+    message,
+    position: 'top',
+    timeout: code === 'ok' ? 2500 : 4000,
+  })
 }
 
 function filterDossiers(val, update) {
   update(() => {
-    if (!val) dossierOptions.value = allDossiers.value
-    else {
-      const needle = val.toLowerCase()
-      dossierOptions.value = allDossiers.value.filter(
-        d => d.numdossier?.toLowerCase().includes(needle) || d.nom?.toLowerCase().includes(needle),
-      )
+    if (!val) {
+      dossierOptions.value = allDossiers.value
+      return
     }
+    const needle = val.toLowerCase()
+    dossierOptions.value = allDossiers.value.filter(
+      (d) =>
+        d.numdossier?.toLowerCase().includes(needle) ||
+        d.nom?.toLowerCase().includes(needle) ||
+        d.objet?.toLowerCase().includes(needle),
+    )
   })
 }
 
-function resolveFormSelectFields() {
-  form.arrondissement = resolveRpSelectValue(arrondissementOptions.value, form.arrondissement)
-  form.postetravail = resolveRpSelectValue(posteTravailOptions.value, form.postetravail)
-  form.codetyperisque = resolveRpSelectValue(typeRisqueOptions.value, form.codetyperisque)
-  form.codesiegelesion = resolveRpSelectValue(siegeLesionOptions.value, form.codesiegelesion)
-  form.codenatlesion = resolveRpSelectValue(natureLesionOptions.value, form.codenatlesion)
-  form.agentmateriel = resolveRpSelectValue(agentMaterielOptions.value, form.agentmateriel)
-  form.codeposte = form.postetravail || form.codeposte
-  form.coderisque = form.codetyperisque || form.coderisque
-  form.codesiegel = form.codesiegelesion || form.codesiegel
-  form.codenaturel = form.codenatlesion || form.codenaturel
-  form.codeagentmat = form.agentmateriel || form.codeagentmat
+function syncRefLabel(labelField, codeField, options, value) {
+  form[codeField] = value ?? ''
+  const opt = (options || []).find((o) => o.value === value)
+  form[labelField] = opt?.label ?? value ?? ''
+}
+
+function resolveSelectCodesFromRow() {
+  syncRefLabel('postetravail', 'codeposte', posteOptions.value, form.codeposte)
+  syncRefLabel('codetyperisque', 'coderisque', typeRisqueOptions.value, form.coderisque)
+  syncRefLabel('codesiegelesion', 'codesiegel', siegeLesionOptions.value, form.codesiegel)
+  syncRefLabel('codenatlesion', 'codenaturel', natureLesionOptions.value, form.codenaturel)
+  syncRefLabel('agentmateriel', 'codeagentmat', agentMaterielOptions.value, form.codeagentmat)
 }
 
 function onDossierSelect(numdossier) {
-  const row = allDossiers.value.find(x => x.numdossier === numdossier)
+  const row = allDossiers.value.find((x) => x.numdossier === numdossier)
   if (!row) return
   mapRpDossierRowToForm(form, row)
-  resolveFormSelectFields()
-  $q.notify({ type: 'positive', message: `Dossier ${numdossier} chargé`, position: 'top', timeout: 1500 })
+  form.numdossier = numdossier
+  resolveSelectCodesFromRow()
+  $q.notify({
+    type: 'positive',
+    message: `Dossier ${numdossier} chargé`,
+    position: 'top',
+    timeout: 1500,
+  })
 }
 
-function onEmployeurFieldActivate() {
-  if (form.numemployeur?.trim()) fetchEmployeur()
-}
-
-async function fetchEmployeur() {
-  const mat = (form.numemployeur || '').trim()
-  if (!mat) {
-    form.nomemployeur = ''
-    $q.notify({ type: 'warning', message: 'Saisissez un numéro employeur', position: 'top' })
-    return
-  }
-  form.numemployeur = mat
+async function lookupEmployeur() {
+  const mat = String(form.numemployeur ?? '').trim()
+  if (!mat) return
   loadingEmployeur.value = true
   try {
-    const data = await rpStore.fetchEmployeur(mat)
-    form.nomemployeur = data?.nomemployeur ?? data?.raison_sociale ?? ''
-    if (!form.nomemployeur) throw new Error('Employeur introuvable')
-    $q.notify({ type: 'positive', message: `Employeur : ${form.nomemployeur}`, position: 'top', timeout: 1500 })
+    const row = await rpStore.fetchEmployeur(mat)
+    form.nomemployeur = row?.nomemployeur || row?.raison_sociale || ''
+    if (!form.nomemployeur) {
+      throw new Error('Employeur introuvable')
+    }
   } catch {
-    form.nomemployeur = ''
-    $q.notify({ type: 'negative', message: 'Appuyer sur ENTREE une fois de plus !!! Vérifions que ce matricule employeur est correct', position: 'top' })
+    $q.notify({
+      type: 'warning',
+      message:
+        'Appuyez sur Entrée une fois de plus — vérifions que ce matricule employeur est correct',
+      position: 'top',
+    })
   } finally {
     loadingEmployeur.value = false
   }
 }
 
-function onFlagRetarreageChange() {
+function onRetenueFlagChange(val) {
+  form.flagretarrerage = val
   applyRpRetenueArrierageRules(form)
 }
 
-function isStepAllowed(n) {
-  return n <= maxStep.value
-}
-
-function onStepChange(n) {
-  if (!isStepAllowed(n)) step.value = maxStep.value
-}
-
-function showStepErrors(currentStep, errors) {
-  stepErrors.value[currentStep] = true
-  $q.notify({ type: 'negative', message: errors[0], position: 'top' })
-}
-
-function validateCurrentStep(currentStep) {
-  const errors = validateRpDeclarationStep(form, currentStep)
+function validateMetier() {
+  const errors = validateRpDeclarationForm(form)
   if (errors.length) {
-    showStepErrors(currentStep, errors)
+    $q.notify({ type: 'negative', message: errors[0], position: 'top' })
+    if (errors.some((e) => /risque|accident|lésion|formation|hospital|arrêt|décès/i.test(e))) {
+      expanded.risque = true
+    }
+    if (errors.some((e) => /catégorie|échelon|secteur|zone|arriérage/i.test(e))) {
+      expanded.salarial = true
+    }
+    if (errors.some((e) => /IPP|RMM|allocation/i.test(e))) {
+      expanded.precedent = true
+    }
     return false
   }
-  stepErrors.value[currentStep] = false
   return true
 }
 
-function goPrevStep() {
-  if (step.value > 1) step.value -= 1
-}
-
-function goNextStep() {
-  const current = step.value
-  if (!validateCurrentStep(current)) return
-  const next = current + 1
-  if (next > maxStep.value) maxStep.value = next
-  step.value = next
-}
-
 async function submitForm() {
-  const errors = validateRpDeclarationForm(form)
-  if (errors.length) {
-    stepErrors.value[7] = true
-    $q.notify({ type: 'negative', message: errors[0], position: 'top' })
-    return
-  }
-  stepErrors.value[7] = false
+  const ok = await formRef.value?.validate()
+  if (!ok) return
+  if (!validateMetier()) return
+
   submitting.value = true
   try {
     const result = await rpStore.submitDeclaration(form)
@@ -552,9 +1178,12 @@ async function submitForm() {
       position: 'top',
       icon: 'check_circle',
     })
-    resetForm()
   } catch (e) {
-    $q.notify({ type: 'negative', message: e?.message || 'Modification du dossier non accomplie', position: 'top' })
+    $q.notify({
+      type: 'negative',
+      message: e?.message || 'Modification du dossier non accomplie',
+      position: 'top',
+    })
   } finally {
     submitting.value = false
   }
@@ -563,23 +1192,94 @@ async function submitForm() {
 function resetForm() {
   Object.assign(form, { ...FORM_INITIAL })
   selectedDossier.value = null
-  step.value = 1
-  maxStep.value = 1
-  stepErrors.value = { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false, 7: false }
+  dossierOptions.value = allDossiers.value
   formRef.value?.resetValidation()
 }
 </script>
 
 <style scoped>
-.nlle-declaration { max-width: 1400px; margin: 0 auto; }
-.nlle-stepper { border-radius: 12px; }
-.nlle-step-footer { padding-bottom: 16px; }
-.recap-card { border-radius: 10px; }
-.recap-card__header { background: rgba(25, 118, 210, 0.08); color: #1565c0; }
-.sep {
-  font-size: 0.72rem; font-weight: 700; color: #1976d2;
-  text-transform: uppercase; letter-spacing: 0.5px;
-  border-left: 3px solid #1976d2; padding: 2px 0 2px 8px;
+.rp-declaration {
+  max-width: 1100px;
+  margin: 0 auto;
 }
-.nlle-stepper :deep(.q-stepper__header) { border-radius: 12px 12px 0 0; }
+
+.rp-declaration__hero {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(21, 101, 192, 0.08), rgba(21, 101, 192, 0.02));
+  border: 1px solid rgba(25, 118, 210, 0.12);
+}
+
+.rp-declaration__hero-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1565c0, #42a5f5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.card-elevated {
+  border-radius: 12px;
+  box-shadow: 0 3px 14px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.card-header {
+  color: white;
+}
+.card-header--primary {
+  background: linear-gradient(90deg, #1565c0, #1976d2);
+}
+
+.expansion-card {
+  border: 1px solid rgba(25, 118, 210, 0.1);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.expansion-card :deep(.expansion-header) {
+  font-weight: 700;
+  color: #1565c0;
+  background: #f5f9ff;
+  border-radius: 12px 12px 0 0;
+}
+
+.expansion-card :deep(.q-item) {
+  min-height: 44px;
+}
+
+.sep {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #1976d2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-left: 3px solid #1976d2;
+  padding: 2px 0 2px 8px;
+  background: linear-gradient(to right, rgba(25, 118, 210, 0.06), transparent);
+  border-radius: 0 4px 4px 0;
+}
+
+.action-btn {
+  border-radius: 10px;
+  min-width: 160px;
+  font-weight: 600;
+}
+
+.input-uppercase :deep(.q-field__native),
+.input-uppercase :deep(textarea) {
+  text-transform: uppercase;
+}
+
+.field-num-value :deep(.q-field__native),
+.field-num-value :deep(.q-field__input) {
+  font-size: 0.8rem;
+  letter-spacing: 0;
+}
 </style>

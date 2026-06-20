@@ -51,5 +51,15 @@ export function getTeleImmatTimeout() {
 /** Chemin de dépôt des pièces — aligné traitementFm1.js DestFichAssu */
 export const TELE_IMMAT_DEST_ASSURE = 'dossiers/assure/immas/'
 
+/** Prestations familiales — tele_prestation_pf.js : DestFichAssu + "/{mat}/pf/" */
+export const TELE_IMMAT_DEST_PF_PREFIX = 'dossiers/assure'
+
 /** Employeur professionnel — imma_employeur1.js : DestFichEmpl + "/immem/" */
 export const TELE_IMMAT_DEST_EMP_PRO = 'dossiers/employeur/immem/'
+
+/** @param {string} numAssu matricule avec tirets */
+export function buildTeleImmatPfUploadDest(numAssu) {
+  const num = String(numAssu || '').trim()
+  if (!num) return ''
+  return `${TELE_IMMAT_DEST_PF_PREFIX}/${num.replace(/-/g, '_')}/pf/`
+}

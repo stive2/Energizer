@@ -1,5 +1,8 @@
 <template>
-  <q-page class="q-pa-md saisie-elements-page">
+  <q-page
+    class="saisie-elements-page"
+    :class="activePanelId === 'statistiques' ? 'q-px-md q-pb-md saisie-elements-page--stat' : 'q-pa-md'"
+  >
 
     <!-- ════════════════════════════════════════════════
          LANDING : grille de cartes (aucun panel actif)
@@ -82,7 +85,10 @@
       <div v-if="activePanel" key="component">
 
         <!-- Barre de navigation contextuelle -->
-        <div class="panel-header q-mb-lg">
+        <div
+          v-if="activePanelId !== 'statistiques'"
+          class="panel-header q-mb-lg"
+        >
           <q-btn
             flat
             round
@@ -128,6 +134,47 @@
               {{ t(p.labelKey) }}
             </q-chip>
           </div>
+        </div>
+
+        <div v-else class="panel-header panel-header--stat">
+          <q-btn
+            flat
+            round
+            dense
+            icon="arrow_back"
+            color="primary"
+            @click="goBack"
+          >
+            <q-tooltip>Retour aux modules</q-tooltip>
+          </q-btn>
+          <q-icon name="insights" size="20px" color="primary" class="q-ml-xs" />
+          <span class="panel-header--stat__title">{{ t(activePanel.labelKey) }}</span>
+          <q-space />
+          <q-btn-dropdown
+            flat
+            dense
+            no-caps
+            color="primary"
+            label="Modules"
+            icon="apps"
+            class="gt-xs"
+          >
+            <q-list dense>
+              <q-item
+                v-for="p in panels"
+                :key="p.id"
+                clickable
+                v-close-popup
+                :active="activePanelId === p.id"
+                @click="selectPanel(p.id)"
+              >
+                <q-item-section avatar>
+                  <q-icon :name="p.icon" size="xs" />
+                </q-item-section>
+                <q-item-section>{{ t(p.labelKey) }}</q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
         </div>
 
         <!-- Composant actif -->
@@ -255,6 +302,10 @@ watch(
   min-height: 100vh;
 }
 
+.saisie-elements-page--stat {
+  padding-top: 8px;
+}
+
 /* ── Cartes panels ───────────────────────────────────────── */
 .panel-card {
   border-radius: 14px;
@@ -345,6 +396,26 @@ watch(
   height: 10px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.panel-header--stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 4px 0;
+  min-height: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+}
+
+.panel-header--stat__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1565c0;
+  line-height: 1.2;
 }
 
 /* ── Transitions ────────────────────────────────────────── */

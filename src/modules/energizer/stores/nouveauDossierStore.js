@@ -35,16 +35,21 @@ import {
 } from 'src/modules/energizer/utils/nouveauDossierCircuits.js'
 import { normalizeMatriculeEmployeur } from 'src/modules/assure/api/depotPrestationPfUtils.js'
 import { NouveauDossierSubmitError } from 'src/modules/energizer/api/nouveauDossierErrors.js'
+import { toUserFacingNouveauDossierError } from 'src/modules/energizer/api/adapters/parseNouveauDossierLegacyHtml.js'
 import { NBRE_PIECE_OPTIONS } from 'src/modules/energizer/data/nouveauDossierPieceTypes.js'
 import {
   resolveObjetFromCodePres,
+  resolveNatuPrestationFromObjCode,
+  resolveObjCodeFromNumDossier,
   shouldShowAssureSummary,
   defaultTitulaireForNature,
   formatTodayPieceFr,
   validateInitialPieceRows,
   validateReceptionPieceRows,
+  toReceptionPiecesRow,
 } from 'src/modules/energizer/utils/nouveauDossierPieces.js'
 import { getConnectedAgentContext } from 'src/modules/energizer/utils/nouveauDossierAgentContext.js'
+import { isEnergizerSessionExpiredError } from 'src/modules/energizer/utils/energizerSessionExpiry.js'
 
 function t(key, params) {
   return i18n.global.t(key, params)
@@ -53,6 +58,7 @@ function t(key, params) {
 function createPieceRow(index, defaults = {}) {
   const today = formatTodayPieceFr()
   return {
+    _uid: `piece-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     index,
     person: defaults.person ?? '',
     titulaire: defaults.titulaire ?? '',
@@ -60,8 +66,89 @@ function createPieceRow(index, defaults = {}) {
     dateVal: defaults.dateVal ?? today,
     observ: defaults.observ ?? '',
     nbre: defaults.nbre ?? '1',
-    _readonly: false,
-    _skipValidation: false,
+    _readonly: defaults._readonly ?? false,
+    _skipValidation: defaults._skipValidation ?? false,
+  }
+}
+
+function mapRecapPiecesToExisting(pieces) {
+  return (pieces ?? []).map((p, i) => ({
+    id: p.id ?? `recap-${i + 1}`,
+    person: p.person ?? p.displayPerson ?? '',
+    titulaire: p.titulaire ?? '',
+    dateDep: p.dateDep ?? '',
+    dateVal: p.dateVal ?? '',
+    observ: p.observ ?? '',
+    nbre: p.nbre ?? '1',
+    num_typepiece: p.num_typepiece ?? '',
+    num_ordre: p.num_ordre ?? String(i + 1),
+    verifiee: p.verifiee ?? '',
+    _skipValidation: true,
+  }))
+}
+
+function enrichReceptionRowFromSaved(row, savedDossiers = []) {
+  const base = toReceptionPiecesRow(row)
+  const num_dossier = String(base.num_dossier ?? '').trim()
+  if (!num_dossier) return base
+
+  const saved = savedDossiers.find((d) => d.num_dossier === num_dossier)
+  if (!saved) return base
+
+  return toReceptionPiecesRow({
+    ...saved,
+    ...base,
+    num_dossier,
+    Obj: base.Obj || saved.Obj,
+    num_assu: base.num_assu || saved.numassu,
+    nom_requerant: base.nom_requerant || saved.nomcomplet,
+    tel: base.tel || saved.telephone,
+    adresse: base.adresse || saved.adresse,
+    myobjet: base.myobjet || saved.myobjet || saved.objet,
+    date_demande: base.date_demande || saved.datedemande,
+  })
+}
+
+function syncRecapFromExistingPieces(existingPieces) {
+  return (existingPieces ?? []).map((p, i) => ({
+    ...p,
+    displayPerson: p.displayPerson ?? p.person,
+    index: i + 1,
+  }))
+}
+
+function countPiecesForFinish(state) {
+  if (state.step === 'piecesRecap') return state.recapPieces.length
+
+  const filledNew = state.pieceRows.filter(
+    (r) => String(r.person ?? '').trim() && String(r.titulaire ?? '').trim(),
+  ).length
+
+  return Math.max(state.existingPieces.length, filledNew, state.recapPieces.length)
+}
+
+function buildSavedDossierRowFromContext(context, overrides = {}) {
+  const num_dossier = String(context?.numdossier ?? '').trim()
+  if (!num_dossier) return null
+  const Obj =
+    String(context?.Obj ?? '').trim() || resolveObjCodeFromNumDossier(num_dossier)
+  const today = formatTodayFr()
+  return {
+    id: num_dossier,
+    num_dossier,
+    Obj,
+    numassu: String(context?.numassu ?? '').trim(),
+    nomcomplet: String(context?.nom_complet ?? context?.nomcomplet ?? '').trim(),
+    objet: String(context?.myobjet ?? '').trim(),
+    code_situ: overrides.code_situ ?? 'En Cours d instruction',
+    localisation: overrides.localisation ?? 'Accueil',
+    telephone: String(context?.telephone ?? '').trim(),
+    adresse: String(context?.adresse ?? '').trim(),
+    myobjet: String(context?.myobjet ?? '').trim(),
+    datedemande: String(context?.datedemande ?? '').trim(),
+    date_enreg: overrides.date_enreg ?? today,
+    createdAt: overrides.createdAt ?? overrides.date_enreg ?? today,
+    ...overrides,
   }
 }
 
@@ -136,15 +223,28 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
     teleClientFields: [],
     form: createForm(),
     savedDossiers: [],
+    savedDossiersLoadCount: 0,
+    /** Dossiers finalisés pas encore renvoyés par get_dossier.jsp */
+    pendingTableUpserts: [],
     lastSubmitResult: null,
     piecesContext: null,
     piecesMode: 'initial',
     pieceTypeOptions: [],
+    pieceOptionsVersion: 0,
     pieceRows: [],
     existingPieces: [],
     recapPieces: [],
     jaccueilRows: [],
-    loadingPieces: false,
+    jaccueilLoadCount: 0,
+    jaccueilFilters: {
+      num_dossier: '',
+      num_assu: '',
+      nom_requerant: '',
+      localisation: '',
+      initiateur: '',
+    },
+    /** null | 'open' | 'pause' | 'validate' | 'corbeille' */
+    piecesLoadingAction: null,
     loadingFinalize: false,
     metaError: null,
   }),
@@ -190,6 +290,31 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
     totalPiecesCount(state) {
       return state.existingPieces.length + state.recapPieces.length
     },
+    isOpeningPieces(state) {
+      return state.piecesLoadingAction === 'open'
+    },
+    isPausingPieces(state) {
+      return state.piecesLoadingAction === 'pause'
+    },
+    isTerminerCorbeilleLoading(state) {
+      return state.piecesLoadingAction === 'corbeille'
+    },
+    isJaccueilLoading(state) {
+      return (
+        state.piecesLoadingAction === 'pause'
+        || state.piecesLoadingAction === 'corbeille'
+        || state.jaccueilLoadCount > 0
+      )
+    },
+    isValidatingPieces(state) {
+      return state.piecesLoadingAction === 'validate'
+    },
+    isPiecesBusy(state) {
+      return state.piecesLoadingAction != null
+    },
+    isLoadingSavedDossiers(state) {
+      return state.savedDossiersLoadCount > 0
+    },
   },
 
   actions: {
@@ -212,6 +337,15 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
       this.existingPieces = []
       this.recapPieces = []
       this.jaccueilRows = []
+      this.jaccueilLoadCount = 0
+      this.jaccueilFilters = {
+        num_dossier: '',
+        num_assu: '',
+        nom_requerant: '',
+        localisation: '',
+        initiateur: '',
+      }
+      this.piecesLoadingAction = null
     },
 
     resetAll() {
@@ -261,8 +395,204 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
       }
     },
 
-    async loadSavedDossiers() {
-      this.savedDossiers = await listSavedNouveauDossiers()
+    async loadSavedDossiers(filters = {}) {
+      this.savedDossiersLoadCount += 1
+      try {
+        const agent = getConnectedAgentContext()
+        const query = { ...filters }
+        if (!String(query.num_dossier ?? '').trim() && agent.login) {
+          query.initiateur = query.initiateur ?? agent.login
+        }
+
+        const fetched = await listSavedNouveauDossiers(query)
+        const fetchedNums = new Set(fetched.map((d) => d.num_dossier))
+        const pending = this.pendingTableUpserts.filter(
+          (d) => d.num_dossier && !fetchedNums.has(d.num_dossier),
+        )
+        this.pendingTableUpserts = pending
+        this.savedDossiers = [...pending, ...fetched]
+      } finally {
+        this.savedDossiersLoadCount = Math.max(0, this.savedDossiersLoadCount - 1)
+      }
+    },
+
+    upsertSavedDossierFromContext(context, overrides = {}) {
+      const row = buildSavedDossierRowFromContext(context, overrides)
+      if (!row) return
+
+      const idx = this.savedDossiers.findIndex((d) => d.num_dossier === row.num_dossier)
+      if (idx >= 0) {
+        this.savedDossiers[idx] = { ...this.savedDossiers[idx], ...row }
+      } else {
+        this.savedDossiers.unshift(row)
+      }
+
+      const pendingIdx = this.pendingTableUpserts.findIndex(
+        (d) => d.num_dossier === row.num_dossier,
+      )
+      if (pendingIdx >= 0) {
+        this.pendingTableUpserts[pendingIdx] = row
+      } else {
+        this.pendingTableUpserts.unshift(row)
+      }
+    },
+
+    /**
+     * addpieceRecep.jsp — enregistre les pièces saisies avant Terminer (legacy nambre > 0).
+     */
+    async persistReceptionNewPiecesBeforeFinish() {
+      if (this.piecesMode !== 'reception' || this.step !== 'piecesReception') {
+        return true
+      }
+
+      const newRows = this.pieceRows.filter(
+        (r) => String(r.person ?? '').trim() && String(r.titulaire ?? '').trim(),
+      )
+      if (!newRows.length) return true
+
+      const rows = [
+        ...this.existingPieces.map((p) => ({ ...p, _skipValidation: true })),
+        ...newRows,
+      ]
+      const validation = validateReceptionPieceRows(rows, this.piecesContext?.datedemande)
+      if (!validation.ok) {
+        notify({ type: 'negative', message: validation.message, timeout: 5000 })
+        return false
+      }
+
+      const agent = getConnectedAgentContext()
+      try {
+        await persistNouveauDossierPieces(this.piecesContext, newRows, {
+          username: agent.login,
+          mode: this.piecesMode,
+        })
+      } catch (e) {
+        if (!isEnergizerSessionExpiredError(e)) {
+          notify({
+            type: 'negative',
+            message: e?.message || t('messages.error'),
+            timeout: 6000,
+          })
+        }
+        return false
+      }
+
+      const receptionRow = this.buildReceptionRowFromContext()
+      if (receptionRow) {
+        try {
+          const ctx = await fetchReceptionPiecesContext(receptionRow)
+          if (ctx.existingPieces?.length) {
+            this.existingPieces = ctx.existingPieces
+            return true
+          }
+        } catch {
+          /* repli local ci-dessous */
+        }
+      }
+
+      this.existingPieces = [
+        ...this.existingPieces,
+        ...newRows.map((r, i) => ({
+          ...r,
+          id: r.id ?? `new-${Date.now()}-${i + 1}`,
+          displayPerson: r.person,
+          _skipValidation: true,
+        })),
+      ]
+      return true
+    },
+
+    buildReceptionRowFromContext() {
+      const ctx = this.piecesContext ?? {}
+      const numdossier = String(ctx.numdossier ?? '').trim()
+      if (!numdossier) return null
+      return toReceptionPiecesRow({
+        num_dossier: numdossier,
+        Obj: ctx.Obj ?? resolveObjCodeFromNumDossier(numdossier),
+        num_assu: ctx.numassu ?? '',
+        nom_requerant: ctx.nom_complet || ctx.nomcomplet || '',
+        adresse: ctx.adresse ?? '',
+        tel: ctx.telephone ?? '',
+        myObjet: ctx.myobjet ?? '',
+        date_demande: ctx.datedemande ?? '',
+      })
+    },
+
+    syncPieceRowPersonValues() {
+      const options = this.pieceTypeOptions
+      if (!options.length) return
+      const values = new Set(options.map((o) => o.value))
+      const fallback = options[0]?.value ?? ''
+      for (const row of this.pieceRows) {
+        if (row._readonly) continue
+        if (!row.person || !values.has(row.person)) {
+          row.person = fallback
+        }
+      }
+    },
+
+    async ensurePieceTypeOptions(forceReload = false, options = {}) {
+      const syncExisting = options.syncExisting !== false
+      if (!forceReload && this.pieceTypeOptions.length) {
+        this.syncPieceRowPersonValues()
+        return true
+      }
+
+      const row =
+        this.buildReceptionRowFromContext() ??
+        (this.piecesContext?.numdossier
+          ? toReceptionPiecesRow({
+              num_dossier: this.piecesContext.numdossier,
+              Obj:
+                this.piecesContext.Obj ??
+                resolveObjCodeFromNumDossier(this.piecesContext.numdossier),
+              num_assu: this.piecesContext.numassu,
+              nom_requerant: this.piecesContext.nom_complet || this.piecesContext.nomcomplet,
+              adresse: this.piecesContext.adresse,
+              tel: this.piecesContext.telephone,
+              myObjet: this.piecesContext.myobjet,
+              date_demande: this.piecesContext.datedemande,
+            })
+          : null)
+
+      if (!row?.num_dossier) return false
+
+      try {
+        const ctx = await fetchReceptionPiecesContext(row)
+        if (ctx.pieceTypeOptions?.length) {
+          this.pieceTypeOptions = ctx.pieceTypeOptions
+          this.pieceOptionsVersion += 1
+        }
+        if (syncExisting && ctx.existingPieces?.length) {
+          this.existingPieces = ctx.existingPieces
+        }
+        this.syncPieceRowPersonValues()
+        return this.pieceTypeOptions.length > 0
+      } catch {
+        this.syncPieceRowPersonValues()
+        return this.pieceTypeOptions.length > 0
+      }
+    },
+
+    /**
+     * Ouvre un dossier de la corbeille (jAccueil ou tableau réception) — addpieceRecep.jsp legacy.
+     * @param {Record<string, unknown>} row
+     */
+    async openDossierFromCorbeille(row) {
+      const receptionRow = enrichReceptionRowFromSaved(row, this.savedDossiers)
+      if (!receptionRow.num_dossier) {
+        notify({ type: 'negative', message: t('messages.error') })
+        return
+      }
+
+      if (!this.dialogOpen) {
+        this.dialogOpen = true
+        if (!this.objets.length) {
+          await this.loadMeta()
+        }
+      }
+
+      await this.openReceptionPieces(receptionRow)
     },
 
     selectObjet(libelle) {
@@ -316,6 +646,7 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
 
     async onNumassuEnter() {
       if (!isFieldActive('numassu', this.fieldState)) return
+      if (this.loadingAssure) return
       const mat = (this.form.numassu || '').trim()
       if (!mat) {
         this.clearAssureFields()
@@ -388,6 +719,7 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
     },
 
     async onMatEmployeurEnter() {
+      if (this.loadingEmployeur) return
       const mat = normalizeMatriculeEmployeur(this.form.mat_employeur)
       if (!mat) {
         this.clearEmployeurFields()
@@ -633,14 +965,19 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
           message: result?.message ?? t('reception.nouveauDossier.savedWithNum', { num }),
           timeout: 4000,
         })
-        await this.loadSavedDossiers()
         await this.initPiecesAfterSubmit(result)
+        await this.loadSavedDossiers()
+        this.upsertSavedDossierFromContext(this.piecesContext, {
+          code_situ: 'Receptionné',
+          localisation: 'Accueil',
+        })
       } catch (e) {
-        const message =
-          e instanceof NouveauDossierSubmitError
-            ? e.message
-            : e?.message || t('reception.nouveauDossier.saveError')
-        notify({ type: 'negative', message, timeout: 6000 })
+        const fallback = t('reception.nouveauDossier.saveError')
+        const message = toUserFacingNouveauDossierError(
+          e instanceof NouveauDossierSubmitError ? e.message : e?.message,
+          fallback,
+        )
+        notify({ type: 'negative', message, timeout: 8000 })
       } finally {
         this.loadingSubmit = false
       }
@@ -653,6 +990,7 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
       this.piecesContext = {
         numdossier,
         objet,
+        Obj: this.form.code_pres,
         numassu: this.form.numassu || '',
         nom_complet: nomComplet,
         date_naiss: this.form.date_naiss || '',
@@ -698,14 +1036,19 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
       this.existingPieces = []
       this.recapPieces = []
       this.step = 'pieces'
+      await this.ensurePieceTypeOptions()
     },
 
     addPieceRow() {
       const next = this.pieceRows.length + 1
       const first = this.pieceRows[0]
+      const fallbackPerson =
+        first?.person && this.pieceTypeOptions.some((o) => o.value === first.person)
+          ? first.person
+          : this.pieceTypeOptions[0]?.value ?? ''
       this.pieceRows.push(
         createPieceRow(next, {
-          person: first?.person ?? this.pieceTypeOptions[0]?.value ?? '',
+          person: fallbackPerson,
           titulaire: first?.titulaire ?? '',
           dateDep: first?.dateDep,
           dateVal: first?.dateVal,
@@ -716,6 +1059,9 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
     removeLastPieceRow() {
       if (this.pieceRows.length <= 1) return
       this.pieceRows.pop()
+      this.pieceRows.forEach((row, i) => {
+        row.index = i + 1
+      })
     },
 
     removeExistingPiece(pieceId) {
@@ -755,11 +1101,14 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
         return false
       }
 
-      this.loadingPieces = true
+      this.piecesLoadingAction = 'validate'
       try {
         const agent = getConnectedAgentContext()
-        await persistNouveauDossierPieces(this.piecesContext, allPieces, {
+        const piecesToPersist =
+          this.piecesMode === 'reception' ? newPieces : allPieces
+        await persistNouveauDossierPieces(this.piecesContext, piecesToPersist, {
           username: agent.login,
+          mode: this.piecesMode,
         })
         this.recapPieces = allPieces.map((p, i) => ({
           ...p,
@@ -768,15 +1117,56 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
         }))
         this.step = 'piecesRecap'
         return true
+      } catch (e) {
+        if (!isEnergizerSessionExpiredError(e)) {
+          notify({
+            type: 'negative',
+            message: e?.message || t('messages.error'),
+            timeout: 6000,
+          })
+        }
+        return false
       } finally {
-        this.loadingPieces = false
+        this.piecesLoadingAction = null
+      }
+    },
+
+    /**
+     * Pause — redirige vers la corbeille (jAccueil.jsp legacy).
+     */
+    async pauseDossier() {
+      await this.goToJaccueil()
+    },
+
+    /**
+     * Corbeille jAccueil — recherche get_dossier.jsp (filtres legacy).
+     * @param {Record<string, string>} [overrides]
+     */
+    async searchJaccueilDossiers(overrides = {}) {
+      this.jaccueilLoadCount += 1
+      try {
+        const filters = {
+          num_dossier: String(this.jaccueilFilters.num_dossier ?? '').trim(),
+          num_assu: String(this.jaccueilFilters.num_assu ?? '').trim(),
+          nom_requerant: String(this.jaccueilFilters.nom_requerant ?? '').trim(),
+          localisation: String(this.jaccueilFilters.localisation ?? '').trim(),
+          initiateur: String(this.jaccueilFilters.initiateur ?? '').trim(),
+          ...overrides,
+        }
+        Object.keys(filters).forEach((key) => {
+          filters[key] = String(filters[key] ?? '').trim()
+        })
+        this.jaccueilFilters = { ...this.jaccueilFilters, ...filters }
+        this.jaccueilRows = await fetchJaccueilDossiers(this.jaccueilFilters)
+      } finally {
+        this.jaccueilLoadCount = Math.max(0, this.jaccueilLoadCount - 1)
       }
     },
 
     async goToJaccueil() {
-      this.loadingPieces = true
+      this.piecesLoadingAction = 'pause'
       try {
-        this.jaccueilRows = await fetchJaccueilDossiers(this.piecesContext?.numdossier)
+        await this.searchJaccueilDossiers()
         this.step = 'jaccueil'
       } catch (e) {
         notify({
@@ -784,72 +1174,255 @@ export const useNouveauDossierStore = defineStore('energizer-nouveau-dossier', {
           message: e?.message || t('messages.error'),
         })
       } finally {
-        this.loadingPieces = false
+        this.piecesLoadingAction = null
+      }
+    },
+
+    /**
+     * Terminer (5 boutons — addpieceRecep) : enregistre les pièces saisies puis ouvre la corbeille.
+     * Ne finalise pas le dossier (contrairement au Terminer du récap 2 boutons).
+     */
+    async terminerVersCorbeille() {
+      this.piecesLoadingAction = 'corbeille'
+      try {
+        if (this.step === 'piecesReception') {
+          const persisted = await this.persistReceptionNewPiecesBeforeFinish()
+          if (!persisted) return
+
+          const persistedCount = countPiecesForFinish(this)
+          if (persistedCount === 0) {
+            notify({
+              type: 'negative',
+              message: t('reception.nouveauDossier.noPiecesOnFinish'),
+            })
+            return
+          }
+        }
+
+        await this.searchJaccueilDossiers()
+        this.step = 'jaccueil'
+      } catch (e) {
+        if (!isEnergizerSessionExpiredError(e)) {
+          notify({
+            type: 'negative',
+            message: e?.message || t('messages.error'),
+            timeout: 6000,
+          })
+        }
+      } finally {
+        this.piecesLoadingAction = null
+      }
+    },
+
+    /**
+     * Reprend la saisie des pièces depuis le récap (retour arrière interne).
+     */
+    async restorePiecesFromRecap() {
+      const saved = [...(this.recapPieces ?? [])]
+      if (!saved.length) {
+        notify({
+          type: 'negative',
+          message: t('reception.nouveauDossier.piecesRequired'),
+        })
+        return
+      }
+
+      this.piecesLoadingAction = 'pause'
+      try {
+        let existingPieces = mapRecapPiecesToExisting(saved)
+        const row = this.buildReceptionRowFromContext()
+        if (row) {
+          try {
+            const ctx = await fetchReceptionPiecesContext(row)
+            if (ctx.pieceTypeOptions?.length) {
+              this.pieceTypeOptions = ctx.pieceTypeOptions
+              this.pieceOptionsVersion += 1
+            }
+            if (ctx.existingPieces?.length) {
+              existingPieces = ctx.existingPieces
+            }
+          } catch {
+            /* conserver la restauration depuis recapPieces */
+          }
+        }
+        this.existingPieces = existingPieces
+
+        const firstType =
+          this.pieceTypeOptions[0]?.value ??
+          this.existingPieces[0]?.person ??
+          ''
+        const titulaire =
+          this.piecesContext?.nomcomplet ||
+          this.piecesContext?.nom_complet ||
+          this.existingPieces[0]?.titulaire ||
+          ''
+
+        this.pieceRows = [
+          createPieceRow(1, {
+            person: firstType,
+            titulaire,
+          }),
+        ]
+
+        if (this.piecesMode === 'initial') {
+          this.piecesMode = 'reception'
+        }
+        this.step = 'piecesReception'
+        await this.ensurePieceTypeOptions()
+      } finally {
+        this.piecesLoadingAction = null
       }
     },
 
     async openReceptionPieces(row) {
-      const numdossier = row?.num_dossier ?? this.piecesContext?.numdossier
-      const objet =
-        row?.myobjet || resolveObjetFromCodePres((numdossier || '').charAt(0))
+      const receptionRow = enrichReceptionRowFromSaved(row, this.savedDossiers)
+      const numdossier = receptionRow.num_dossier ?? this.piecesContext?.numdossier
+      const switchingDossier =
+        numdossier && numdossier !== String(this.piecesContext?.numdossier ?? '').trim()
+
+      if (!this.dialogOpen) {
+        this.dialogOpen = true
+        if (!this.objets.length) {
+          await this.loadMeta()
+        }
+      }
+
+      const objet = resolveNatuPrestationFromObjCode(receptionRow.Obj, numdossier)
       this.piecesContext = {
         ...this.piecesContext,
         numdossier,
         objet,
-        nomcomplet: row?.nom_requerant ?? this.piecesContext?.nomcomplet ?? '',
-        telephone: row?.telephone ?? row?.tel ?? '',
-        adresse: row?.adresse ?? '',
-        myobjet: row?.myobjet ?? row?.myObjet ?? objet,
-        datedemande: row?.datedemande ?? row?.date_demande ?? this.piecesContext?.datedemande,
-        numassu: row?.num_assu ?? row?.numassu ?? this.piecesContext?.numassu ?? '',
+        Obj: receptionRow.Obj,
+        nomcomplet: receptionRow.nom_requerant ?? this.piecesContext?.nomcomplet ?? '',
+        nom_complet: receptionRow.nom_requerant ?? this.piecesContext?.nom_complet ?? '',
+        telephone: receptionRow.tel ?? this.piecesContext?.telephone ?? '',
+        adresse: receptionRow.adresse ?? this.piecesContext?.adresse ?? '',
+        myobjet: receptionRow.myobjet ?? this.piecesContext?.myobjet ?? '',
+        datedemande:
+          receptionRow.datedemande ??
+          receptionRow.date_demande ??
+          this.piecesContext?.datedemande,
+        numassu: receptionRow.num_assu ?? this.piecesContext?.numassu ?? '',
       }
       this.piecesMode = 'reception'
-      this.loadingPieces = true
+      this.piecesLoadingAction = 'open'
       try {
-        const { pieceTypeOptions, existingPieces } = await fetchReceptionPiecesContext(row)
-        this.pieceTypeOptions = pieceTypeOptions
-        this.existingPieces = existingPieces
+        const { pieceTypeOptions, existingPieces, serverContext } =
+          await fetchReceptionPiecesContext(receptionRow)
+
+        if (serverContext) {
+          const agent = getConnectedAgentContext()
+          this.piecesContext = {
+            ...this.piecesContext,
+            username: serverContext.username || agent.login,
+            code_centre_user:
+              serverContext.code_centre_user ||
+              this.piecesContext?.code_centre_user ||
+              '',
+            objet: serverContext.objet || this.piecesContext?.objet,
+            numassu: serverContext.numassu || this.piecesContext?.numassu,
+            nom_complet: serverContext.nom_complet || this.piecesContext?.nom_complet,
+            nomcomplet: serverContext.nom_complet || this.piecesContext?.nomcomplet,
+            date_naiss: serverContext.date_naiss || this.piecesContext?.date_naiss,
+            myobjet: serverContext.myobjet || this.piecesContext?.myobjet,
+            datedemande: serverContext.datedemande || this.piecesContext?.datedemande,
+            telephone: serverContext.telephone || this.piecesContext?.telephone,
+            adresse: serverContext.adresse || this.piecesContext?.adresse,
+          }
+        }
+
+        if (switchingDossier) {
+          this.recapPieces = []
+          this.existingPieces = []
+        }
+
+        if (pieceTypeOptions?.length) {
+          this.pieceTypeOptions = pieceTypeOptions
+          this.pieceOptionsVersion += 1
+        }
+
+        if (existingPieces?.length) {
+          this.existingPieces = existingPieces
+          this.recapPieces = syncRecapFromExistingPieces(existingPieces)
+        } else if (!switchingDossier && this.recapPieces.length) {
+          this.existingPieces = mapRecapPiecesToExisting(this.recapPieces)
+        } else {
+          this.existingPieces = []
+        }
+
+        if (!this.pieceTypeOptions.length) {
+          await this.ensurePieceTypeOptions(true, { syncExisting: true })
+        }
+
+        if (!this.existingPieces.length && this.recapPieces.length) {
+          this.existingPieces = mapRecapPiecesToExisting(this.recapPieces)
+        }
+
         const firstType = this.pieceTypeOptions[0]?.value ?? ''
         this.pieceRows = [
           createPieceRow(1, {
             person: firstType,
-            titulaire: row?.nom_requerant ?? '',
+            titulaire: receptionRow.nom_requerant ?? '',
           }),
         ]
+        this.syncPieceRowPersonValues()
         this.step = 'piecesReception'
       } catch (e) {
-        notify({
-          type: 'negative',
-          message: e?.message || t('messages.error'),
-        })
+        if (!isEnergizerSessionExpiredError(e)) {
+          notify({
+            type: 'negative',
+            message: e?.message || t('messages.error'),
+          })
+        }
       } finally {
-        this.loadingPieces = false
+        this.piecesLoadingAction = null
       }
     },
 
+    /**
+     * Terminer (2 boutons — show.jsp / showAjout.jsp) : finalise via end.jsp.
+     */
     async terminerDossier() {
-      const count =
-        this.step === 'piecesRecap'
-          ? this.recapPieces.length
-          : this.existingPieces.length + this.pieceRows.length
-
-      if (this.piecesMode === 'reception' && this.step === 'piecesReception' && count === 0) {
-        notify({
-          type: 'negative',
-          message: t('reception.nouveauDossier.noPiecesOnFinish'),
-        })
+      if (this.step !== 'piecesRecap') {
+        await this.terminerVersCorbeille()
         return
       }
 
       this.loadingFinalize = true
       try {
+        if (this.recapPieces.length === 0) {
+          notify({
+            type: 'negative',
+            message: t('reception.nouveauDossier.noPiecesOnFinish'),
+          })
+          return
+        }
+
         const result = await finalizeNouveauDossier(this.piecesContext)
+        const numdossier = String(this.piecesContext?.numdossier ?? '').trim()
+
         notify({
           type: 'positive',
           message: result.message ?? t('reception.nouveauDossier.finalized'),
           timeout: 4000,
         })
-        this.backToPick()
+
+        this.upsertSavedDossierFromContext(this.piecesContext, {
+          code_situ: result.code_situ ?? 'En Cours d instruction',
+          localisation: result.etape ?? 'Accueil',
+        })
+        await this.loadSavedDossiers()
+
+        this.lastSubmitResult = { num_dossier: numdossier }
+        this.closeDialog()
+      } catch (e) {
+        if (!isEnergizerSessionExpiredError(e)) {
+          notify({
+            type: 'negative',
+            message: e?.message || t('messages.error'),
+            timeout: 6000,
+          })
+        }
       } finally {
         this.loadingFinalize = false
       }

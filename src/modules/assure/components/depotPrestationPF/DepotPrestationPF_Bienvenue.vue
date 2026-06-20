@@ -8,46 +8,62 @@
       <div class="text-body2 q-mt-xs">{{ t('modules.assure.depotPf.welcomeLead') }}</div>
     </q-banner>
 
-    <p class="depot-pf-welcome__hint text-grey-8 q-mb-sm">
+    <p class="depot-pf-welcome__hint text-grey-8 q-mb-sm text-center">
       {{ t('modules.assure.depotPf.welcomeHint') }}
     </p>
 
     <div class="depot-pf-form-grid-1-2">
       <q-input
         :model-value="store.numAssu"
-        :label="t('inputassu.matricule_assure')"
+        :label="fieldLabel(t('inputassu.matricule_assure'))"
         outlined
         dense
         readonly
         bg-color="blue-grey-1"
-      />
+      >
+        <template #prepend>
+          <q-icon name="fingerprint" color="primary" />
+        </template>
+      </q-input>
       <q-input
         :model-value="nomPrenom"
-        :label="t('inputassu.nom_prenom')"
+        :label="fieldLabel(t('inputassu.nom_prenom'))"
         outlined
         dense
         readonly
         bg-color="blue-grey-1"
-      />
+      >
+        <template #prepend>
+          <q-icon name="person" color="primary" />
+        </template>
+      </q-input>
     </div>
 
     <div class="depot-pf-form-grid-3">
       <q-input
         :model-value="dateNaissance"
-        :label="t('inputassu.date_naissance_assure')"
+        :label="fieldLabel(t('inputassu.date_naissance_assure'))"
         outlined
         dense
         readonly
         bg-color="blue-grey-1"
-      />
+      >
+        <template #prepend>
+          <q-icon name="cake" color="primary" />
+        </template>
+      </q-input>
       <q-input
         :model-value="sexeLabel"
-        :label="t('inputassu.sexe')"
+        :label="fieldLabel(t('inputassu.sexe'))"
         outlined
         dense
         readonly
         bg-color="blue-grey-1"
-      />
+      >
+        <template #prepend>
+          <q-icon name="wc" color="primary" />
+        </template>
+      </q-input>
     </div>
   </div>
 </template>
@@ -56,9 +72,12 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useDepotPrestationPfStore } from 'src/modules/assure/stores/depotPrestationPfStore.js'
+import { formatSexeLabel } from 'src/modules/assure/utils/formatSexeLabel.js'
+import { useDepotPrestationPfRules } from 'src/modules/assure/composables/useDepotPrestationPfRules.js'
 
 const { t } = useI18n()
 const store = useDepotPrestationPfStore()
+const { fieldLabel } = useDepotPrestationPfRules()
 
 const nomPrenom = computed(() => {
   const ctx = store.contexte
@@ -70,10 +89,5 @@ const dateNaissance = computed(
   () => store.contexte?.dateNaissance || store.contexte?.date_naissance || '',
 )
 
-const sexeLabel = computed(() => {
-  const s = store.contexte?.sexe
-  if (s === 'F') return t('input.female')
-  if (s === 'M') return t('input.male')
-  return s || ''
-})
+const sexeLabel = computed(() => formatSexeLabel(store.contexte?.sexe, t))
 </script>

@@ -7,52 +7,75 @@
     <div class="depot-pf-form-grid-1-2">
       <q-input
         :model-value="store.numAssu"
-        :label="t('inputassu.matricule_assure')"
+        :label="fieldLabel(t('inputassu.matricule_assure'))"
         outlined
         dense
         readonly
         bg-color="blue-grey-1"
-      />
+      >
+        <template #prepend>
+          <q-icon name="fingerprint" color="primary" />
+        </template>
+      </q-input>
       <q-input
         :model-value="nomPrenom"
-        :label="t('inputassu.nom_prenom')"
+        :label="fieldLabel(t('inputassu.nom_prenom'))"
         outlined
         dense
         readonly
         bg-color="blue-grey-1"
-      />
+      >
+        <template #prepend>
+          <q-icon name="person" color="primary" />
+        </template>
+      </q-input>
     </div>
 
     <div class="depot-pf-form-grid-3">
       <q-input
         :model-value="dateNaissance"
-        :label="t('inputassu.date_naissance_assure')"
+        :label="fieldLabel(t('inputassu.date_naissance_assure'))"
         outlined
         dense
         readonly
         bg-color="blue-grey-1"
-      />
+      >
+        <template #prepend>
+          <q-icon name="cake" color="primary" />
+        </template>
+      </q-input>
       <q-input
         :model-value="sexeLabel"
-        :label="t('inputassu.sexe')"
+        :label="fieldLabel(t('inputassu.sexe'))"
         outlined
         dense
         readonly
         bg-color="blue-grey-1"
-      />
+      >
+        <template #prepend>
+          <q-icon name="wc" color="primary" />
+        </template>
+      </q-input>
       <q-input
         v-model="store.common.addrAssuText"
-        :label="t('inputassu.adresse_assure')"
+        :label="fieldLabel(t('inputassu.adresse_assure'))"
+        :class="requiredFieldClass(true)"
         outlined
         dense
+        :rules="[required]"
         @update:model-value="(v) => (store.common.addrAssuText = String(v || '').toUpperCase())"
-      />
+      >
+        <template #prepend>
+          <q-icon name="home" color="primary" />
+        </template>
+      </q-input>
     </div>
 
     <div class="depot-pf-form-grid-3">
       <q-input
         v-model="store.common.emailAssuText"
-        :label="t('inputassu.email')"
+        :label="fieldLabel(t('inputassu.email'))"
+        :class="requiredFieldClass(true)"
         type="email"
         outlined
         dense
@@ -64,28 +87,39 @@
       </q-input>
       <q-input
         v-model="store.common.telAssuText"
-        :label="t('inputassu.phone')"
+        :label="fieldLabel(t('inputassu.phone'))"
+        :class="requiredFieldClass(true)"
         outlined
         dense
         type="tel"
         prefix="+237"
         maxlength="9"
         :rules="[required, validateTelephone]"
-      />
+      >
+        <template #prepend>
+          <q-icon name="phone" color="primary" />
+        </template>
+      </q-input>
       <q-input
         v-model="store.common.matrInteText"
-        :label="t('inputassu.matricule_interne_assure')"
+        :label="fieldLabel(t('inputassu.matricule_interne_assure'))"
+        :class="requiredFieldClass(true)"
         outlined
         dense
         :rules="[required]"
         @update:model-value="(v) => (store.common.matrInteText = String(v || '').toUpperCase())"
-      />
+      >
+        <template #prepend>
+          <q-icon name="badge" color="primary" />
+        </template>
+      </q-input>
     </div>
 
     <div class="depot-pf-form-grid-1-2">
       <q-input
         v-model="store.common.matEmployeur"
-        :label="t('inputassu.employer_cnps_registration_number')"
+        :label="fieldLabel(t('inputassu.employer_cnps_registration_number'))"
+        :class="requiredFieldClass(true)"
         outlined
         dense
         :loading="store.loadingEmployeur"
@@ -95,6 +129,9 @@
         @keyup.enter="onSearchEmployeur"
         @keydown.enter.prevent
       >
+        <template #prepend>
+          <q-icon name="business" color="primary" />
+        </template>
         <template #append>
           <q-btn
             flat
@@ -109,59 +146,49 @@
       </q-input>
       <q-input
         v-model="store.common.RAISON_SOCIALE"
-        :label="t('inputassu.legal_name')"
+        :label="fieldLabel(t('inputassu.legal_name'))"
+        :class="requiredFieldClass(true)"
         outlined
         dense
         readonly
         bg-color="blue-grey-1"
         :rules="[required]"
         :placeholder="t('modules.assure.depotPf.raisonSocialeHint')"
-      />
+      >
+        <template #prepend>
+          <q-icon name="corporate_fare" color="primary" />
+        </template>
+      </q-input>
     </div>
 
     <template v-if="!hideCentre">
-      <div class="depot-pf-section-heading">
+      <div class="depot-pf-section-heading depot-pf-section-heading--center">
         {{ t('modules.assure.depotPf.sectionPrestation') }}
       </div>
-
-      <q-select
-        v-model="store.common.CODE_CENTRECNPSC"
-      :label="t('inputassu.centreCNPS')"
-      :options="centresFiltered"
-      option-label="LIB_CENTRE"
-      option-value="CODE_CENTRE"
-      emit-value
-      map-options
-      outlined
-      dense
-      use-input
-      input-debounce="0"
-      :rules="[required]"
-      @filter="filterCentres"
-      />
+      <DepotPrestationPF_CentreCnpsSelect />
     </template>
   </div>
 </template>
 
 <script setup>
-defineProps({
-  hideCentre: { type: Boolean, default: false },
-})
-
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { centres as rawCentres } from 'src/modules/shared/data/Centres.js'
 import { useDepotPrestationPfStore } from 'src/modules/assure/stores/depotPrestationPfStore.js'
 import { useDepotPrestationPfRules } from 'src/modules/assure/composables/useDepotPrestationPfRules.js'
 import { useNotify } from 'src/modules/shared/components/useNotify.js'
 import { normalizeMatriculeEmployeur } from 'src/modules/assure/api/depotPrestationPfUtils.js'
+import { formatSexeLabel } from 'src/modules/assure/utils/formatSexeLabel.js'
+import DepotPrestationPF_CentreCnpsSelect from './DepotPrestationPF_CentreCnpsSelect.vue'
+
+defineProps({
+  hideCentre: { type: Boolean, default: false },
+})
 
 const { t } = useI18n()
 const store = useDepotPrestationPfStore()
-const { required, validateEmail, validateMatriculeCNPS, validateTelephone } = useDepotPrestationPfRules()
+const { required, fieldLabel, requiredFieldClass, validateEmail, validateMatriculeCNPS, validateTelephone } =
+  useDepotPrestationPfRules()
 const { notifySuccess, notifyError } = useNotify()
-
-const centresFiltered = ref([...rawCentres])
 
 const nomPrenom = computed(() => {
   const ctx = store.contexte
@@ -173,21 +200,7 @@ const dateNaissance = computed(
   () => store.contexte?.dateNaissance || store.contexte?.date_naissance || '',
 )
 
-const sexeLabel = computed(() => {
-  const s = store.contexte?.sexe
-  if (s === 'F') return t('input.female')
-  if (s === 'M') return t('input.male')
-  return s || ''
-})
-
-function filterCentres(val, update) {
-  update(() => {
-    const needle = (val || '').toLowerCase()
-    centresFiltered.value = rawCentres.filter((c) =>
-      c.LIB_CENTRE.toLowerCase().includes(needle),
-    )
-  })
-}
+const sexeLabel = computed(() => formatSexeLabel(store.contexte?.sexe, t))
 
 function onMatriculeChange(val) {
   store.common.matEmployeur = normalizeMatriculeEmployeur(val)

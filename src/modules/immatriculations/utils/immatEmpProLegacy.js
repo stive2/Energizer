@@ -83,8 +83,26 @@ export function syncImmatEmpProHiddenFields(form, referentials) {
   if (tp) form.typepiece = tp.LIBELLE
 }
 
+export function hasRegistreCommerceDocument(files = {}) {
+  return Boolean(files?.IDREGICOMM)
+}
+
+export function hasAutorisationOuvertureDocument(files = {}) {
+  return Boolean(files?.IDAUTORISATION)
+}
+
+/** Au moins un des deux justificatifs (registre de commerce ou autorisation d'ouverture). */
+export function hasRegistreOuAutorisationDocument(files = {}) {
+  return hasRegistreCommerceDocument(files) || hasAutorisationOuvertureDocument(files)
+}
+
+/** Parcours sans registre de commerce : seule l'autorisation d'ouverture est fournie. */
+export function usesAutorisationOuvertureOnly(files = {}) {
+  return hasAutorisationOuvertureDocument(files) && !hasRegistreCommerceDocument(files)
+}
+
 /** Validations métier legacy (avant POST) — messages alignés imma_employeur1.js */
-export function validateImmatEmpProBusinessRules(form) {
+export function validateImmatEmpProBusinessRules(form, files = {}) {
   const today = new Date()
 
   if (form.DATE_EFFET && compareDates(form.DATE_DEB_SERVICE, form.DATE_EFFET) > 0) {
@@ -105,13 +123,24 @@ export function validateImmatEmpProBusinessRules(form) {
   if (form.DATE_PIECE && compareDates(today, form.DATE_PIECE) < 0) {
     return "Erreur : La date de delivrance de la piece d'identite est posterieure a la du jour"
   }
-  if (String(form.A_VERIFIER ?? '') !== '0' && !form.num_registre) {
+  if (!hasRegistreOuAutorisationDocument(files)) {
+    return "Registre de commerce ou autorisation d'ouverture : fournissez l'un de ces documents"
+  }
+  if (!String(form.CAUSE_IMMA ?? '').trim()) {
+    return "Origine de l'immatriculation non renseignee"
+  }
+  if (!String(form.CIRCUIT_DOSSIER ?? '').trim()) {
+    return 'Origine du dossier non renseignee'
+  }
+  const autorisationOnly = usesAutorisationOuvertureOnly(files)
+  const numRegistre = String(form.num_registre ?? '').trim()
+  if (!autorisationOnly && String(form.A_VERIFIER ?? '') !== '0' && !numRegistre) {
     return "Numero registre de commerce non renseigne (exige pour votre activite)"
   }
-  if (!form.date_creation_empl && form.num_registre) {
+  if (!form.date_creation_empl && numRegistre) {
     return 'Date de creation au registre de commerce non renseignee'
   }
-  if (String(form.A_VERIFIER ?? '') === '0' && !form.num_contr) {
+  if (String(form.A_VERIFIER ?? '') === '0' && !String(form.num_contr ?? '').trim()) {
     return 'Numero contribuable non renseigne'
   }
   return null
@@ -203,8 +232,20 @@ export function buildImmatEmpProLegacyFormData(form, files, options = {}) {
   appendScalar(fd, 'CODE_REGION_PIECE', form.CODE_REGION_PIECE)
   appendScalar(fd, 'CODE_DEPA_PIECE', form.CODE_DEPA_PIECE)
 
-  appendScalar(fd, 'valider', form.validation === true || form.validation === '1' ? '1' : '0')
-  appendScalar(fd, 'etatValid', form.validation === true || form.validation === '1' ? '1' : '0')
+  const submissionType = options.submissionType
+  const confirmed = form.validation === true || form.validation === '1'
+  let valider = confirmed ? '1' : '0'
+  let etatValid = confirmed ? '1' : '0'
+  if (submissionType === 'definitive') {
+    valider = '1'
+    etatValid = '1'
+  } else if (submissionType === 'temporary') {
+    // Phase contrôle : aligné tele_imma_employeur1.js (valider=1 pour accepter l'enregistrement).
+    valider = '1'
+    etatValid = '1'
+  }
+  appendScalar(fd, 'valider', valider)
+  appendScalar(fd, 'etatValid', etatValid)
 
   if (files.IDREGICOMM) {
     fd.append(IMMAT_EMP_PRO_PIECES.REGISTRE_COMMERCE, files.IDREGICOMM, files.IDREGICOMM.name)

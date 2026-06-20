@@ -13,7 +13,9 @@ import { calcMD5 } from 'src/modules/shared/utils/md5.js'
 
 import { AUTH_API } from './paths.js'
 import { isEnergizerLegacyAuthEnabled } from 'src/modules/shared/config/energizerHttp.js'
+import { isAssureLegacyAuthEnabled } from 'src/modules/shared/config/assureHttp.js'
 import { loginEnergizerAgent } from './energizerAuthApi.js'
+import { loginAssureInsured, reactivateAssureAccount, logoutAssureInsured } from './assureAuthApi.js'
 
 function variantToProfile(variant) {
   return variant === 'agent' ? 'internal' : 'external'
@@ -32,6 +34,10 @@ export async function login({ variant, login: loginValue, password }) {
 
   if (variant === 'agent' && isEnergizerLegacyAuthEnabled()) {
     return loginEnergizerAgent({ login: loginValue, password })
+  }
+
+  if (variant === 'insured' && isAssureLegacyAuthEnabled()) {
+    return loginAssureInsured({ login: loginValue, password })
   }
 
   const hashed = calcMD5(password)
@@ -66,7 +72,20 @@ export async function login({ variant, login: loginValue, password }) {
   }
 }
 
-export async function forgotPassword({ login: loginValue, variant }) {
+export async function forgotPassword({ login: loginValue, variant, email, nom, date_naiss }) {
+  if (variant === 'insured' && isAssureLegacyAuthEnabled()) {
+    const body = await reactivateAssureAccount({
+      num_assu: (loginValue || '').trim(),
+      email: (email || '').trim(),
+      nom: (nom || '').trim(),
+      date_naiss: (date_naiss || '').trim(),
+    })
+    return {
+      success: true,
+      message: body.message || 'Si les informations sont correctes, un email a été envoyé.',
+    }
+  }
+
   const profile = variant ? variantToProfile(variant) : undefined
 
   const { data } = await api.post(
@@ -97,9 +116,13 @@ export async function resetPassword({ token, newPassword }) {
   return unwrapData(data) || { success: true }
 }
 
-export async function logout() {
+export async function logout({ variant } = {}) {
   try {
-    await api.post(AUTH_API.logout, {}, { skipErrorNotify: true })
+    if (variant === 'insured' && isAssureLegacyAuthEnabled()) {
+      await logoutAssureInsured()
+    } else {
+      await api.post(AUTH_API.logout, {}, { skipErrorNotify: true })
+    }
   } catch {
     /* déconnexion locale prioritaire */
   }

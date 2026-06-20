@@ -349,6 +349,7 @@
                       :label="$t('inputassu.hiring_notice')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       :counter-label="counterLabelFn"
                       max-files="1"
@@ -726,6 +727,7 @@
                       :label="form.typepiece?.LIBELLE || $t('inputassu.identity_document_type')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       max-files="1"
                       :accept="LEGACY_IMMAT_FILE_ACCEPT"
@@ -753,6 +755,7 @@
                       :label="$t('inputassu.declaration_on_honor')"
                       outlined
                       dense
+                      clearable
                       class="full-width"
                       max-files="1"
                       :accept="LEGACY_IMMAT_FILE_ACCEPT"
@@ -1299,6 +1302,7 @@
                         :hint="fileHintWithSize($t('inputassu.birth_certificate_child', { number: index }))"
                         outlined
                         dense
+                        clearable
                         class="full-width"
                         :accept="LEGACY_IMMAT_FILE_ACCEPT"
                         :max-file-size="LEGACY_MAX_FILE_SIZE"
@@ -1350,6 +1354,7 @@
                         :hint="fileHintWithSize($t('inputassu.work_certificates', { number: index }))"
                         outlined
                         dense
+                        clearable
                         class="full-width"
                         :accept="LEGACY_IMMAT_FILE_ACCEPT"
                         :max-file-size="LEGACY_MAX_FILE_SIZE"
@@ -1403,6 +1408,7 @@
                         :hint="fileHintWithSize($t('inputassu.marriages_certificates', { number: index }))"
                         outlined
                         dense
+                        clearable
                         class="full-width"
                         :accept="LEGACY_IMMAT_FILE_ACCEPT"
                         :max-file-size="LEGACY_MAX_FILE_SIZE"

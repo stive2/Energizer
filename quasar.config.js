@@ -122,6 +122,8 @@ export default defineConfig((ctx) => {
             'http://172.17.15.121:8080',
           changeOrigin: true,
           secure: false,
+          timeout: 600_000,
+          proxyTimeout: 600_000,
           rewrite: (path) => path.replace(/^\/tele-immat/, '/teleImmat_0.1'),
         },
         '/EnergizerDev': {
@@ -131,6 +133,16 @@ export default defineConfig((ctx) => {
             )?.replace(/\/EnergizerDev\/?$/i, '') || 'http://172.17.15.121:8080',
           changeOrigin: true,
           secure: false,
+        },
+        '/api-assure': {
+          target:
+            process.env.VITE_ASSURE_API_BASE_URL?.replace(/\/api-assure\/?$/, '') ||
+            'http://172.17.15.121:83',
+          changeOrigin: true,
+          secure: false,
+          timeout: 600_000,
+          proxyTimeout: 600_000,
+          rewrite: (path) => path.replace(/^\/api-assure/, ''),
         },
       },
     },

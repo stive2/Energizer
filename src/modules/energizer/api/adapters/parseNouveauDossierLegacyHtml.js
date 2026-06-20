@@ -46,6 +46,8 @@ function fixLegacyFrenchMojibake(text) {
     .replace(/\bd\s+embauche\b/gi, "d'embauche")
     .replace(/\bl\s+insertion\b/gi, "l'insertion")
     .replace(/\bEchec\b/g, 'Échec')
+    .replace(/d[eé]j[ï¿½\ufffd]+/gi, 'déjà')
+    .replace(/syst[eè]m[eé]/gi, 'système')
 }
 
 /** Messages serveur connus (texte lisible si l’encodage de la redirect échoue). */
@@ -75,6 +77,27 @@ const KNOWN_LEGACY_ERROR_MESSAGES = [
     message:
       "La date d'embauche saisie doit être postérieure à la date de signature de l'employeur.",
   },
+  {
+    test: (t) => /accident survenu le/i.test(t),
+    message: (t) => {
+      const date = t.match(/survenu le\s*:?\s*([\d/.-]+)/i)?.[1]?.trim()
+      if (date) {
+        return `Enregistrement refusé : un dossier de risque professionnel existe déjà pour cet assuré, pour un accident survenu le ${date}. Consultez les dossiers en cours ou modifiez la date d'accident si la saisie est incorrecte.`
+      }
+      return "Enregistrement refusé : un dossier de risque professionnel existe déjà pour cet assuré avec cette date d'accident. Consultez les dossiers en cours ou modifiez la date saisie."
+    },
+  },
+  {
+    test: (t) => /dossier de .+ est en cours de traitement/i.test(t),
+    message: (t) => {
+      const dossier = t.match(/CPS de\s+([A-Z0-9]+)/i)?.[1]?.trim()
+      const mat = t.match(/assur[eé]\s+([0-9-]+)/i)?.[1]?.trim()
+      if (dossier && mat) {
+        return `Un dossier est déjà en cours de traitement (n° ${dossier}) pour l'assuré ${mat}.`
+      }
+      return 'Un dossier est déjà en cours de traitement pour cet assuré.'
+    },
+  },
 ]
 
 /**
@@ -86,7 +109,9 @@ function polishLegacyFrenchMessage(text) {
   out = decodeLegacyHtmlEntities(out)
   out = fixLegacyFrenchMojibake(out)
   const known = KNOWN_LEGACY_ERROR_MESSAGES.find((entry) => entry.test(out))
-  if (known) return known.message
+  if (known) {
+    return typeof known.message === 'function' ? known.message(out) : known.message
+  }
   return out
     .replace(/\betre\b/gi, 'être')
     .replace(/\bperiode\b/gi, 'période')
@@ -107,6 +132,54 @@ export function formatLegacyServerMessage(message) {
   const raw = String(message ?? '').trim()
   if (!raw) return ''
   return polishLegacyFrenchMessage(raw)
+}
+
+/**
+ * Détecte une page HTML (SPA Vite, login, etc.) renvoyée à la place d'un message métier.
+ * @param {string} text
+ * @returns {boolean}
+ */
+export function isSpaOrHtmlDocument(text) {
+  const raw = String(text ?? '').trim()
+  if (!raw) return false
+  if (raw.length > 280 && /^<!doctype\s+html/i.test(raw)) return true
+  if (/<html[\s>]/i.test(raw) && /<body[\s>]/i.test(raw)) return true
+  if (/vite-plugin-checker-runtime|\/@vite\/client|id=["']q-app["']/i.test(raw)) return true
+  return false
+}
+
+/**
+ * Retire le bruit HTML éventuellement concaténé à un paramètre ?error=.
+ * @param {string} value
+ * @returns {string}
+ */
+function trimLegacyErrorValue(value) {
+  let v = String(value ?? '').trim()
+  const htmlIdx = v.search(/<!doctype\s+html|<html[\s>]/i)
+  if (htmlIdx > 0) v = v.slice(0, htmlIdx).trim()
+  if (v.length > 600) v = `${v.slice(0, 600).trim()}…`
+  return v
+}
+
+const NOUVEAU_DOSSIER_GENERIC_ERROR =
+  "Enregistrement impossible. Vérifiez les informations saisies, votre session Energizer, puis réessayez."
+
+const NOUVEAU_DOSSIER_HTML_RESPONSE_ERROR =
+  "Enregistrement impossible : le serveur a renvoyé une page web au lieu d'une réponse métier. Vérifiez votre connexion à Energizer et réessayez."
+
+/**
+ * Message d'erreur lisible pour l'utilisateur (nouveau dossier / pièces jointes).
+ * @param {string | null | undefined} message
+ * @param {string} [fallback]
+ * @returns {string}
+ */
+export function toUserFacingNouveauDossierError(message, fallback = NOUVEAU_DOSSIER_GENERIC_ERROR) {
+  const raw = String(message ?? '').trim()
+  if (!raw) return fallback
+  if (isSpaOrHtmlDocument(raw)) return NOUVEAU_DOSSIER_HTML_RESPONSE_ERROR
+  const formatted = formatLegacyServerMessage(raw)
+  if (!formatted || isSpaOrHtmlDocument(formatted)) return NOUVEAU_DOSSIER_HTML_RESPONSE_ERROR
+  return formatted
 }
 
 function decodeLegacyErrorParam(value) {
@@ -151,6 +224,22 @@ export function isLegacyNouveauDossierSuccessMessage(message) {
 }
 
 /**
+ * Extrait la valeur brute de ?error= (legacy Tomcat non encodé : &eacute; ne doit pas couper le message).
+ * @param {string} urlOrLocation
+ * @returns {string | null}
+ */
+function extractRawLegacyErrorParam(urlOrLocation) {
+  const raw = String(urlOrLocation ?? '')
+  const match = raw.match(/[?&]error=([\s\S]*)/i)
+  if (!match?.[1]) return null
+
+  let value = match[1].trim()
+  const hashIdx = value.indexOf('#')
+  if (hashIdx >= 0) value = value.slice(0, hashIdx)
+  return trimLegacyErrorValue(value)
+}
+
+/**
  * @param {string} urlOrLocation
  * @returns {string | null}
  */
@@ -158,26 +247,24 @@ export function parseLegacyRedirectError(urlOrLocation) {
   if (!urlOrLocation) return null
   const raw = String(urlOrLocation)
 
+  const fromRawParam = extractRawLegacyErrorParam(raw)
+  if (fromRawParam) {
+    const decoded = decodeLegacyErrorParam(fromRawParam)
+    if (decoded) return decoded
+  }
+
   try {
     const url = new URL(raw, 'http://energizer.local')
     const error = url.searchParams.get('error')
     if (error) {
       const decoded = decodeLegacyErrorParam(error)
-      return decoded || null
+      if (decoded) return decoded
     }
   } catch {
-    // Tomcat sendRedirect sans encodage : tout le texte suit error=
+    /* URL relative ou redirect Tomcat non standard */
   }
 
-  const match = raw.match(/[?&]error=([\s\S]*)/i)
-  if (!match?.[1]) return null
-
-  let value = match[1].trim()
-  const hashIdx = value.indexOf('#')
-  if (hashIdx >= 0) value = value.slice(0, hashIdx)
-
-  const decoded = decodeLegacyErrorParam(value)
-  return decoded || null
+  return null
 }
 
 /**
@@ -187,7 +274,7 @@ export function parseLegacyRedirectError(urlOrLocation) {
  */
 export function parseLegacyErrorFromHtml(html) {
   const raw = String(html ?? '')
-  if (!raw) return null
+  if (!raw || isSpaOrHtmlDocument(raw)) return null
 
   const fromUrl = parseLegacyRedirectError(raw)
   if (fromUrl) return fromUrl
@@ -209,13 +296,20 @@ export function parseLegacyErrorFromHtml(html) {
  * @returns {string | null}
  */
 export function extractLegacyNouveauDossierServerMessage(response) {
-  return (
-    response?.error ||
-    parseLegacyRedirectError(response?.finalUrl) ||
-    parseLegacyRedirectError(response?.redirectUrl) ||
-    parseLegacyErrorFromHtml(response?.html) ||
-    null
-  )
+  const candidates = [
+    response?.error,
+    parseLegacyRedirectError(response?.finalUrl),
+    parseLegacyRedirectError(response?.redirectUrl),
+    parseLegacyErrorFromHtml(response?.html),
+  ]
+
+  for (const candidate of candidates) {
+    const text = String(candidate ?? '').trim()
+    if (!text || isSpaOrHtmlDocument(text)) continue
+    return text
+  }
+
+  return null
 }
 
 /**
@@ -231,6 +325,52 @@ export function parseNumdossierFromAddpieceHtml(html) {
 }
 
 /**
+ * Champs cachés addpieceRecep.jsp (session agent, centre, contexte dossier).
+ * @param {string} html
+ */
+export function parseAddpieceRecepHiddenFields(html) {
+  const raw = String(html ?? '')
+  const readHidden = (name) => {
+    const byName =
+      raw.match(new RegExp(`name=["']${name}["'][^>]*value=["']([^"']*)["']`, 'i')) ??
+      raw.match(new RegExp(`value=["']([^"']*)["'][^>]*name=["']${name}["']`, 'i'))
+    const byId =
+      raw.match(new RegExp(`id=["']${name}["'][^>]*value=["']([^"']*)["']`, 'i')) ??
+      raw.match(new RegExp(`value=["']([^"']*)["'][^>]*id=["']${name}["']`, 'i'))
+    return (byName?.[1] ?? byId?.[1] ?? '').trim()
+  }
+
+  return {
+    username: readHidden('username'),
+    code_centre_user: readHidden('code_centre_user'),
+    objet: readHidden('objet'),
+    numassu: readHidden('numassu'),
+    nom_complet: readHidden('nom_complet'),
+    date_naiss: readHidden('date_naiss'),
+    myname: readHidden('myname'),
+    myobjet: readHidden('myobjet'),
+    datedemande: readHidden('datedemande'),
+    telephone: readHidden('telephone'),
+    adresse: readHidden('adresse'),
+  }
+}
+
+function mapLegacyPieceTypeOption(rawValue, labelText) {
+  const value = String(rawValue ?? '').trim()
+  if (!value) return null
+  const label = String(labelText ?? value).trim() || value
+  const underscore = value.indexOf('_')
+  const num_typepiece = underscore >= 0 ? value.slice(0, underscore) : value
+  const libelle = underscore >= 0 ? value.slice(underscore + 1) : label
+  return {
+    num_typepiece,
+    libelle,
+    value,
+    label: value,
+  }
+}
+
+/**
  * @param {string} html
  * @returns {Array<{ num_typepiece: string, libelle: string, value: string, label: string }>}
  */
@@ -242,73 +382,128 @@ export function parsePieceTypeOptionsFromAddpieceHtml(html) {
   if (!selectMatch) return []
 
   const options = [...selectMatch[1].matchAll(/<option[^>]*value=["']([^"']*)["'][^>]*>([^<]*)<\/option>/gi)]
+  return options.map((match) => mapLegacyPieceTypeOption(match[1], match[2])).filter(Boolean)
+}
+
+/**
+ * addpieceRecep.jsp génère les options dans addRow() (JS), pas dans un &lt;select name="person1"&gt;.
+ * @param {string} html
+ * @returns {Array<{ num_typepiece: string, libelle: string, value: string, label: string }>}
+ */
+export function parsePieceTypeOptionsFromAddpieceRecepHtml(html) {
+  const raw = String(html ?? '')
+  const options = []
+  const seen = new Set()
+  const optionRe =
+    /element\.options\[\s*\d+\s*\]\s*=\s*new\s+Option\(\s*['"]([^'"]+)['"]\s*,\s*['"]([^'"]+)['"]\s*\)/gi
+
+  for (const match of raw.matchAll(optionRe)) {
+    const mapped = mapLegacyPieceTypeOption(match[2], match[1])
+    if (!mapped || seen.has(mapped.value)) continue
+    seen.add(mapped.value)
+    options.push(mapped)
+  }
+
   return options
-    .map((match) => {
-      const value = match[1].trim()
-      if (!value) return null
-      const underscore = value.indexOf('_')
-      const num_typepiece = underscore >= 0 ? value.slice(0, underscore) : value
-      const libelle = underscore >= 0 ? value.slice(underscore + 1) : match[2].trim()
-      return {
-        num_typepiece,
-        libelle,
-        value,
-        label: value,
-      }
-    })
-    .filter(Boolean)
 }
 
 /**
  * @param {string} html
+ * @returns {Array<{ num_typepiece: string, libelle: string, value: string, label: string }>}
+ */
+export function parsePieceTypeOptionsFromLegacyPiecesHtml(html) {
+  const fromRecep = parsePieceTypeOptionsFromAddpieceRecepHtml(html)
+  if (fromRecep.length) return fromRecep
+  return parsePieceTypeOptionsFromAddpieceHtml(html)
+}
+
+/**
+ * @param {string} cellHtml
+ * @returns {string}
+ */
+function readLegacyTableCellText(cellHtml) {
+  return decodeLegacyHtmlEntities(
+    String(cellHtml ?? '')
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/gi, ' ')
+      .trim(),
+  )
+}
+
+/**
+ * Repère le tableau des pièces déjà en BDD (distinct du formulaire de saisie).
+ * @param {string} html
+ * @returns {string | null}
+ */
+function findExistingPiecesTableHtml(html) {
+  const raw = String(html ?? '')
+  for (const match of raw.matchAll(/<table[^>]*>([\s\S]*?)<\/table>/gi)) {
+    const tableHtml = match[1]
+    const headerChunk = tableHtml.slice(0, 800)
+    if (
+      /Nature de la Pi/i.test(headerChunk) &&
+      /Titulaire/i.test(headerChunk) &&
+      /Nbre/i.test(headerChunk)
+    ) {
+      return tableHtml
+    }
+  }
+
+  const sectionMatch =
+    raw.match(
+      /Liste des Pi[eèè]ces Jointes D[eéè]j[aàè] Ajout[eéè]es[\s\S]*?<table[^>]*>([\s\S]*?)<\/table>/i,
+    ) ?? raw.match(/Nature de la Pi[eèè]ce[\s\S]*?<table[^>]*>([\s\S]*?)<\/table>/i)
+
+  return sectionMatch?.[1] ?? null
+}
+
+/**
+ * Pièces déjà en BDD — tableau vert en tête de addpieceRecep.jsp (rstSelect4).
+ * @param {string} html
  * @returns {Array<Record<string, string>>}
  */
 export function parseExistingPiecesFromAddpieceRecepHtml(html) {
-  const raw = String(html ?? '')
+  const tableHtml = findExistingPiecesTableHtml(html)
+  if (!tableHtml) return []
+
   const pieces = []
-  const personRe = /name=["']person(\d+)["'][^>]*value=["']([^"']+)["']/gi
-  let match
+  let index = 0
 
-  while ((match = personRe.exec(raw)) !== null) {
-    const index = match[1]
-    const person = match[2].trim()
-    if (!person) continue
+  for (const rowMatch of tableHtml.matchAll(/<tr[^>]*>([\s\S]*?)<\/tr>/gi)) {
+    const rowHtml = rowMatch[0]
+    if (/Aucune pi[eèè]ce pr[eéè]alablement enregistr[eéè]e/i.test(rowHtml)) continue
 
-    const titulaire = readInputValue(raw, `titulaire${index}`)
-    const dateDep = readInputValue(raw, `dateDep${index}`)
-    const dateVal = readInputValue(raw, `dateVal${index}`)
-    const observ = readInputValue(raw, `observ${index}`)
-    const nbre = readInputValue(raw, `nbre${index}`) || '1'
-    const underscore = person.indexOf('_')
-    const num_typepiece = underscore >= 0 ? person.slice(0, underscore) : person
+    const cells = [...rowMatch[1].matchAll(/<td[^>]*>([\s\S]*?)<\/td>/gi)].map((cell) =>
+      readLegacyTableCellText(cell[1]),
+    )
+    if (cells.length < 7 || !cells[0]) continue
+    if (/Nature de la Pi/i.test(cells[0]) && /Titulaire/i.test(cells[1] ?? '')) continue
+
+    index += 1
+    const insertMatch = rowHtml.match(/NAME=['"]Insert-([^'"]+)['"]/i)
+    const insertKey = insertMatch?.[1] ?? ''
+    const id = insertKey ? `insert-${insertKey}` : `existing-${index}`
+    const numParts = insertKey.split('-')
+    const num_typepiece = numParts.length >= 2 ? numParts[numParts.length - 2] : ''
+    const num_ordre = numParts.length >= 1 ? numParts[numParts.length - 1] : String(index)
 
     pieces.push({
-      id: `${index}-${num_typepiece}`,
-      person,
-      titulaire,
-      dateDep,
-      dateVal,
-      observ,
-      nbre,
+      id,
+      person: cells[0],
+      displayPerson: cells[0],
+      titulaire: cells[1] ?? '',
+      dateDep: cells[2] ?? '',
+      dateVal: cells[3] ?? '',
+      observ: cells[4] ?? '',
+      nbre: cells[5] || '1',
+      verifiee: cells[6] ?? '',
       num_typepiece,
-      num_ordre: index,
-      _readonly: true,
+      num_ordre,
       _skipValidation: true,
     })
   }
 
   return pieces
-}
-
-/**
- * @param {string} html
- * @param {string} name
- * @returns {string}
- */
-function readInputValue(html, name) {
-  const re = new RegExp(`name=["']${name}["'][^>]*value=["']([^"']*)["']`, 'i')
-  const alt = new RegExp(`value=["']([^"']*)["'][^>]*name=["']${name}["']`, 'i')
-  return re.exec(html)?.[1]?.trim() ?? alt.exec(html)?.[1]?.trim() ?? ''
 }
 
 /**

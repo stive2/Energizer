@@ -1,6 +1,7 @@
 import {
   isEnergizerLegacyLoginPageHtml,
   isEnergizerLegacyLoginUrl,
+  isEnergizerLegacySuccessRedirectUrl,
 } from 'src/modules/energizer/utils/energizerLegacySessionDetect.js'
 import { isEnergizerLegacyAuthEnabled } from 'src/modules/shared/config/energizerHttp.js'
 import {
@@ -46,19 +47,22 @@ export function isEnergizerSessionExpiredResponse(sources = {}) {
   const { data, html, url, redirectUrl, finalUrl } = sources
 
   for (const chunk of [url, redirectUrl, finalUrl]) {
+    if (isEnergizerLegacySuccessRedirectUrl(chunk)) {
+      return false
+    }
+  }
+
+  for (const chunk of [url, redirectUrl, finalUrl]) {
     if (typeof chunk === 'string' && isEnergizerLegacyLoginUrl(chunk)) {
       return true
     }
   }
 
   for (const chunk of [html, data]) {
-    if (typeof chunk === 'string' && isEnergizerLegacyLoginPageHtml(chunk)) {
+    if (typeof chunk !== 'string' || !chunk.trim()) continue
+    if (isEnergizerLegacyLoginPageHtml(chunk)) {
       return true
     }
-  }
-
-  if (typeof data === 'string' && !String(data).trim()) {
-    return true
   }
 
   return false
@@ -113,7 +117,13 @@ export function setupEnergizerAxiosSessionInterceptor(axiosInstance) {
       if (response.config?.skipSessionExpiryCheck) return response
 
       const finalUrl = String(response.request?.responseURL ?? response.config?.url ?? '')
-      if (isEnergizerSessionExpiredResponse({ data: response.data, finalUrl, url: finalUrl })) {
+      const redirectUrl = String(response.headers?.location ?? '')
+      if (isEnergizerSessionExpiredResponse({
+        data: response.data,
+        finalUrl,
+        url: finalUrl,
+        redirectUrl,
+      })) {
         void handleEnergizerSessionExpired()
         return Promise.reject(createEnergizerSessionExpiredError())
       }
@@ -126,10 +136,12 @@ export function setupEnergizerAxiosSessionInterceptor(axiosInstance) {
       const finalUrl = String(
         response?.request?.responseURL ?? response?.headers?.location ?? '',
       )
+      const redirectUrl = String(response?.headers?.location ?? '')
       if (isEnergizerSessionExpiredResponse({
         data: response?.data,
         finalUrl,
         url: finalUrl,
+        redirectUrl,
       })) {
         void handleEnergizerSessionExpired()
         return Promise.reject(createEnergizerSessionExpiredError())

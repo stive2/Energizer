@@ -14,6 +14,11 @@ import {
   syncAllocationsPieces,
 } from 'src/modules/assure/utils/depotPrestationPfAccouchement.js'
 import { buildDepotPrestationPfLegacyFormData } from 'src/modules/assure/utils/depotPrestationPfLegacyFormData.js'
+import { buildTeleImmatPfUploadDest } from 'src/modules/shared/config/teleImmat.js'
+import {
+  hasCompletePfDate,
+  validatePfDateRange,
+} from 'src/modules/assure/utils/depotPrestationPfDates.js'
 
 /** Champs communs (tele_prestation_pf.js / initInfoField). */
 function createCommonForm() {
@@ -62,6 +67,7 @@ function createCongesMaterniteForm() {
     ijcmChBo: true,
     accoPremChBo: false,
     nombJourSupp: 0,
+    dateAccoEffe: '',
     dateDebuCongEffe: '',
     dateFinCongEffe: '',
     dateDebuNonSala: '',
@@ -91,6 +97,7 @@ function readContexteFromLocalStorage() {
       TEL_PERS: user.telephone || user.TEL_PERS || user.tel || '',
       Adresse: user.adresse || user.Adresse || '',
       mat_interne: user.mat_interne || user.matriculeInterne || '',
+      Dest: buildTeleImmatPfUploadDest(user.numeroAssure || user.num_assu || ''),
     }
   } catch {
     return null
@@ -156,7 +163,7 @@ export const useDepotPrestationPfStore = defineStore('assure-depot-prestation-pf
 
       this.loadingContexte = true
       try {
-        const remote = await loadAssureDepotPfContexte()
+        const remote = await loadAssureDepotPfContexte(this.numAssu)
         this.contexte = { ...(this.contexte || {}), ...remote }
         this.applyCoordonneesFromContexte()
       } finally {
@@ -168,7 +175,7 @@ export const useDepotPrestationPfStore = defineStore('assure-depot-prestation-pf
       if (this.refreshingContexte) return
       this.refreshingContexte = true
       try {
-        const remote = await loadAssureDepotPfContexte()
+        const remote = await loadAssureDepotPfContexte(this.numAssu)
         this.contexte = { ...(this.contexte || {}), ...remote }
         this.applyCoordonneesFromContexte()
       } catch {
@@ -297,6 +304,27 @@ export const useDepotPrestationPfStore = defineStore('assure-depot-prestation-pf
         if (deuxiemeActif && !f.AP2ChBo && !f.FM2ChBo) {
           errors.push('examens_prenataux_deuxieme_checkbox')
         }
+        if (premierActif && !hasDate(f.dateExam1Date)) {
+          errors.push('examens_prenataux_premier_date_requise')
+        }
+        if (deuxiemeActif && !hasDate(f.dateExam2)) {
+          errors.push('examens_prenataux_deuxieme_date_requise')
+        }
+        if (deuxiemeActif && !hasDate(f.dateAccoProb)) {
+          errors.push('examens_prenataux_date_accouchement_requise')
+        }
+        if (premierActif && !(f[PF_PIECE.CERT_AP1] instanceof File)) {
+          errors.push('examens_prenataux_certificat_premier_requis')
+        }
+        if (premierActif && f.FM1ChBo && !(f[PF_PIECE.FRAIS_AP1] instanceof File)) {
+          errors.push('examens_prenataux_frais_premier_requis')
+        }
+        if (deuxiemeActif && !(f[PF_PIECE.CERT_AP2] instanceof File)) {
+          errors.push('examens_prenataux_certificat_deuxieme_requis')
+        }
+        if (deuxiemeActif && f.FM2ChBo && !(f[PF_PIECE.FRAIS_AP2] instanceof File)) {
+          errors.push('examens_prenataux_frais_deuxieme_requis')
+        }
       }
       if (typeCode === DEPOT_PF_TYPE_CODES.ACCOUCHEMENT) {
         const f = this.accouchement
@@ -323,6 +351,31 @@ export const useDepotPrestationPfStore = defineStore('assure-depot-prestation-pf
           errors.push('maternite_femme_uniquement')
         }
         const f = this.congesMaternite
+        if (!hasCompletePfDate(f.dateAccoEffe) && !hasCompletePfDate(f.dateDebuCongEffe)) {
+          errors.push('maternite_date_accouchement_requis')
+        }
+        if (!hasCompletePfDate(f.dateDebuCongEffe)) {
+          errors.push('maternite_debut_conge_requis')
+        }
+        if (!hasCompletePfDate(f.dateDebuNonSala)) {
+          errors.push('maternite_debut_non_salaire_requis')
+        }
+        validatePfDateRange(
+          f.dateDebuCongEffe,
+          f.dateFinCongEffe,
+          'maternite_dates_conge_incoherentes',
+          errors,
+        )
+        validatePfDateRange(
+          f.dateDebuNonSala,
+          f.dateFinNonSala,
+          'maternite_dates_non_salaire_incoherentes',
+          errors,
+        )
+        const nombViab = parseInt(f.nombEnfaViab, 10)
+        if (!Number.isFinite(nombViab) || nombViab <= 0) {
+          errors.push('maternite_nombre_enfants_viables_requis')
+        }
         const raw = f.nombEnfaContMedi
         const n = parseInt(raw, 10)
         if (raw === null || raw === undefined || raw === '' || !Number.isFinite(n) || n <= 0) {
@@ -336,6 +389,15 @@ export const useDepotPrestationPfStore = defineStore('assure-depot-prestation-pf
               errors.push(`accouchement_acte_naissance_${i}`)
             }
           }
+        }
+        if (!(f[PF_PIECE.CERT_ACCOUCHEMENT] instanceof File)) {
+          errors.push('maternite_certificat_accouchement_requis')
+        }
+        if (!(f[PF_PIECE.BULLETIN_PAIE] instanceof File)) {
+          errors.push('maternite_bulletin_paie_requis')
+        }
+        if (!(f[PF_PIECE.ATTESTATION_CESSATION] instanceof File)) {
+          errors.push('maternite_attestation_cessation_requise')
         }
       }
       if (typeCode === DEPOT_PF_TYPE_CODES.ALLOCATIONS_FAMILIALES) {
@@ -378,6 +440,9 @@ export const useDepotPrestationPfStore = defineStore('assure-depot-prestation-pf
         const result = await submitDepotPrestationPf(payload)
         this.lastSubmitResult = result
         return { success: true, result }
+      } catch (e) {
+        const message = e?.message || 'Impossible d’envoyer le dossier.'
+        return { success: false, error: message }
       } finally {
         this.submitting = false
       }
